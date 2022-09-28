@@ -1,7 +1,10 @@
 #include "Lexer.hpp"
 #include <utils/Out.hpp>
 
-Lexer::Lexer(Path &filePath) { this->path = filePath; }
+Lexer::Lexer(Path &filePath) { 
+  this->path = filePath; 
+  this->src = filePath.readFile();
+}
 
 Lexer::Lexer(Lexer &r) {
   this->path = r.path;
@@ -24,7 +27,7 @@ void Lexer::tokenize() {
       ch1 = src.at(currChar + 1);
       ch2 = src.at(currChar + 2);
       ch3 = src.at(currChar + 3);
-    } catch (exception ignored) {
+    } catch (std::out_of_range& ignored) {
     }
 
     if (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r') {
@@ -291,7 +294,7 @@ void Lexer::tokenizeIdentifier() {
 
   while (true) {
     char ch = src.at(currChar);
-    if (isalpha(ch)) {
+    if (!isalpha(ch) && !isdigit(ch)) {
       break;
     }
     str.push_back(ch);
@@ -398,8 +401,6 @@ void Lexer::tokenizeIdentifier() {
     kind = Token::Kind::NEW;
   } else if (str == "assert") {
     kind = Token::Kind::ASSERT;
-  } else if (str == "jpp_cpp") {
-    kind = Token::Kind::JPP_CPP;
   } else if (str == "true" || str == "false") {
     kind = Token::Kind::BOOLEAN_LITERAL;
   } else if (str == "null") {

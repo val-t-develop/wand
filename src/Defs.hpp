@@ -8,6 +8,8 @@
 #include <filesystem>
 #include <fstream>
 #include <exception>
+#include <stack>
+#include <map>
 
 using std::vector;
 using std::string;
@@ -22,6 +24,7 @@ using std::ifstream;
 using std::ofstream;
 using std::fstream;
 using std::exception;
-
+using std::stack;
+using std::map;
 
 vector<string> split (string s, string delimiter);

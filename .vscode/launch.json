@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/builddir/spl",
-            "args": ["res/test.spl -o res/test.spl"],
+            "args": ["res/test/test.spl -o test"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

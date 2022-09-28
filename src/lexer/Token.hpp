@@ -54,7 +54,6 @@ public:
     RETURN,
     NEW,
     ASSERT,
-    JPP_CPP,
 
     DEC_INT_LITERAL,
     HEX_INT_LITERAL,

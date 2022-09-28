@@ -18,11 +18,13 @@ public:
   void put(shared_ptr<VarRecord> varRecord);
   void put(shared_ptr<MethodRecord> methodRecord);
   void put(shared_ptr<ClassRecord> classRecord);
+  void put(shared_ptr<Record> record);
 
-  shared_ptr<VarRecord> lookupVar(string name);
-  shared_ptr<MethodRecord> lookupMethod(string name);
-  shared_ptr<ClassRecord> lookupClass(string name);
-  shared_ptr<Record> lookup(string name);
+  shared_ptr<VarRecord> lookupVar(const string& name);
+  shared_ptr<MethodRecord> lookupMethod(const string& name);
+  shared_ptr<ClassRecord> lookupClass(const string& name);
+  shared_ptr<Record> lookupRecord(const string& name);
+  shared_ptr<Record> lookup(const string& name);
 
   void addImport(shared_ptr<SymbolTable> st);
   void addMainMethod(shared_ptr<MethodRecord> record);

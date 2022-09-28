@@ -6,12 +6,13 @@ bool MethodRecord::equals(shared_ptr<MethodRecord> r) {
   bool isVarsEqual = true;
   if (vars.size() == r->vars.size()) {
     for (size_t i = 0; i < vars.size(); ++i) {
+      if (vars[i] != nullptr && r->vars[i] != nullptr)
       if (!vars[i]->equals(r->vars[i])) {
         isVarsEqual = false;
       }
     }
   }
-  return id == r->id && type == r->type && next->equals(r->next) &&
+  return id == r->id && type == r->type && (next == nullptr ? false : next->equals(r->next)) &&
          argsCount == r->argsCount && isConstructor == r->isConstructor &&
          isVarsEqual;
 }
