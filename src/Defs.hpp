@@ -27,4 +27,4 @@ using std::exception;
 using std::stack;
 using std::map;
 
-vector<string> split (string s, string delimiter);
+vector<string> split(string s, string delimiter);

@@ -3,7 +3,7 @@
 
 class VarRecord : public Record {
 public:
-  VarRecord(string id, string type);
+    VarRecord(string id, string type);
 
-  bool equals(shared_ptr<VarRecord> r);
+    bool equals(shared_ptr<VarRecord> r);
 };

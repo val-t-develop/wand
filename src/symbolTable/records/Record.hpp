@@ -3,11 +3,11 @@
 
 class Record {
 public:
-  string id;
-  string type;
-  shared_ptr<Record> next;
+    string id;
+    string type;
+    shared_ptr<Record> next;
 
-  Record(string id, string type);
+    Record(string id, string type);
 
-  bool equals(shared_ptr<Record> r);
+    bool equals(shared_ptr<Record> r);
 };

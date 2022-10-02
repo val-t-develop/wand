@@ -7,20 +7,20 @@
 
 class Main {
 public:
-  static string fullFileName;
-  static string filename;
+    static string fullFileName;
+    static string filename;
 
-  static void main(int argc, char **argv);
+    static void main(int argc, char **argv);
 
-  static void processDir(Path dir);
+    static void processDir(Path dir);
 
-  static void processFile(Path file);
+    static void processFile(Path file);
 
-  static bool validSplFile(const string &name);
+    static bool validSplFile(const string &name);
 
-  static shared_ptr<SymbolTable> symbolTable;
+    static shared_ptr<SymbolTable> symbolTable;
 
-  static void codeGeneration(Path& filePath);
+    static void codeGeneration(Path &filePath);
 
-  static shared_ptr<SymbolTable> getSymTab(Path path);
+    static shared_ptr<SymbolTable> getSymTab(Path path);
 };

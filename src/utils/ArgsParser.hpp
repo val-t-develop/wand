@@ -4,9 +4,9 @@
 
 class ArgsParser {
 public:
-  static Path outputDir;
-  static vector<Path> src;
+    static Path outputDir;
+    static vector<Path> src;
 
-  static void parseArgs(int argc, char **argv);
-  static void parseArgs(vector<string> args);
+    static void parseArgs(int argc, char **argv);
+    static void parseArgs(vector<string> args);
 };

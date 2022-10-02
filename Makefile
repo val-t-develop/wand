@@ -7,7 +7,7 @@ setup_clang:
 	CC=clang CXX=clang++ meson setup builddir
 
 clean:
-	rm -dr builddir
+	rm -dr builddir build
 
 reload:
 	make clean && make setup_gcc

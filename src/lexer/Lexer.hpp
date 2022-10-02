@@ -5,35 +5,35 @@
 
 class Lexer {
 public:
-  Path path;
-  string src;
-  vector<shared_ptr<Token>> tokens = vector<shared_ptr<Token>>();
-  int currToken = 0, currChar = 0;
-  int currLine = 0, currPos = 0;
+    Path path;
+    string src;
+    vector<shared_ptr<Token>> tokens = vector<shared_ptr<Token>>();
+    int currToken = 0, currChar = 0;
+    int currLine = 0, currPos = 0;
 
-  Lexer(Path& filePath);
-  Lexer(Lexer& r);
+    Lexer(Path &filePath);
+    Lexer(Lexer &r);
 
-  void tokenize();
-  void tokenizeIdentifier();
-  void tokenizeDec();
-  void tokenizeChar();
-  void tokenizeString();
-  
-  void incCurrChar();
+    void tokenize();
+    void tokenizeIdentifier();
+    void tokenizeDec();
+    void tokenizeChar();
+    void tokenizeString();
 
-  shared_ptr<Token> getWithNumber(size_t n);
-  shared_ptr<Token> getWithOffset(int offset);
-  shared_ptr<Token> getCurrent();
-  shared_ptr<Token> getNext();
-  shared_ptr<Token> getPrevious();
-  shared_ptr<Token> goWithOffset(int offset);
-  shared_ptr<Token> goForward();
-  shared_ptr<Token> goBack();
+    void incCurrChar();
 
-  void removeFirstCharOfCurrShift();
-  bool ifCurrTokenStartsWithLT();
-  bool ifCurrTokenStartsWithGT();
+    shared_ptr<Token> getWithNumber(size_t n);
+    shared_ptr<Token> getWithOffset(int offset);
+    shared_ptr<Token> getCurrent();
+    shared_ptr<Token> getNext();
+    shared_ptr<Token> getPrevious();
+    shared_ptr<Token> goWithOffset(int offset);
+    shared_ptr<Token> goForward();
+    shared_ptr<Token> goBack();
 
-  void reset();
+    void removeFirstCharOfCurrShift();
+    bool ifCurrTokenStartsWithLT();
+    bool ifCurrTokenStartsWithGT();
+
+    void reset();
 };
