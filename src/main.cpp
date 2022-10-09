@@ -1,4 +1,5 @@
 #include "main.hpp"
+#include <ast/builder/AstBuilder.hpp>
 
 void Main::main(int argc, char **argv) {
     ArgsParser::parseArgs(argc, argv);
@@ -40,8 +41,13 @@ void Main::codeGeneration(Path &filePath) {
     Lexer lexer(filePath);
     lexer.tokenize();
 
-    SymbolListener symbolListener = SymbolListener(symbolTable, filePath, Lexer(lexer));
+    SymbolListener symbolListener = SymbolListener(symbolTable, filePath, lexer);
     symbolListener.walk();
+
+    symbolTable->resetTable();
+
+    AstBuilder astBuilder = AstBuilder(symbolTable, filePath, lexer);
+    shared_ptr<CompilationUnitNode> cu = astBuilder.walk();
 
     symbolTable->resetTable();
 }

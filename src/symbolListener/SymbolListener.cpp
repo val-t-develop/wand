@@ -773,7 +773,7 @@ void SymbolListener::enterExpression() {
 
 void SymbolListener::enterBinOpRHS(int exprPrec) {
     while(true) {
-        int tokPrec = getBinOpPrecedence();
+        int tokPrec = ParserUtils::getBinOpPrecedence(lexer);
 
         if(tokPrec < exprPrec)
             return;
@@ -783,7 +783,7 @@ void SymbolListener::enterBinOpRHS(int exprPrec) {
 
         enterUnOpPrimary();
 
-        int nextPrec = getBinOpPrecedence();
+        int nextPrec = ParserUtils::getBinOpPrecedence(lexer);
         if(tokPrec < nextPrec) {
             enterBinOpRHS(tokPrec + 1);
         }
@@ -832,12 +832,8 @@ void SymbolListener::enterPrimary() {
             lexer.getCurrent()->kind == Token::Kind::HEX_DOUBLE_LITERAL ||
             lexer.getCurrent()->kind == Token::Kind::DEC_INT_LITERAL ||
             lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::BIN_INT_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::OCT_INT_LITERAL ||
             lexer.getCurrent()->kind == Token::Kind::DEC_LONG_LITERAL ||
             lexer.getCurrent()->kind == Token::Kind::HEX_LONG_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::BIN_LONG_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::OCT_LONG_LITERAL ||
             lexer.getCurrent()->kind == Token::Kind::NULL_LITERAL) {
         enterLiteral();
     } else if(lexer.getCurrent()->kind == Token::Kind::LPAREN) {
@@ -1026,12 +1022,8 @@ void SymbolListener::enterLiteral() {
             lexer.getCurrent()->kind == Token::Kind::HEX_DOUBLE_LITERAL ||
             lexer.getCurrent()->kind == Token::Kind::DEC_INT_LITERAL ||
             lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::BIN_INT_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::OCT_INT_LITERAL ||
             lexer.getCurrent()->kind == Token::Kind::DEC_LONG_LITERAL ||
             lexer.getCurrent()->kind == Token::Kind::HEX_LONG_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::BIN_LONG_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::OCT_LONG_LITERAL ||
             lexer.getCurrent()->kind == Token::Kind::NULL_LITERAL) {
         lexer.goForward();
     }
@@ -1127,9 +1119,4 @@ string SymbolListener::enterType(bool arr) {
     }
 
     return str + dims_str;
-}
-
-int SymbolListener::getBinOpPrecedence() {
-    int i = operatorsPrecedence[lexer.getCurrent()->str];
-    return i == 0 ? -1 : i;
 }

@@ -2,7 +2,7 @@
 
 
 CharLiteralNode::CharLiteralNode(string _str, shared_ptr<Node> _parent)
-    : ExpressionNode(_parent), str(_str) {}
+    : ExpressionNode(_parent, NodeKind::CHAR_LITERAL_NODE), str(_str) {}
 
 
 shared_ptr<ClassRecord> CharLiteralNode::getReturnType() {

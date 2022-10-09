@@ -1,11 +1,10 @@
 #pragma once
-#include <Defs.hpp>
-#include <ast/node/Node.hpp>
+#include <ast/node/VarDeclNode.hpp>
 
 
-class VarsDeclNode : public Node {
+class VarsDeclNode : public StatementNode {
 public:
-    vector<shared_ptr<VarsDeclNode>> decls;
+    vector<shared_ptr<VarDeclNode>> decls = vector<shared_ptr<VarDeclNode>>();
 
-    VarsDeclNode(vector<shared_ptr<VarsDeclNode>> _decls, shared_ptr<Node> _parent);
+    VarsDeclNode(vector<shared_ptr<VarDeclNode>> _decls, shared_ptr<Node> _parent);
 };

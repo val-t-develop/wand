@@ -2,7 +2,7 @@
 
 
 UnaryOperatorNode::UnaryOperatorNode(bool _isPre, string _op, shared_ptr<ExpressionNode> _expression, shared_ptr<Node> _parent)
-    : ExpressionNode(_parent), isPre(_isPre), op(_op), expression(_expression) {}
+    : ExpressionNode(_parent, NodeKind::UNARY_OPERATOR_NODE), isPre(_isPre), op(_op), expression(_expression) {}
 
 
 shared_ptr<ClassRecord> UnaryOperatorNode::getReturnType() {

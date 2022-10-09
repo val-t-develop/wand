@@ -1,3 +1,3 @@
 #include "CompilationUnitNode.hpp"
 
-CompilationUnutNode::CompilationUnutNode() : Node(nullptr) {}
+CompilationUnitNode::CompilationUnitNode() : Node(nullptr, NodeKind::COMPILATION_UNIT_NODE) {}

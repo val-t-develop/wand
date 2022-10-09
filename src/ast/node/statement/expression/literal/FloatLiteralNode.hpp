@@ -4,10 +4,10 @@
 
 class FloatLiteralNode : public ExpressionNode {
 public:
-    double value;
+    long double value;
     bool doubleVal;
 
-    FloatLiteralNode(double _value, bool _doubleVal, shared_ptr<Node> _parent);
+    FloatLiteralNode(long double _value, bool _doubleVal, shared_ptr<Node> _parent);
 
     shared_ptr<ClassRecord> getReturnType() ;
 };

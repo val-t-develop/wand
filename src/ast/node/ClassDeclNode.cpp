@@ -9,6 +9,6 @@ ClassDeclNode::ClassDeclNode(
     vector<shared_ptr<MethodDeclNode>> _methods,
     vector<shared_ptr<ClassDeclNode>> _innerClasses,
     shared_ptr<Node> _parent)
-    : Node(_parent), generic(_generic), modifiers(_modifiers), kind(_kind), record(_record),
+    : Node(_parent, NodeKind::CLASS_DECL_NODE), generic(_generic), modifiers(_modifiers), kind(_kind), record(_record),
       extended(_extended), implemented(_implemented), fields(_fields),
       methods(_methods), innerClasses(_innerClasses) {}

@@ -16,7 +16,7 @@ public:
         ADD, SUB, MUL, DIV, MOD
     };
 
-    const static map<BinaryOperatorKind, string> operatorKinds;
+    const static map<string, BinaryOperatorKind> operatorKinds;
 
     shared_ptr<ExpressionNode> left;
     shared_ptr<ExpressionNode> right;

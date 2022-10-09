@@ -1,5 +1,36 @@
 #include "ParserUtils.hpp"
 
+map<string, int> ParserUtils::operatorsPrecedence = {
+        {"%", 12},         {"*", 12},  {"/", 12},
+
+        {"-", 11},         {"+", 11},
+
+        {"<<", 10},        {">>", 10}, {">>>", 10},
+
+        {"instanceof", 9}, {">=", 9},  {"<=", 9},   {">", 9},  {"<", 9},
+
+        {"==", 8},         {"!=", 8},
+
+        {"&", 7},
+
+        {"^", 6},
+
+        {"|", 5},
+
+        {"&&", 4},
+
+        {"||", 3},
+
+        {"=", 1},          {"+=", 1},  {"-=", 1},   {"*=", 1}, {"/=", 1},
+        {"&=", 1},         {"%=", 1},  {"^=", 1},   {"|=", 1}, {"<<=", 1},
+        {">>=", 1},        {">>>=", 1}
+    };
+
+int ParserUtils::getBinOpPrecedence(Lexer& lexer) {
+    int i = operatorsPrecedence[lexer.getCurrent()->str];
+    return i == 0 ? -1 : i;
+}
+
 void ParserUtils::skipSemicolons(Lexer &lexer) {
     while(true) {
         if(lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
@@ -34,6 +65,37 @@ void ParserUtils::skipModifiers(Lexer &lexer) {
         }
     }
 }
+
+long double ParserUtils::parseDouble(string token) {
+    string a = "";
+    string b = "";
+    bool point = false;
+    for(char ch : token) {
+        if (ch == '.') {
+            point = true;
+            continue;
+        }
+        if (isdigit(ch)) {
+            if (point) {
+                b.push_back(ch);
+            } else {
+                a.push_back(ch);
+            }
+        }
+    }
+    if (a == "") {
+        a = "0";
+    }
+    int64_t ai = parseLong(a);
+    int64_t bi = parseLong(b);
+    return ((long double)bi)/(10*b.length()) + ai;
+}
+
+int64_t ParserUtils::parseLong(string token) {
+    return atoi(token.c_str());
+}
+
+
 
 ParserUtils::QualifiedName::QualifiedName(Lexer &lexer) {
     while(true) {
@@ -79,3 +141,13 @@ vector<shared_ptr<Token>> ParserUtils::QualifiedName::getList() {
 void ParserUtils::QualifiedName::setList(vector<shared_ptr<Token>> list) {
     this->list = list;
 }
+
+vector<string> ParserUtils::QualifiedName::getTextList() {
+    vector<string> vec(list.size());
+
+    for (auto t : list) {
+        vec.push_back(t->str);
+    }
+    return vec;
+}
+

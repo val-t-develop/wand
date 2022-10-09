@@ -22,6 +22,7 @@ src_files = ['src/main.cpp', 'src/main.hpp',
     'src/ast/builder/AstBuilder.cpp', 'src/ast/builder/AstBuilder.hpp',
     
     'src/ast/node/VarDeclNode.hpp', 'src/ast/node/VarDeclNode.cpp', 
+    'src/ast/node/VarsDeclNode.hpp', 'src/ast/node/VarsDeclNode.cpp',
     'src/ast/node/PackageDeclNode.hpp', 'src/ast/node/PackageDeclNode.cpp', 
     'src/ast/node/Node.hpp', 'src/ast/node/Node.cpp', 
     'src/ast/node/ModifiersNode.hpp', 'src/ast/node/ModifiersNode.cpp', 

@@ -5,7 +5,7 @@
 #include <ast/node/statement/expression/TypeNode.hpp>
 #include <ast/node/statement/expression/ExpressionNode.hpp>
 
-class VarDeclNode : public Node {
+class VarDeclNode : public StatementNode {
 public:
     shared_ptr<ModifiersNode> modifiers;
     shared_ptr<TypeNode> type;

@@ -3,6 +3,7 @@
 #include <ast/node/statement/expression/ExpressionNode.hpp>
 
 class StringLiteralNode : public ExpressionNode {
+public:
     string str;
 
     StringLiteralNode(string _str, shared_ptr<Node> _parent);

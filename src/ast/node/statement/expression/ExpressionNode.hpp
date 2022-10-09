@@ -5,7 +5,7 @@
 
 class ExpressionNode : public StatementNode {
 public:
-    ExpressionNode(shared_ptr<Node> _parent);
+    ExpressionNode(shared_ptr<Node> _parent, NodeKind _kind);
     shared_ptr<ClassRecord> getReturnType();
     ~ExpressionNode();
 };

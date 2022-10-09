@@ -3,5 +3,5 @@
 
 class StatementNode : public Node {
 public:
-    StatementNode(shared_ptr<Node> _parent);
+    StatementNode(shared_ptr<Node> _parent, NodeKind _kind);
 };

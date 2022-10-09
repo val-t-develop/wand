@@ -4,6 +4,6 @@
 
 class AssignableNode : public ExpressionNode {
 public:
-    AssignableNode(shared_ptr<Node> _parent);
+    AssignableNode(shared_ptr<Node> _parent, NodeKind _kind);
     shared_ptr<ClassRecord> getReturnType();
 };

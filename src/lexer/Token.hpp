@@ -57,12 +57,8 @@ public:
 
         DEC_INT_LITERAL,
         HEX_INT_LITERAL,
-        OCT_INT_LITERAL,
-        BIN_INT_LITERAL,
         DEC_LONG_LITERAL,
         HEX_LONG_LITERAL,
-        OCT_LONG_LITERAL,
-        BIN_LONG_LITERAL,
         DEC_FLOAT_LITERAL,
         HEX_FLOAT_LITERAL,
         DEC_DOUBLE_LITERAL,
