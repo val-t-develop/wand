@@ -1,5 +1,6 @@
 #include "main.hpp"
 #include <ast/builder/AstBuilder.hpp>
+#include <codeGen/CodeGen.hpp>
 
 void Main::main(int argc, char **argv) {
     ArgsParser::parseArgs(argc, argv);
@@ -10,6 +11,11 @@ void Main::main(int argc, char **argv) {
             processDir(file);
         }
     }
+    string ld = "clang -o " + ArgsParser::output.getFilename();
+    for (string obj : obj_files) {
+        ld += " " + obj;
+    }
+    system(ld.c_str());
 }
 
 void Main::processDir(Path dir) {
@@ -50,6 +56,10 @@ void Main::codeGeneration(Path &filePath) {
     shared_ptr<CompilationUnitNode> cu = astBuilder.walk();
 
     symbolTable->resetTable();
+    
+    CodeGen codeGen(cu);
+    codeGen.codeGen();
+    codeGen.build();
 }
 
 shared_ptr<SymbolTable> Main::getSymTab(Path path) {
@@ -67,6 +77,7 @@ shared_ptr<SymbolTable> Main::getSymTab(Path path) {
 string Main::fullFileName = "";
 string Main::filename = "";
 shared_ptr<SymbolTable> Main::symbolTable = make_shared<SymbolTable>();
+vector<string> Main::obj_files = vector<string>();
 
 int main(int argc, char **argv) {
     Main::main(argc, argv);

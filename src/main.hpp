@@ -7,6 +7,7 @@
 
 class Main {
 public:
+    static vector<string> obj_files;
     static string fullFileName;
     static string filename;
 

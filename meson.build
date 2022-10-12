@@ -1,7 +1,7 @@
 project('spl', 'cpp', default_options : 'cpp_std=c++20')
 add_project_arguments('-W', '-Wall', '-Wextra', '-Wpedantic', '-g', language : 'cpp')
 
-llvm_dep = dependency('llvm', version : '>=10.0')
+llvm_dep = dependency('llvm', version : '>13.0.0')
 
 incdir = include_directories('src')
 
@@ -60,6 +60,7 @@ src_files = ['src/main.cpp', 'src/main.hpp',
     'src/ast/node/statement/expression/literal/IntLiteralNode.hpp', 'src/ast/node/statement/expression/literal/IntLiteralNode.cpp', 
     'src/ast/node/statement/expression/literal/FloatLiteralNode.hpp', 'src/ast/node/statement/expression/literal/FloatLiteralNode.cpp', 
     'src/ast/node/statement/expression/literal/CharLiteralNode.hpp', 'src/ast/node/statement/expression/literal/CharLiteralNode.cpp', 
-    'src/ast/node/statement/expression/literal/BoolLiteralNode.hpp', 'src/ast/node/statement/expression/literal/BoolLiteralNode.cpp']
+    'src/ast/node/statement/expression/literal/BoolLiteralNode.hpp', 'src/ast/node/statement/expression/literal/BoolLiteralNode.cpp',
+    'src/codeGen/CodeGen.cpp', 'src/codeGen/CodeGen.hpp']
 
 executable('spl', src_files, dependencies : llvm_dep, include_directories : incdir)

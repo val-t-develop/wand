@@ -3,7 +3,7 @@
 #include <utils/Out.hpp>
 
 
-Path ArgsParser::outputDir = Path();
+Path ArgsParser::output = Path();
 vector<Path> ArgsParser::src = vector<Path>();
 
 void ArgsParser::parseArgs(int argc, char **argv) {
@@ -23,7 +23,7 @@ void ArgsParser::parseArgs(vector<string> args) {
         if(arg.ends_with("-o")) {
             i++;
             arg = args[i];
-            outputDir = Path(arg);
+            output = Path(arg);
         } else {
             src.push_back(Path(arg));
         }
