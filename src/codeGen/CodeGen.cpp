@@ -121,6 +121,10 @@ void CodeGen::createClassType(shared_ptr<ClassDeclNode> node) {
         createClassType(item);
     }
 
+    for (shared_ptr<MethodDeclNode> item : node->methods) {
+        genMethodPrototype(item);
+    }
+
     classesStack.pop();
     currClass = classesStack.empty() ? nullptr : classesStack.top();
     setCurrClassName();
@@ -157,7 +161,7 @@ void CodeGen::setCurrClassName() {
 }
 
 string CodeGen::getFullRecordName(shared_ptr<Record> rec) {
-    string str;
+    /*string str;
     while (true) {
         if (rec != nullptr) {
             str = rec->id + "." + str;
@@ -167,6 +171,12 @@ string CodeGen::getFullRecordName(shared_ptr<Record> rec) {
             break;
         }
     }
+    return str;*/
+    string str = "";
+    if (rec->next != nullptr) {
+        str += getFullRecordName(rec->next) + ".";
+    }
+    str += rec->id;
     return str;
 }
 
@@ -208,7 +218,7 @@ Type* CodeGen::getType(shared_ptr<TypeNode> node) {
         } else if (x->record->id == "char") {
             return IntegerType::get(*TheContext, 8);
         } else if (x->record->id == "void") {
-            return nullptr;
+            return Type::getVoidTy(*TheContext);
         }
     } else {
         StructType *structType;
@@ -223,9 +233,8 @@ Type* CodeGen::getType(shared_ptr<TypeNode> node) {
     }
 }
 
-Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
-
-    Function *TheFunction = TheModule->getFunction(node->record->id);
+Function* CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {
+    Function *TheFunction = TheModule->getFunction(getFullRecordName(node->record));
 
     vector<Type*> args_types = vector<Type*>();
     if (!TheFunction) {
@@ -236,6 +245,21 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
         FunctionType* ft = FunctionType::get(getType(node->returnType), args_types, false);
 
         TheFunction = Function::Create(ft, Function::ExternalLinkage, getFullRecordName(node->record), *TheModule);
+    }
+
+    if (!TheFunction) {
+        return nullptr;
+    }
+    return TheFunction;
+}
+
+Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
+
+    Function *TheFunction = TheModule->getFunction(getFullRecordName(node->record));
+
+    vector<Type*> args_types = vector<Type*>();
+    for (shared_ptr<VarDeclNode> arg : node->args) {
+        args_types.push_back(getType(arg->type));
     }
 
     if (!TheFunction) {
@@ -286,6 +310,44 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
 
 
         return TheFunction;
+    } else {
+        RetVal = ReturnInst::Create(*TheContext);
+        Builder->CreateRet(RetVal);
+        verifyFunction(*TheFunction);
+
+
+        if (static_pointer_cast<ClassRecordNode>(node->returnType->type->child)->record->id == "int") {
+            if (node->record->id == "main") {
+                if (node->args.size() == 1) {
+                    if (static_pointer_cast<ClassRecordNode>(node->args.at(0)->type->type->child)->record->id == "String") {
+                        Function *MainFunction = TheModule->getFunction("main");
+
+                        if (!MainFunction) {
+                            vector<Type*> args_types = vector<Type*>();
+                            FunctionType* ft = FunctionType::get(IntegerType::get(*TheContext, 32), args_types, false);
+
+                            MainFunction = Function::Create(ft, Function::ExternalLinkage, "main", *TheModule);
+                        }
+
+                        if (!MainFunction) {
+                            return nullptr;
+                        }
+                        
+                        BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", MainFunction);
+                        Builder->SetInsertPoint(BB);
+
+                        Value *RetVal = Builder->CreateCall(TheFunction, vector<Value*>({ConstantPointerNull::get(static_cast<PointerType*>(args_types[0]))}), "calltmp");
+                        if (RetVal) {
+                            Builder->CreateRet(RetVal);
+                            verifyFunction(*MainFunction);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        return TheFunction;
     }
 }
 
@@ -293,6 +355,14 @@ Value* CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
     for (shared_ptr<Node> item : node->nodes) {
         if (item->kind == Node::NodeKind::RETURN_NODE) {
             return genExpression(static_pointer_cast<ReturnNode>(item)->expression);
+        } else if (item->kind == Node::NodeKind::VAR_DECL_NODE) {
+            genVarDecl(static_pointer_cast<VarDeclNode>(item));
+        } else if (item->kind == Node::NodeKind::VARS_DECL_NODE) {
+            for (shared_ptr<VarDeclNode> decl : static_pointer_cast<VarsDeclNode>(item)->decls) {
+                genVarDecl(decl);
+            }
+        } else if (item->isExpression()) {
+            genExpression(static_pointer_cast<ExpressionNode>(item));
         }
     }
     return nullptr;
@@ -301,6 +371,12 @@ Value* CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
 Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
     if (node->isLiteral()) {
         return genLiteral(node);
+    } else if (node->kind == Node::NodeKind::METHOD_CALL_NODE) {
+        return genMethodCall(static_pointer_cast<MethodCallNode>(node));
+    } else if (node->kind == Node::NodeKind::VAR_RECORD_NODE) {
+        return genVarValue(static_pointer_cast<VarRecordNode>(node));
+    } else if (node->kind == Node::NodeKind::ACCESS_NODE) {
+        return genExpression(static_pointer_cast<ExpressionNode>(static_pointer_cast<AccessNode>(node)->child));
     }
 }
 
@@ -309,3 +385,57 @@ Value* CodeGen::genLiteral(shared_ptr<ExpressionNode> node) {
         return ConstantInt::getSigned(IntegerType::get(*TheContext, 32), static_pointer_cast<IntLiteralNode>(node)->value);
     }
 }
+
+Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node) {
+    string fullName = getFullRecordName(node->record);
+    Function *TheFunction = TheModule->getFunction(fullName);
+    vector<Value*> args = vector<Value*>();
+    for (shared_ptr<ExpressionNode> arg : node->args) {
+        args.push_back(genExpression(arg));
+    }
+    return Builder->CreateCall(TheFunction, args, "");
+}
+
+Value* CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
+    NamedValues[getFullRecordName(node->record)] = node->init != nullptr ? genExpression(node->init) : genDefaultValue(node->type);
+}
+
+Value* CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
+    auto x = static_pointer_cast<ClassRecordNode>(node->type->child);
+    if (x->record->type == "primitive") {
+        if (x->record->id == "boolean") {
+            return ConstantInt::get(IntegerType::get(*TheContext, 32), 0);
+        } else if (x->record->id == "int") {
+            return ConstantInt::get(IntegerType::get(*TheContext, 32), 0);
+        } else if (x->record->id == "byte") {
+            return ConstantInt::get(IntegerType::get(*TheContext, 8), 0);
+        } else if (x->record->id == "short") {
+            return ConstantInt::get(IntegerType::get(*TheContext, 16), 0);
+        } else if (x->record->id == "long") {
+            return ConstantInt::get(IntegerType::get(*TheContext, 64), 0);
+        } else if (x->record->id == "float") {
+            return ConstantFP::get(Type::getFloatTy(*TheContext), 0);
+        } else if (x->record->id == "double") {
+            return ConstantFP::get(Type::getDoubleTy(*TheContext), 0);
+        } else if (x->record->id == "char") {
+            return ConstantInt::get(IntegerType::get(*TheContext, 8), 0);
+        } else if (x->record->id == "void") {
+            return nullptr;
+        }
+    } else {
+        StructType *structType;
+        if (classesTypes.contains(getFullRecordName(x->record))) {
+            structType = classesTypes.at(getFullRecordName(x->record));
+        } else {
+            structType = nullptr;
+            Out::errorMessage("Can not get " + getFullRecordName(x->record));
+        }
+        PointerType *structPtrType = PointerType::get(structType, 0);
+        return ConstantPointerNull::get(structPtrType);
+    }
+}
+
+Value* CodeGen::genVarValue(shared_ptr<VarRecordNode> node) {
+    return NamedValues[getFullRecordName(node->record)];
+}
+

@@ -39,8 +39,13 @@ public:
     string getFullRecordName(shared_ptr<Record> rec);
     void genStruct(shared_ptr<ClassDeclNode> node);
     Type* getType(shared_ptr<TypeNode> node);
+    Function* genMethodPrototype(shared_ptr<MethodDeclNode> node);
     Function* genMethodDecl(shared_ptr<MethodDeclNode> node);
     Value* genBlockStatement(shared_ptr<BlockNode> node);
     Value* genExpression(shared_ptr<ExpressionNode> node);
     Value* genLiteral(shared_ptr<ExpressionNode> node);
+    Value* genMethodCall(shared_ptr<MethodCallNode> node);
+    Value* genVarDecl(shared_ptr<VarDeclNode> node);
+    Value* genDefaultValue(shared_ptr<TypeNode> node);
+    Value* genVarValue(shared_ptr<VarRecordNode> node);
 };

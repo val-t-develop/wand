@@ -44,7 +44,8 @@
         "system_error": "cpp",
         "tuple": "cpp",
         "typeinfo": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "*.def": "cpp"
     },
     "mesonbuild.configureOnOpen": true
 }
