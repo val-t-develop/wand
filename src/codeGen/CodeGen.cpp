@@ -20,7 +20,9 @@ CodeGen::CodeGen(shared_ptr<CompilationUnitNode> _cu) : cu(_cu) {
     if (cu->nodes[0]->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
         moduleName = "";
         for (string str : static_pointer_cast<PackageDeclNode>(cu->nodes[0])->name) {
-            moduleName += str + ".";
+            if (str != "") {
+                moduleName += str + ".";
+            }
         }
         moduleName.pop_back();
     }

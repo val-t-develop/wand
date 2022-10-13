@@ -1,0 +1,10 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "rm_o",
+            "command": "rm ./*.o",
+            "type": "shell"
+        }
+    ]
+}

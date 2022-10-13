@@ -19,4 +19,4 @@ build:
 	cd builddir && meson compile && cd ..
 
 run: 
-	echo '\n\n\n' && ./builddir/$(EXE) res/test/test.spl -o test && echo '\n\n\n'
+	echo '\n\n\n' && ./builddir/$(EXE) res/test/test.spl -o res/exe && echo '\n\n\n' && rm ./*.o

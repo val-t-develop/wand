@@ -9,12 +9,13 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/builddir/spl",
-            "args": ["res/test/test.spl -o test"],
+            "args": ["res/test/test.spl -o res/exe"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
+            "postDebugTask": "rm_o",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

@@ -11,7 +11,7 @@ void Main::main(int argc, char **argv) {
             processDir(file);
         }
     }
-    string ld = "clang -o " + ArgsParser::output.getFilename();
+    string ld = "clang -o " + ArgsParser::output.getName();
     for (string obj : obj_files) {
         ld += " " + obj;
     }
