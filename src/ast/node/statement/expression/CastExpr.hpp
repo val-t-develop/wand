@@ -10,5 +10,5 @@ public:
 
     CastExpression(shared_ptr<TypeNode> _type, shared_ptr<ExpressionNode> _expression, shared_ptr<Node> _parent);
 
-    shared_ptr<ClassRecord> getReturnType() ;
+    shared_ptr<ClassRecord> getReturnType() override;
 };

@@ -12,6 +12,7 @@ SymbolListener::SymbolListener(shared_ptr<SymbolTable> symbolTable,
 }
 
 void SymbolListener::processImport(vector<string> importName) {
+    vector<Path> importFiles = vector<Path>();
     Path path = srcDir;
     for(size_t i = 0; i < importName.size(); i++) {
         string lastPackage = importName[i];
@@ -30,19 +31,22 @@ void SymbolListener::processImport(vector<string> importName) {
         for(Path file : path.getDirContent()) {
             if(file.isFile()) {
                 if(file.getName().ends_with(".spl")) {
-                    shared_ptr<SymbolTable> st = Main::getSymTab(file);
-                    symbolTable->addImport(st);
+                    importFiles.push_back(file);
+                    Main::processFileToState(file, CU::State::ST);
+                    symbolTable->addImport(Main::CUs[file]->st);
                 }
             }
         }
     } else if(path.isFile()) {
         if(path.getName().ends_with(".spl")) {
-            shared_ptr<SymbolTable> st = Main::getSymTab(path);
-            symbolTable->addImport(st);
+            importFiles.push_back(path);
+            Main::processFileToState(path, CU::State::ST);
+            symbolTable->addImport(Main::CUs[path]->st);
         }
     } else {
         Out::errorMessage(lexer, path.getName() + " is not directory");
     }
+    Main::currCUsStack.top()->importFiles[importName] = importFiles;
 }
 
 void SymbolListener::walk() {
@@ -314,7 +318,7 @@ void SymbolListener::enterConstructorDecl() {
     enterMethodArgs();
 
     if(lexer.getCurrent()->kind == Token::Kind::LBRACE) {
-        enterBlockStatement();
+        enterBlockStatement(false);
     } else {
         Out::errorMessage(lexer, "Expected '{', but found:\n\t" +
                           lexer.getCurrent()->str + "\tin " +
@@ -353,7 +357,7 @@ void SymbolListener::enterMethodDecl(string type, string id) {
     enterMethodArgs();
 
     if(lexer.getCurrent()->kind == Token::Kind::LBRACE) {
-        enterBlockStatement();
+        enterBlockStatement(false);
     } else if(lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
         lexer.goForward();
     } else {
@@ -445,7 +449,7 @@ void SymbolListener::enterStatement() {
 
 void SymbolListener::enterNotVarStatement() {
     if(lexer.getCurrent()->kind == Token::Kind::LBRACE) {
-        enterBlockStatement();
+        enterBlockStatement(true);
     } else if(lexer.getCurrent()->kind == Token::Kind::ASSERT) {
         enterAssertStatement();
     } else if(lexer.getCurrent()->kind == Token::Kind::BREAK) {
@@ -579,18 +583,22 @@ void SymbolListener::enterMethodArgs() {
     }
 }
 
-void SymbolListener::enterBlockStatement() {
-    string id = "__jpp__" + std::to_string(getNextUniqueNumber());
-    shared_ptr<Record> record = make_shared<Record> (id, "__jpp__group");
-    symbolTable->put(record);
-    symbolTable->enterScope(record);
+void SymbolListener::enterBlockStatement(bool newScope) {
+    if (newScope) {
+        string id = "__jpp__" + std::to_string(getNextUniqueNumber());
+        shared_ptr<Record> record = make_shared<Record> (id, "__jpp__group");
+        symbolTable->put(record);
+        symbolTable->enterScope(record);
+    }
 
     if(lexer.getCurrent()->kind == Token::Kind::LBRACE) {
         lexer.goForward();
         while(true) {
             ParserUtils::skipSemicolons(lexer);
             if(lexer.getCurrent()->kind == Token::Kind::RBRACE) {
-                symbolTable->exitScope();
+                if (newScope) {
+                    symbolTable->exitScope();
+                }
                 lexer.goForward();
                 break;
             }

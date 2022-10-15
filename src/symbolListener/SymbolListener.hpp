@@ -36,7 +36,7 @@ public:
     void enterNotVarStatement();
     void enterLocalVar();
     void enterMethodArgs();
-    void enterBlockStatement();
+    void enterBlockStatement(bool newScope);
     void enterAssertStatement();
     void enterBreakStatement();
     void enterContinueStatement();

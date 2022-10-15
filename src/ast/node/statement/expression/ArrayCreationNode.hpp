@@ -12,5 +12,5 @@ public:
 
     ArrayCreationNode(shared_ptr<TypeNode> _type, vector<shared_ptr<ExpressionNode>> _dims,
                       shared_ptr<ArrayInitializerNode> _init, shared_ptr<Node> _parent);
-    shared_ptr<ClassRecord> getReturnType() ;
+    shared_ptr<ClassRecord> getReturnType() override;
 };

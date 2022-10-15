@@ -34,7 +34,7 @@ public:
     void build();
     void genImport(shared_ptr<ImportDeclNode> node);
     void createClassType(shared_ptr<ClassDeclNode> node);
-    void genClassDecl(shared_ptr<ClassDeclNode> node);
+    void genClassDecl(shared_ptr<ClassDeclNode> node, bool genMethod);
     void setCurrClassName();
     string getFullRecordName(shared_ptr<Record> rec);
     void genStruct(shared_ptr<ClassDeclNode> node);

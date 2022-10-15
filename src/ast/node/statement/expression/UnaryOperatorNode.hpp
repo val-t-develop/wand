@@ -10,5 +10,5 @@ public:
 
     UnaryOperatorNode(bool _isPre, string _op, shared_ptr<ExpressionNode> _expression, shared_ptr<Node> _parent);
 
-    shared_ptr<ClassRecord> getReturnType() ;
+    shared_ptr<ClassRecord> getReturnType() override;
 };

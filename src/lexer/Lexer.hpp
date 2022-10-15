@@ -11,6 +11,7 @@ public:
     int currToken = 0, currChar = 0;
     int currLine = 0, currPos = 0;
 
+    Lexer();
     Lexer(Path &filePath);
     Lexer(Lexer &r);
 

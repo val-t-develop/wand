@@ -9,5 +9,5 @@ public:
 
     AccessNode(shared_ptr<Node> _next, shared_ptr<Node> _child, shared_ptr<Node> _parent);
 
-    shared_ptr<ClassRecord> getReturnType() ;
+    shared_ptr<ClassRecord> getReturnType() override;
 };

@@ -7,5 +7,5 @@ public:
     bool value;
 
     BoolLiteralNode(bool _value, shared_ptr<Node> _parent);
-    shared_ptr<ClassRecord> getReturnType() ;
+    shared_ptr<ClassRecord> getReturnType() override;
 };

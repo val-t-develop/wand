@@ -10,5 +10,5 @@ public:
 
     TypeNode(shared_ptr<AccessNode> _type, int _dims, shared_ptr<Node> _parent);
 
-    shared_ptr<ClassRecord> getReturnType() ;
+    shared_ptr<ClassRecord> getReturnType() override;
 };

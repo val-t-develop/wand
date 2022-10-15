@@ -5,5 +5,11 @@ AccessNode::AccessNode(shared_ptr<Node> _next, shared_ptr<Node> _child,
     : AssignableNode(_parent, NodeKind::ACCESS_NODE), next(_next), child(_child) {}
 
 shared_ptr<ClassRecord> AccessNode::getReturnType() {
-    return nullptr;
+    if (child->isExpression()) {
+        return static_pointer_cast<ExpressionNode>(child)->getReturnType();
+    } else if (next->isExpression()) {
+        return static_pointer_cast<ExpressionNode>(next)->getReturnType();
+    } else {
+        return nullptr;
+    }
 }

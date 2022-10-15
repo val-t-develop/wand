@@ -32,7 +32,11 @@ CodeGen::CodeGen(shared_ptr<CompilationUnitNode> _cu) : cu(_cu) {
 }
 
 void CodeGen::codeGen() {
-    
+    if (TheModule->getName() == "__unnamedModule" || 
+        TheModule->getName() != "spl.core") {
+        genImport(make_shared<ImportDeclNode>(vector<string>({"spl", "core"}), nullptr));
+    }
+
     for (shared_ptr<Node> node : cu->nodes) {
         if (node->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
             continue;
@@ -51,7 +55,7 @@ void CodeGen::codeGen() {
         } else if (node->kind == Node::NodeKind::IMPORT_DECL_NODE) {
             continue;
         } else if (node->kind == Node::NodeKind::CLASS_DECL_NODE) {
-            genClassDecl(static_pointer_cast<ClassDeclNode>(node));
+            genClassDecl(static_pointer_cast<ClassDeclNode>(node), true);
         } else {
             Out::errorMessage("Can not generate this node");
         }
@@ -109,7 +113,36 @@ void CodeGen::build() {
     Main::obj_files.push_back(Filename);
 }
 
-void CodeGen::genImport(shared_ptr<ImportDeclNode> node) {}
+void CodeGen::genImport(shared_ptr<ImportDeclNode> node) {
+    auto importFiles = Main::currCUsStack.top()->importFiles[node->name];
+    for (auto p : importFiles) {
+        Main::CUs[p]->completeToState(CU::State::AST);
+        auto importCU = Main::CUs[p]->cu;
+        for (shared_ptr<Node> n : importCU->nodes) {
+            if (n->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
+                continue;
+            } else if (n->kind == Node::NodeKind::IMPORT_DECL_NODE) {
+                genImport(static_pointer_cast<ImportDeclNode>(n));
+            } else if (n->kind == Node::NodeKind::CLASS_DECL_NODE) {
+                createClassType(static_pointer_cast<ClassDeclNode>(n));
+            } else {
+                Out::errorMessage("Can not generate this node");
+            }
+        }
+
+        for (shared_ptr<Node> n : importCU->nodes) {
+            if (n->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
+                continue;
+            } else if (n->kind == Node::NodeKind::IMPORT_DECL_NODE) {
+                continue;
+            } else if (n->kind == Node::NodeKind::CLASS_DECL_NODE) {
+                genClassDecl(static_pointer_cast<ClassDeclNode>(n), false);
+            } else {
+                Out::errorMessage("Can not generate this node");
+            }
+        }
+    }
+}
 
 void CodeGen::createClassType(shared_ptr<ClassDeclNode> node) {
     currClass = node;
@@ -132,7 +165,7 @@ void CodeGen::createClassType(shared_ptr<ClassDeclNode> node) {
     setCurrClassName();
 }
 
-void CodeGen::genClassDecl(shared_ptr<ClassDeclNode> node) {
+void CodeGen::genClassDecl(shared_ptr<ClassDeclNode> node, bool genMethod) {
     currClass = node;
     classesStack.push(node);
     setCurrClassName();
@@ -141,13 +174,15 @@ void CodeGen::genClassDecl(shared_ptr<ClassDeclNode> node) {
     genStruct(node);
 
     for (shared_ptr<ClassDeclNode> item : node->innerClasses) {
-        genClassDecl(item);
+        genClassDecl(item, genMethod);
     }
 
-    for (shared_ptr<MethodDeclNode> item : node->methods) {
-        genMethodDecl(item);
+    if (genMethod) {
+        for (shared_ptr<MethodDeclNode> item : node->methods) {
+            genMethodDecl(item);
+        }
     }
-
+    
     classesStack.pop();
     currClass = classesStack.empty() ? nullptr : classesStack.top();
     setCurrClassName();

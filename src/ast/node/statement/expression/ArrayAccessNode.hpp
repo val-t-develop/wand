@@ -8,6 +8,6 @@ public:
     shared_ptr<ExpressionNode> index;
 
     ArrayAccessNode(shared_ptr<ExpressionNode> _array, shared_ptr<ExpressionNode> _index, shared_ptr<Node> _parent);
-    shared_ptr<ClassRecord> getReturnType() ;
+    shared_ptr<ClassRecord> getReturnType() override;
 };
 

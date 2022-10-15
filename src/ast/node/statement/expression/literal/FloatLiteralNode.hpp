@@ -9,5 +9,5 @@ public:
 
     FloatLiteralNode(long double _value, bool _doubleVal, shared_ptr<Node> _parent);
 
-    shared_ptr<ClassRecord> getReturnType() ;
+    shared_ptr<ClassRecord> getReturnType() override;
 };

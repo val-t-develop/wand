@@ -7,5 +7,5 @@ public:
     vector<shared_ptr<ExpressionNode>> nodes = vector<shared_ptr<ExpressionNode>>();
 
     ArrayInitializerNode(vector<shared_ptr<ExpressionNode>> _nodes, shared_ptr<Node> _parent);
-    shared_ptr<ClassRecord> getReturnType() ;
+    shared_ptr<ClassRecord> getReturnType() override;
 };

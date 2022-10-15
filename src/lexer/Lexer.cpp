@@ -1,6 +1,8 @@
 #include "Lexer.hpp"
 #include <utils/Out.hpp>
 
+Lexer::Lexer() {}
+
 Lexer::Lexer(Path &filePath) {
     this->path = filePath;
     this->src = filePath.readFile();

@@ -18,6 +18,8 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::shared_ptr;
+using std::unique_ptr;
+using std::make_unique;
 using std::make_shared;
 namespace fs = std::filesystem;
 using std::ifstream;

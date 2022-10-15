@@ -8,5 +8,5 @@ public:
     bool longVal;
 
     IntLiteralNode(int64_t _value, bool _longVal, shared_ptr<Node> _parent);
-    shared_ptr<ClassRecord> getReturnType() ;
+    shared_ptr<ClassRecord> getReturnType() override;
 };

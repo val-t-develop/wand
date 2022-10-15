@@ -1,5 +1,6 @@
 #pragma once
 #include <Defs.hpp>
+#include <compare>
 
 class Path {
     fs::path path;
@@ -17,4 +18,5 @@ public:
     vector<Path> getDirContent();
     Path getParent();
     static Path getCurrentDir();
+    auto operator<=>(const Path&) const = default;
 };

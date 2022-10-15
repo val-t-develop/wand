@@ -1,1 +1,6 @@
 package spl.core;
+
+class String {
+    void get(){}
+    char ch;
+}

@@ -25,6 +25,6 @@ public:
     BinaryOperatorNode(shared_ptr<ExpressionNode> _left, shared_ptr<ExpressionNode> _right,
                        BinaryOperatorKind _op, shared_ptr<Node> _parent);
 
-    shared_ptr<ClassRecord> getReturnType() ;
+    shared_ptr<ClassRecord> getReturnType() override;
 
 };

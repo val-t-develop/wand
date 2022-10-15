@@ -12,5 +12,5 @@ public:
                     vector<shared_ptr<AccessNode>> _typeArgs,
                     shared_ptr<Node> _parent);
 
-    shared_ptr<ClassRecord> getReturnType() ;
+    shared_ptr<ClassRecord> getReturnType() override;
 };

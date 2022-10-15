@@ -9,5 +9,5 @@ public:
     vector<shared_ptr<ExpressionNode>> args = vector<shared_ptr<ExpressionNode>>();
 
     NewNode(shared_ptr<AccessNode> _type, vector<shared_ptr<ExpressionNode>> _args, shared_ptr<Node> _parent);
-    shared_ptr<ClassRecord> getReturnType() ;
+    shared_ptr<ClassRecord> getReturnType() override;
 };

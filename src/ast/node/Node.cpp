@@ -7,7 +7,9 @@ Node::NodeKind Node::getKind() {
     return kind;
 }
 bool Node::isStatement() {
-    if (kind == NodeKind::VAR_DECL_NODE ||
+    if (kind == NodeKind::ACCESS_NODE ||
+        kind == NodeKind::CLASS_RECORD_NODE ||
+        kind == NodeKind::VAR_DECL_NODE ||
         kind == NodeKind::VARS_DECL_NODE ||
         kind == NodeKind::ASSERT_NODE ||
         kind == NodeKind::BLOCK_NODE ||
@@ -46,6 +48,8 @@ bool Node::isStatement() {
 }
 bool Node::isExpression() {
     if (kind == NodeKind::ARRAY_ACCESS_NODE ||
+        kind == NodeKind::ACCESS_NODE ||
+        kind == NodeKind::CLASS_RECORD_NODE ||
         kind == NodeKind::ARRAY_INITIALIZER_NODE ||
         kind == NodeKind::ARRAY_CREATION_NODE ||
         kind == NodeKind::BINARY_OPERATOR_NODE ||

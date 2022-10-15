@@ -143,7 +143,7 @@ void ParserUtils::QualifiedName::setList(vector<shared_ptr<Token>> list) {
 }
 
 vector<string> ParserUtils::QualifiedName::getTextList() {
-    vector<string> vec(list.size());
+    vector<string> vec{};
 
     for (auto t : list) {
         vec.push_back(t->str);

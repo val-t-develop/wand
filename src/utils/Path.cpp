@@ -6,7 +6,7 @@ Path::Path() {
 }
 
 Path::Path(string name) {
-    path = fs::path(name);
+    path = fs::absolute(fs::path(name));
     content = "";
 }
 
