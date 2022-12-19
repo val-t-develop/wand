@@ -115,6 +115,24 @@ void CodeGen::build() {
 
 void CodeGen::genImport(shared_ptr<ImportDeclNode> node) {
     auto importFiles = Main::currCUsStack.top()->importFiles[node->name];
+    if (node->name[0] == "spl" && node->name[1] == "core") {
+        for (auto importFile : importFiles) {
+            auto dir = importFile.getParent();
+            if (dir.isDir()) {
+                if (dir.getFilename() == "core") {
+                    if (dir.getParent().isDir()) {
+                        if (dir.getParent().getFilename() == "spl") {
+                            auto ll_file = Path(dir.getName()+"/spl.core.stdlib.ll");
+                            string o_file = dir.getName()+"/spl.core.stdlib.o";
+                            Main::currCUsStack.top()->linkingObj.push_back(o_file);
+                            system(string("clang "+ll_file.getName()+" -c -o "+o_file).c_str());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
     for (auto p : importFiles) {
         Main::CUs[p]->completeToState(CU::State::AST);
         auto importCU = Main::CUs[p]->cu;
@@ -291,100 +309,101 @@ Function* CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {
 }
 
 Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
+    if (node->body != nullptr) {
+        Function *TheFunction = TheModule->getFunction(getFullRecordName(node->record));
 
-    Function *TheFunction = TheModule->getFunction(getFullRecordName(node->record));
+        vector<Type*> args_types = vector<Type*>();
+        for (shared_ptr<VarDeclNode> arg : node->args) {
+            args_types.push_back(getType(arg->type));
+        }
 
-    vector<Type*> args_types = vector<Type*>();
-    for (shared_ptr<VarDeclNode> arg : node->args) {
-        args_types.push_back(getType(arg->type));
-    }
+        if (!TheFunction) {
+            return nullptr;
+        }
+        
+        BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", TheFunction);
+        Builder->SetInsertPoint(BB);
 
-    if (!TheFunction) {
-        return nullptr;
-    }
-    
-    BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", TheFunction);
-    Builder->SetInsertPoint(BB);
+        NamedValues.clear();
+        for (auto &Arg : TheFunction->args())
+            NamedValues[string(Arg.getName())] = &Arg;
 
-    NamedValues.clear();
-    for (auto &Arg : TheFunction->args())
-        NamedValues[string(Arg.getName())] = &Arg;
-
-    if (Value *RetVal = genBlockStatement(node->body)) {
-        Builder->CreateRet(RetVal);
-        verifyFunction(*TheFunction);
+        if (Value *RetVal = genBlockStatement(node->body)) {
+            Builder->CreateRet(RetVal);
+            verifyFunction(*TheFunction);
 
 
-        if (static_pointer_cast<ClassRecordNode>(node->returnType->type->child)->record->id == "int") {
-            if (node->record->id == "main") {
-                if (node->args.size() == 1) {
-                    if (static_pointer_cast<ClassRecordNode>(node->args.at(0)->type->type->child)->record->id == "String") {
-                        Function *MainFunction = TheModule->getFunction("main");
+            if (static_pointer_cast<ClassRecordNode>(node->returnType->type->child)->record->id == "int") {
+                if (node->record->id == "main") {
+                    if (node->args.size() == 1) {
+                        if (static_pointer_cast<ClassRecordNode>(node->args.at(0)->type->type->child)->record->id == "String") {
+                            Function *MainFunction = TheModule->getFunction("main");
 
-                        if (!MainFunction) {
-                            vector<Type*> args_types = vector<Type*>();
-                            FunctionType* ft = FunctionType::get(IntegerType::get(*TheContext, 32), args_types, false);
+                            if (!MainFunction) {
+                                vector<Type*> args_types = vector<Type*>();
+                                FunctionType* ft = FunctionType::get(IntegerType::get(*TheContext, 32), args_types, false);
 
-                            MainFunction = Function::Create(ft, Function::ExternalLinkage, "main", *TheModule);
-                        }
+                                MainFunction = Function::Create(ft, Function::ExternalLinkage, "main", *TheModule);
+                            }
 
-                        if (!MainFunction) {
-                            return nullptr;
-                        }
-                        
-                        BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", MainFunction);
-                        Builder->SetInsertPoint(BB);
+                            if (!MainFunction) {
+                                return nullptr;
+                            }
+                            
+                            BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", MainFunction);
+                            Builder->SetInsertPoint(BB);
 
-                        Value *RetVal = Builder->CreateCall(TheFunction, vector<Value*>({ConstantPointerNull::get(static_cast<PointerType*>(args_types[0]))}), "calltmp");
-                        if (RetVal) {
-                            Builder->CreateRet(RetVal);
-                            verifyFunction(*MainFunction);
+                            Value *RetVal = Builder->CreateCall(TheFunction, vector<Value*>({ConstantPointerNull::get(static_cast<PointerType*>(args_types[0]))}), "calltmp");
+                            if (RetVal) {
+                                Builder->CreateRet(RetVal);
+                                verifyFunction(*MainFunction);
+                            }
                         }
                     }
                 }
             }
-        }
 
 
-        return TheFunction;
-    } else {
-        RetVal = ReturnInst::Create(*TheContext);
-        Builder->CreateRet(RetVal);
-        verifyFunction(*TheFunction);
+            return TheFunction;
+        } else {
+            RetVal = ReturnInst::Create(*TheContext);
+            Builder->CreateRet(RetVal);
+            verifyFunction(*TheFunction);
 
 
-        if (static_pointer_cast<ClassRecordNode>(node->returnType->type->child)->record->id == "int") {
-            if (node->record->id == "main") {
-                if (node->args.size() == 1) {
-                    if (static_pointer_cast<ClassRecordNode>(node->args.at(0)->type->type->child)->record->id == "String") {
-                        Function *MainFunction = TheModule->getFunction("main");
+            if (static_pointer_cast<ClassRecordNode>(node->returnType->type->child)->record->id == "int") {
+                if (node->record->id == "main") {
+                    if (node->args.size() == 1) {
+                        if (static_pointer_cast<ClassRecordNode>(node->args.at(0)->type->type->child)->record->id == "String") {
+                            Function *MainFunction = TheModule->getFunction("main");
 
-                        if (!MainFunction) {
-                            vector<Type*> args_types = vector<Type*>();
-                            FunctionType* ft = FunctionType::get(IntegerType::get(*TheContext, 32), args_types, false);
+                            if (!MainFunction) {
+                                vector<Type*> args_types = vector<Type*>();
+                                FunctionType* ft = FunctionType::get(IntegerType::get(*TheContext, 32), args_types, false);
 
-                            MainFunction = Function::Create(ft, Function::ExternalLinkage, "main", *TheModule);
-                        }
+                                MainFunction = Function::Create(ft, Function::ExternalLinkage, "main", *TheModule);
+                            }
 
-                        if (!MainFunction) {
-                            return nullptr;
-                        }
-                        
-                        BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", MainFunction);
-                        Builder->SetInsertPoint(BB);
+                            if (!MainFunction) {
+                                return nullptr;
+                            }
+                            
+                            BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", MainFunction);
+                            Builder->SetInsertPoint(BB);
 
-                        Value *RetVal = Builder->CreateCall(TheFunction, vector<Value*>({ConstantPointerNull::get(static_cast<PointerType*>(args_types[0]))}), "calltmp");
-                        if (RetVal) {
-                            Builder->CreateRet(RetVal);
-                            verifyFunction(*MainFunction);
+                            Value *RetVal = Builder->CreateCall(TheFunction, vector<Value*>({ConstantPointerNull::get(static_cast<PointerType*>(args_types[0]))}), "calltmp");
+                            if (RetVal) {
+                                Builder->CreateRet(RetVal);
+                                verifyFunction(*MainFunction);
+                            }
                         }
                     }
                 }
             }
+
+
+            return TheFunction;
         }
-
-
-        return TheFunction;
     }
 }
 

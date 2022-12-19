@@ -15,11 +15,33 @@ void Main::main(int argc, char **argv) {
       processDir(file);
     }
   }
+
+  for (auto currCU : CUs) {
+    for (auto obj : currCU.second->linkingObj) {
+      bool found = false;
+      for (auto existing : obj_files) {
+        if (existing == obj) {
+          found = true;
+        }
+      }
+      if (found == false) {
+        obj_files.push_back(obj);
+      }
+    }
+  }
+
+
   string ld = "clang -o " + ArgsParser::output.getName();
   for (string obj : obj_files) {
     ld += " " + obj;
   }
   system(ld.c_str());
+
+  string rm = "rm ";
+  for (string obj : obj_files) {
+    rm += " " + obj;
+  }
+  system(rm.c_str());
 }
 
 void Main::processDir(Path &dir) {

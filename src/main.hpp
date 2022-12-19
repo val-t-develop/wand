@@ -25,6 +25,7 @@ public:
     shared_ptr<CodeGen> codeGen;
 
     map<vector<string>, vector<Path>> importFiles = map<vector<string>, vector<Path>>();
+    vector<string> linkingObj = vector<string>();
 
     State currState = State::NOTHING;
 
