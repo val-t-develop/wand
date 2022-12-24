@@ -48,4 +48,5 @@ public:
     Value* genVarDecl(shared_ptr<VarDeclNode> node);
     Value* genDefaultValue(shared_ptr<TypeNode> node);
     Value* genVarValue(shared_ptr<VarRecordNode> node);
+    Value* genBinOp(shared_ptr<BinaryOperatorNode> node);
 };

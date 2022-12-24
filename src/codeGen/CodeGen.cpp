@@ -1,6 +1,10 @@
 #include "CodeGen.hpp"
 #include <utils/Out.hpp>
 #include <ast/node/statement/expression/literal/IntLiteralNode.hpp>
+#include <ast/node/statement/expression/literal/BoolLiteralNode.hpp>
+#include <ast/node/statement/expression/literal/CharLiteralNode.hpp>
+#include <ast/node/statement/expression/literal/NullNode.hpp>
+#include <ast/node/statement/expression/literal/FloatLiteralNode.hpp>
 #include <main.hpp>
 
 #include "llvm/IR/LegacyPassManager.h"
@@ -429,6 +433,8 @@ Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
         return genLiteral(node);
     } else if (node->kind == Node::NodeKind::METHOD_CALL_NODE) {
         return genMethodCall(static_pointer_cast<MethodCallNode>(node));
+    } else if (node->kind == Node::NodeKind::BINARY_OPERATOR_NODE) {
+        return genBinOp(static_pointer_cast<BinaryOperatorNode>(node));
     } else if (node->kind == Node::NodeKind::VAR_RECORD_NODE) {
         return genVarValue(static_pointer_cast<VarRecordNode>(node));
     } else if (node->kind == Node::NodeKind::ACCESS_NODE) {
@@ -438,7 +444,21 @@ Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
 
 Value* CodeGen::genLiteral(shared_ptr<ExpressionNode> node) {
     if (node->kind == Node::NodeKind::INT_LITERAL_NODE) {
-        return ConstantInt::getSigned(IntegerType::get(*TheContext, 32), static_pointer_cast<IntLiteralNode>(node)->value);
+        if (static_pointer_cast<IntLiteralNode>(node)->longVal) {
+            return ConstantInt::getSigned(IntegerType::get(*TheContext, 64), static_pointer_cast<IntLiteralNode>(node)->value);
+        } else {
+            return ConstantInt::getSigned(IntegerType::get(*TheContext, 32), static_pointer_cast<IntLiteralNode>(node)->value);
+        }
+    } else if (node->kind == Node::NodeKind::BOOL_LITERAL_NODE) {
+        return ConstantInt::getSigned(IntegerType::get(*TheContext, 1), static_pointer_cast<BoolLiteralNode>(node)->value);
+    } else if (node->kind == Node::NodeKind::CHAR_LITERAL_NODE) {
+        return ConstantInt::getSigned(IntegerType::get(*TheContext, 8), static_pointer_cast<CharLiteralNode>(node)->str[0]);
+    } else if (node->kind == Node::NodeKind::FLOAT_LITERAL_NODE) {
+        if (static_pointer_cast<FloatLiteralNode>(node)->doubleVal) {
+            return ConstantFP::get(Type::getDoubleTy(*TheContext), static_pointer_cast<FloatLiteralNode>(node)->value);
+        } else {
+            return ConstantFP::get(Type::getFloatTy(*TheContext), static_pointer_cast<FloatLiteralNode>(node)->value);
+        }
     }
 }
 
@@ -449,7 +469,7 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node) {
     for (shared_ptr<ExpressionNode> arg : node->args) {
         args.push_back(genExpression(arg));
     }
-    return Builder->CreateCall(TheFunction, args, "");
+    return Builder->CreateCall(TheFunction, args, "calltmp");
 }
 
 Value* CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
@@ -495,3 +515,77 @@ Value* CodeGen::genVarValue(shared_ptr<VarRecordNode> node) {
     return NamedValues[getFullRecordName(node->record)];
 }
 
+Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
+    auto L = genExpression(node->left);
+    auto R = genExpression(node->right);
+
+    if (node->op == BinaryOperatorNode::BinaryOperatorKind::RIGHT_SHIFT_ASSIGN) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::LEFT_SHIFT_ASSIGN) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::BIT_OR_ASSIGN) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::XOR_ASSIGN) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::MOD_ASSIGN) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::BIT_AND_ASSIGN) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::DIV_ASSIGN) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::MUL_ASSIGN) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::SUB_ASSIGN) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ADD_ASSIGN) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ASSIGN) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::OR) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::AND) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::BIT_OR) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::XOR) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::BIT_AND) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::EQUAL) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::NOT_EQUAL) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::LESS) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::GREATER) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::LESS_EQUAL) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::GREATER_EQUAL) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::INSTANCEOF) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::LEFT_SHIFT) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::RIGHT_SHIFT) {
+        
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ADD) {
+        return Builder->CreateAdd(L, R, "addtmp");
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::SUB) {
+        return Builder->CreateSub(L, R, "subtmp");
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::MUL) {
+        return Builder->CreateMul(L, R, "multmp");
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::DIV) {
+        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
+            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
+
+            return Builder->CreateFDiv(Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       "fpdivtmp"); 
+        } else {
+            return Builder->CreateSDiv(L, R, "divtmp");
+        }
+    } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::MOD) {
+        
+    }
+}
