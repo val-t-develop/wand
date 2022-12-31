@@ -15,7 +15,6 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "postDebugTask": "rm_o",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

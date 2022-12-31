@@ -86,6 +86,13 @@ void Scope::put(shared_ptr<VarRecord> varRecord) {
 }
 
 void Scope::put(shared_ptr<MethodRecord> methodRecord) {
+    for (auto existing : methodRecords) {
+        if (existing->id == methodRecord->id) {
+            methodRecord->similar.push_back(existing);
+            existing->similar.push_back(methodRecord);
+        }
+    }
+
     methodRecords.push_back(methodRecord);
 }
 

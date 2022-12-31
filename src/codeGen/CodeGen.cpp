@@ -212,31 +212,70 @@ void CodeGen::genClassDecl(shared_ptr<ClassDeclNode> node, bool genMethod) {
 
 void CodeGen::setCurrClassName() {
     if (currClass != nullptr) {
-        string str = getFullRecordName(currClass->record);
+        string str = getFullClassRecordName(currClass->record);
         currClassName = str;
     } else {
         currClassName = "";
     }
 }
 
-string CodeGen::getFullRecordName(shared_ptr<Record> rec) {
-    /*string str;
-    while (true) {
-        if (rec != nullptr) {
-            str = rec->id + "." + str;
-            rec = rec->next;
-        } else {
-            str.pop_back();
-            break;
+string CodeGen::getFullClassRecordName(shared_ptr<ClassRecord> rec) {
+    if (rec->ir_name == "") {
+        string str = "";
+        if (rec->next != nullptr) {
+            str += getFullClassRecordName(static_pointer_cast<ClassRecord>(rec->next)) + ".";
         }
+        str += rec->id;
+        rec->ir_name = str;
     }
-    return str;*/
-    string str = "";
-    if (rec->next != nullptr) {
-        str += getFullRecordName(rec->next) + ".";
+    return rec->ir_name;
+}
+
+string CodeGen::getFullMethodDeclNodeName(shared_ptr<MethodDeclNode> node) {
+    shared_ptr<MethodRecord> rec = node->record;
+    if (rec->ir_name == "") {
+        string str = "";
+        if (rec->next != nullptr) {
+            str += getFullClassRecordName(static_pointer_cast<ClassRecord>(rec->next)) + ".";
+        }
+        str += rec->id;
+
+        str += "__spl__" + getFullClassRecordName(static_pointer_cast<ClassRecordNode>(node->returnType->type->child)->record);
+        for (auto arg : node->args) {
+            str += "__" + getFullClassRecordName(static_pointer_cast<ClassRecordNode>(arg->type->type->child)->record);
+        }
+        rec->ir_name = str; 
     }
-    str += rec->id;
-    return str;
+    return rec->ir_name;
+}
+
+string CodeGen::getFullVarDeclNodeName(shared_ptr<VarDeclNode> node) {
+    shared_ptr<VarRecord> rec = node->record;
+    if (rec->ir_name == "") {
+        string str = "";
+        if (rec->next != nullptr) {
+            str += getFullClassRecordName(static_pointer_cast<ClassRecord>(rec->next)) + ".";
+        }
+        str += rec->id;
+
+        str += "__spl__" + getFullClassRecordName(static_pointer_cast<ClassRecordNode>(node->type->type->child)->record);
+        rec->ir_name = str; 
+    }
+    return rec->ir_name;
+}
+
+string CodeGen::getFullMethodRecordName(shared_ptr<MethodRecord> rec) {
+    if (rec->ir_name == "") {
+        Out::errorMessage("Internal error detected! Can not get ir_name of method " + rec->id);
+    }
+    return rec->ir_name;
+}
+
+string CodeGen::getFullVarRecordName(shared_ptr<VarRecord> rec) {
+    if (rec->ir_name == "") {
+        Out::errorMessage("Internal error detected! Can not get ir_name of method" + rec->id);
+    }
+    return rec->ir_name;
 }
 
 void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
@@ -245,7 +284,7 @@ void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
     for (shared_ptr<VarDeclNode> var : node->fields) {
         types.push_back(getType(var->type));
     }
-    string fullName = getFullRecordName(node->record);
+    string fullName = getFullClassRecordName(node->record);
 
     StructType *structType;
     if (classesTypes.contains(fullName)) {
@@ -281,11 +320,11 @@ Type* CodeGen::getType(shared_ptr<TypeNode> node) {
         }
     } else {
         StructType *structType;
-        if (classesTypes.contains(getFullRecordName(x->record))) {
-            structType = classesTypes.at(getFullRecordName(x->record));
+        if (classesTypes.contains(getFullClassRecordName(x->record))) {
+            structType = classesTypes.at(getFullClassRecordName(x->record));
         } else {
             structType = nullptr;
-            Out::errorMessage("Can not get " + getFullRecordName(x->record));
+            Out::errorMessage("Can not get " + getFullClassRecordName(x->record));
         }
         PointerType *structPtrType = PointerType::get(structType, 0);
         return structPtrType;
@@ -293,7 +332,7 @@ Type* CodeGen::getType(shared_ptr<TypeNode> node) {
 }
 
 Function* CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {
-    Function *TheFunction = TheModule->getFunction(getFullRecordName(node->record));
+    Function *TheFunction = TheModule->getFunction(getFullMethodDeclNodeName(node));
 
     vector<Type*> args_types = vector<Type*>();
     if (!TheFunction) {
@@ -303,7 +342,7 @@ Function* CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {
         }
         FunctionType* ft = FunctionType::get(getType(node->returnType), args_types, false);
 
-        TheFunction = Function::Create(ft, Function::ExternalLinkage, getFullRecordName(node->record), *TheModule);
+        TheFunction = Function::Create(ft, Function::ExternalLinkage, getFullMethodDeclNodeName(node), *TheModule);
     }
 
     if (!TheFunction) {
@@ -314,7 +353,7 @@ Function* CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {
 
 Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
     if (node->body != nullptr) {
-        Function *TheFunction = TheModule->getFunction(getFullRecordName(node->record));
+        Function *TheFunction = TheModule->getFunction(getFullMethodDeclNodeName(node));
 
         vector<Type*> args_types = vector<Type*>();
         for (shared_ptr<VarDeclNode> arg : node->args) {
@@ -463,17 +502,54 @@ Value* CodeGen::genLiteral(shared_ptr<ExpressionNode> node) {
 }
 
 Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node) {
-    string fullName = getFullRecordName(node->record);
-    Function *TheFunction = TheModule->getFunction(fullName);
-    vector<Value*> args = vector<Value*>();
-    for (shared_ptr<ExpressionNode> arg : node->args) {
-        args.push_back(genExpression(arg));
+    if (node->record->similar.empty()) {
+        string fullName = getFullMethodRecordName(node->record);
+        Function *TheFunction = TheModule->getFunction(fullName);
+        vector<Value*> args = vector<Value*>();
+        for (shared_ptr<ExpressionNode> arg : node->args) {
+            args.push_back(genExpression(arg));
+        }
+        return Builder->CreateCall(TheFunction, args, "calltmp");
+    } else {
+        vector<Value*> args = vector<Value*>();
+        for (shared_ptr<ExpressionNode> arg : node->args) {
+            args.push_back(genExpression(arg));
+        }
+
+        auto funcsRecord = node->record->similar;
+        for (auto funRecord : funcsRecord) {
+            string fullName = getFullMethodRecordName(funRecord);
+            Function *TheFunction = TheModule->getFunction(fullName);
+            bool same = true;
+            for (int i = 0; i < args.size(); ++i) {
+                if (args[i]->getType() != TheFunction->getArg(i)->getType()) {
+                    same = false;
+                }
+            }
+            if (same) {
+                return Builder->CreateCall(TheFunction, args, "calltmp");
+            }
+        }
+        auto funRecord = node->record;
+        string fullName = getFullMethodRecordName(funRecord);
+        Function *TheFunction = TheModule->getFunction(fullName);
+        bool same = true;
+        for (int i = 0; i < args.size(); ++i) {
+            if (args[i]->getType() != TheFunction->getArg(i)->getType()) {
+                same = false;
+            }
+        }
+        if (same) {
+            return Builder->CreateCall(TheFunction, args, "calltmp");
+        }
+
+        Out::errorMessage("Fatal error! Can not car record of method call. Undefined reference: " + node->record->id);
     }
-    return Builder->CreateCall(TheFunction, args, "calltmp");
+    
 }
 
 Value* CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
-    NamedValues[getFullRecordName(node->record)] = node->init != nullptr ? genExpression(node->init) : genDefaultValue(node->type);
+    NamedValues[getFullVarDeclNodeName(node)] = node->init != nullptr ? genExpression(node->init) : genDefaultValue(node->type);
 }
 
 Value* CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
@@ -500,11 +576,11 @@ Value* CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
         }
     } else {
         StructType *structType;
-        if (classesTypes.contains(getFullRecordName(x->record))) {
-            structType = classesTypes.at(getFullRecordName(x->record));
+        if (classesTypes.contains(getFullClassRecordName(x->record))) {
+            structType = classesTypes.at(getFullClassRecordName(x->record));
         } else {
             structType = nullptr;
-            Out::errorMessage("Can not get " + getFullRecordName(x->record));
+            Out::errorMessage("Can not get " + getFullClassRecordName(x->record));
         }
         PointerType *structPtrType = PointerType::get(structType, 0);
         return ConstantPointerNull::get(structPtrType);
@@ -512,7 +588,7 @@ Value* CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
 }
 
 Value* CodeGen::genVarValue(shared_ptr<VarRecordNode> node) {
-    return NamedValues[getFullRecordName(node->record)];
+    return NamedValues[getFullVarRecordName(node->record)];
 }
 
 Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {

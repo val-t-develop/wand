@@ -29,7 +29,7 @@ bool ClassRecord::equals(shared_ptr<ClassRecord> r) {
         }
     }
 
-    return id == r->id && type == r->type && (next == nullptr ? false : next->equals(r->next)) &&
+    return id == r->id && type == r->type && (next == nullptr ? r->next == nullptr : next->equals(r->next)) &&
            superClass == r->superClass && isComponentsEqual;
 }
 

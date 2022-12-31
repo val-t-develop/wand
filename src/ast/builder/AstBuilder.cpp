@@ -288,6 +288,39 @@ AstBuilder::enterMethodDecl(shared_ptr<TypeNode> type,
                             shared_ptr<MethodRecord> record) {
   symbolTable->enterScope(nullptr);
   vector<shared_ptr<VarDeclNode>> args = enterMethodArgs();
+
+  bool found = true;
+
+  if (record->argsCount == args.size()) {
+    for (int i = 0; i < args.size(); ++i) {
+      if (args[i]->record != record->vars[i]) {
+        found = false;
+        break;
+      }
+    }
+  } else {
+    found = false;
+  }
+
+  if (!found) {
+    for (auto rec : record->similar) {
+      found = true;
+      if (rec->argsCount == args.size()) {
+        for (int i = 0; i < args.size(); ++i) {
+          if (args[i]->record != rec->vars[i]) {
+            found = false;
+            break;
+          }
+        }
+      } else {
+        found = false;
+      }
+      if (found) {
+        record = rec;
+        break;
+      }
+    }
+  }
   if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
     shared_ptr<BlockNode> block = enterBlockStatement(false);
     symbolTable->exitScope();
@@ -1149,8 +1182,11 @@ shared_ptr<ExpressionNode> AstBuilder::enterLiteral() {
     lexer.goForward();
     return make_shared<FloatLiteralNode>(val, true, nullptr);
   } else if (lexer.getCurrent()->kind == Token::Kind::DEC_INT_LITERAL ||
-             lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL ||
-             lexer.getCurrent()->kind == Token::Kind::DEC_LONG_LITERAL ||
+             lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL) {
+    int64_t val = ParserUtils::parseLong(lexer.getCurrent()->str);
+    lexer.goForward();
+    return make_shared<IntLiteralNode>(val, false, nullptr);
+  } else if (lexer.getCurrent()->kind == Token::Kind::DEC_LONG_LITERAL ||
              lexer.getCurrent()->kind == Token::Kind::HEX_LONG_LITERAL) {
     int64_t val = ParserUtils::parseLong(lexer.getCurrent()->str);
     lexer.goForward();

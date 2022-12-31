@@ -12,7 +12,7 @@ bool MethodRecord::equals(shared_ptr<MethodRecord> r) {
                 }
         }
     }
-    return id == r->id && type == r->type && (next == nullptr ? false : next->equals(r->next)) &&
+    return id == r->id && type == r->type && (next == nullptr ? r->next == nullptr : next->equals(r->next)) &&
            argsCount == r->argsCount && isConstructor == r->isConstructor &&
            isVarsEqual;
 }

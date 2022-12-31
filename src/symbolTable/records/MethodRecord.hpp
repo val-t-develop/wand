@@ -7,6 +7,7 @@ public:
     vector<shared_ptr<VarRecord>> vars = vector<shared_ptr<VarRecord>>();
     int argsCount = 0;
     bool isConstructor = false;
+    vector<shared_ptr<MethodRecord>> similar = vector<shared_ptr<MethodRecord>>();
 
     MethodRecord(string id, string type);
 

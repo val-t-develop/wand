@@ -6,6 +6,7 @@ public:
     string id;
     string type;
     shared_ptr<Record> next;
+    string ir_name = "";
 
     Record(string id, string type);
 

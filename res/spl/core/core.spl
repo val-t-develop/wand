@@ -7,5 +7,7 @@ class String {
 class System {
     class out {
         public void println(int a);
+        public void println(float a);
+        public void println(double a);
     }
 }

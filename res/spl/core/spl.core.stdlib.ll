@@ -4,10 +4,11 @@ target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16
 target triple = "x86_64-pc-linux-gnu"
 
 @.str = private unnamed_addr constant [3 x i8] c"%d\00", align 1
-@llvm.compiler.used = appending global [1 x ptr] [ptr @System.out.println], section "llvm.metadata"
+@.str.1 = private unnamed_addr constant [3 x i8] c"%f\00", align 1
+@llvm.compiler.used = appending global [3 x ptr] [ptr @System.out.println__spl__void__int, ptr @System.out.println__spl__void__float, ptr @System.out.println__spl__void__double], section "llvm.metadata"
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.println(i32 noundef %0) #0 {
+define dso_local void @System.out.println__spl__void__int(i32 noundef %0) #0 {
   %2 = alloca i32, align 4
   store i32 %0, ptr %2, align 4
   %3 = load i32, ptr %2, align 4
@@ -16,6 +17,25 @@ define dso_local void @System.out.println(i32 noundef %0) #0 {
 }
 
 declare i32 @printf(ptr noundef, ...) #1
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @System.out.println__spl__void__float(float noundef %0) #0 {
+  %2 = alloca float, align 4
+  store float %0, ptr %2, align 4
+  %3 = load float, ptr %2, align 4
+  %4 = fpext float %3 to double
+  %5 = call i32 (ptr, ...) @printf(ptr noundef @.str.1, double noundef %4)
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @System.out.println__spl__void__double(double noundef %0) #0 {
+  %2 = alloca double, align 8
+  store double %0, ptr %2, align 8
+  %3 = load double, ptr %2, align 8
+  %4 = call i32 (ptr, ...) @printf(ptr noundef @.str.1, double noundef %3)
+  ret void
+}
 
 attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #1 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }

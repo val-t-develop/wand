@@ -577,7 +577,7 @@ void SymbolListener::enterMethodArgs() {
 
         shared_ptr<VarRecord> arg = make_shared<VarRecord> (id, type);
         // add parameter to method
-        currentMethod->addVar(arg);
+        currentMethod->addArg(arg);
         // insert record into scope
         symbolTable->put(arg);
     }

@@ -36,7 +36,11 @@ public:
     void createClassType(shared_ptr<ClassDeclNode> node);
     void genClassDecl(shared_ptr<ClassDeclNode> node, bool genMethod);
     void setCurrClassName();
-    string getFullRecordName(shared_ptr<Record> rec);
+    string getFullClassRecordName(shared_ptr<ClassRecord> rec);
+    string getFullMethodDeclNodeName(shared_ptr<MethodDeclNode> node);
+    string getFullVarDeclNodeName(shared_ptr<VarDeclNode> node);
+    string getFullMethodRecordName(shared_ptr<MethodRecord> rec);
+    string getFullVarRecordName(shared_ptr<VarRecord> rec);
     void genStruct(shared_ptr<ClassDeclNode> node);
     Type* getType(shared_ptr<TypeNode> node);
     Function* genMethodPrototype(shared_ptr<MethodDeclNode> node);
