@@ -646,11 +646,35 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::RIGHT_SHIFT) {
         
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ADD) {
-        return Builder->CreateAdd(L, R, "addtmp");
+        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
+            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
+
+            return Builder->CreateFAdd(Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       "fpaddtmp"); 
+        } else {
+            return Builder->CreateAdd(L, R, "addtmp");
+        }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::SUB) {
-        return Builder->CreateSub(L, R, "subtmp");
+        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
+            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
+
+            return Builder->CreateFSub(Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       "fpsubtmp"); 
+        } else {
+            return Builder->CreateSub(L, R, "subtmp");
+        }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::MUL) {
-        return Builder->CreateMul(L, R, "multmp");
+        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
+            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
+
+            return Builder->CreateFMul(Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       "fpmultmp"); 
+        } else {
+            return Builder->CreateMul(L, R, "multmp");
+        }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::DIV) {
         if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
             R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
