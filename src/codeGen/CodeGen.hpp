@@ -46,6 +46,7 @@ public:
     Function* genMethodPrototype(shared_ptr<MethodDeclNode> node);
     Function* genMethodDecl(shared_ptr<MethodDeclNode> node);
     Value* genBlockStatement(shared_ptr<BlockNode> node);
+    Value* genIfElse(shared_ptr<IfElseNode> node);
     Value* genExpression(shared_ptr<ExpressionNode> node);
     Value* genLiteral(shared_ptr<ExpressionNode> node);
     Value* genMethodCall(shared_ptr<MethodCallNode> node);

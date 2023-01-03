@@ -452,7 +452,9 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
 
 Value* CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
     for (shared_ptr<Node> item : node->nodes) {
-        if (item->kind == Node::NodeKind::RETURN_NODE) {
+        if (item->kind == Node::NodeKind::BLOCK_NODE) {
+            genBlockStatement(static_pointer_cast<BlockNode>(item));
+        } else if (item->kind == Node::NodeKind::RETURN_NODE) {
             return genExpression(static_pointer_cast<ReturnNode>(item)->expression);
         } else if (item->kind == Node::NodeKind::VAR_DECL_NODE) {
             genVarDecl(static_pointer_cast<VarDeclNode>(item));
@@ -462,8 +464,60 @@ Value* CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
             }
         } else if (item->isExpression()) {
             genExpression(static_pointer_cast<ExpressionNode>(item));
+        } else if (item->kind == Node::NodeKind::IF_ELSE_NODE) {
+            genIfElse(static_pointer_cast<IfElseNode>(item));
         }
     }
+    return nullptr;
+}
+
+Value* CodeGen::genIfElse(shared_ptr<IfElseNode> node) {
+    Value *cond = genExpression(node->condition);
+
+    Function *TheFunction = Builder->GetInsertBlock()->getParent();
+
+    // Create blocks for the then and else cases.  Insert the 'then' block at the
+    // end of the function.
+    BasicBlock *ThenBB =
+        BasicBlock::Create(*TheContext, "then", TheFunction);
+    BasicBlock *ElseBB = nullptr;
+    if (node->elseNode != nullptr) {
+        ElseBB = BasicBlock::Create(*TheContext, "else");
+    }
+    BasicBlock *MergeBB = BasicBlock::Create(*TheContext, "ifcont");
+
+    if (node->elseNode != nullptr) {
+        Builder->CreateCondBr(cond, ThenBB, ElseBB);
+    } else {
+        Builder->CreateCondBr(cond, ThenBB, MergeBB);
+    }
+    
+
+    // Emit then value.
+    Builder->SetInsertPoint(ThenBB);
+    genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->thenNode}, nullptr));
+    Builder->CreateBr(MergeBB);
+    // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+    ThenBB = Builder->GetInsertBlock();
+
+    if (node->elseNode != nullptr) {
+        // Emit else block.
+        ElseBB->insertInto(TheFunction);
+        Builder->SetInsertPoint(ElseBB);
+        genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->elseNode}, nullptr));
+        Builder->CreateBr(MergeBB);
+        // codegen of 'Else' can change the current block, update ElseBB for the PHI.
+        ElseBB = Builder->GetInsertBlock();
+    }
+    
+
+    MergeBB->insertInto(TheFunction);
+    Builder->SetInsertPoint(MergeBB);
+    // PHINode *PN =
+    //     Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, "iftmp");
+
+    // PN->addIncoming(ThenV, ThenBB);
+    // PN->addIncoming(ElseV, ElseBB);
     return nullptr;
 }
 
@@ -628,17 +682,65 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::BIT_AND) {
         
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::EQUAL) {
-        
+        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
+            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
+
+            return Builder->CreateFCmp(CmpInst::Predicate::FCMP_OEQ, Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       "fpeqtmp"); 
+        } else {
+            return Builder->CreateICmp(CmpInst::Predicate::ICMP_EQ, L, R, "eqtmp");
+        }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::NOT_EQUAL) {
-        
+        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
+            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
+
+            return Builder->CreateFCmp(CmpInst::Predicate::FCMP_ONE, Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       "fpneqtmp"); 
+        } else {
+            return Builder->CreateICmp(CmpInst::Predicate::ICMP_NE, L, R, "neqtmp");
+        }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::LESS) {
-        
+        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
+            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
+
+            return Builder->CreateFCmp(CmpInst::Predicate::FCMP_OLT, Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       "fplttmp"); 
+        } else {
+            return Builder->CreateICmp(CmpInst::Predicate::ICMP_SLT, L, R, "lttmp");
+        }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::GREATER) {
-        
+        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
+            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
+
+            return Builder->CreateFCmp(CmpInst::Predicate::FCMP_OGT, Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       "fpgttmp"); 
+        } else {
+            return Builder->CreateICmp(CmpInst::Predicate::ICMP_SGT, L, R, "gttmp");
+        }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::LESS_EQUAL) {
-        
+        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
+            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
+
+            return Builder->CreateFCmp(CmpInst::Predicate::FCMP_OLE, Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       "fpletmp"); 
+        } else {
+            return Builder->CreateICmp(CmpInst::Predicate::ICMP_SLE, L, R, "letmp");
+        }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::GREATER_EQUAL) {
-        
+        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
+            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
+
+            return Builder->CreateFCmp(CmpInst::Predicate::FCMP_OGE, Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
+                                       "fpgetmp"); 
+        } else {
+            return Builder->CreateICmp(CmpInst::Predicate::ICMP_SGE, L, R, "getmp");
+        }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::INSTANCEOF) {
         
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::LEFT_SHIFT) {
