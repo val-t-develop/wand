@@ -453,6 +453,8 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
             genExpression(static_pointer_cast<ExpressionNode>(item));
         } else if (item->kind == Node::NodeKind::IF_ELSE_NODE) {
             genIfElse(static_pointer_cast<IfElseNode>(item));
+        } else if (item->kind == Node::NodeKind::WHILE_NODE) {
+            genWhile(static_pointer_cast<WhileNode>(item));
         }
     }
     return false;
@@ -504,12 +506,36 @@ Value* CodeGen::genIfElse(shared_ptr<IfElseNode> node) {
 
     MergeBB->insertInto(TheFunction);
     Builder->SetInsertPoint(MergeBB);
-    // PHINode *PN =
-    //     Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, "iftmp");
-
-    // PN->addIncoming(ThenV, ThenBB);
-    // PN->addIncoming(ElseV, ElseBB);
     return nullptr;
+}
+
+Value* CodeGen::genWhile(shared_ptr<WhileNode> node) {
+    Value *cond = genExpression(node->expression);
+
+    Function *TheFunction = Builder->GetInsertBlock()->getParent();
+
+    BasicBlock *whileBB = BasicBlock::Create(*TheContext, "while");
+    BasicBlock *whilebodyBB = BasicBlock::Create(*TheContext, "whilebody");
+    BasicBlock *whilecontBB = BasicBlock::Create(*TheContext, "whilecont");
+
+    Builder->CreateBr(whileBB);
+
+    whileBB->insertInto(TheFunction);
+    Builder->SetInsertPoint(whileBB);
+
+    Builder->CreateCondBr(cond, whilebodyBB, whilecontBB);
+
+    whilebodyBB->insertInto(TheFunction);
+    Builder->SetInsertPoint(whilebodyBB);
+
+    bool br = genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->statement}, nullptr));
+    if (!br) {
+        Builder->CreateBr(whileBB);
+    }
+
+    whilecontBB->insertInto(TheFunction);
+    Builder->SetInsertPoint(whilecontBB);
+    return nullptr;   
 }
 
 Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {

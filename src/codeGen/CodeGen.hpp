@@ -49,6 +49,7 @@ public:
     Function* genMethodDecl(shared_ptr<MethodDeclNode> node);
     bool genBlockStatement(shared_ptr<BlockNode> node);
     Value* genIfElse(shared_ptr<IfElseNode> node);
+    Value* genWhile(shared_ptr<WhileNode> node);
     Value* genExpression(shared_ptr<ExpressionNode> node);
     Value* genLiteral(shared_ptr<ExpressionNode> node);
     Value* genMethodCall(shared_ptr<MethodCallNode> node);
