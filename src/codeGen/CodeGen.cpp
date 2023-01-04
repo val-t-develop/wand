@@ -376,8 +376,14 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
             NamedValues[getFullMethodDeclNodeName(node)+"__spl__ret"] = ret_ptr;
         }
         
-        for (auto &Arg : TheFunction->args())
-            NamedValues[string(Arg.getName())] = &Arg;
+        for (int i = 0; i < node->args.size(); ++i) {
+            auto Arg = TheFunction->getArg(i);
+            string argName = getFullVarDeclNodeName(node->args[i]);
+            Value *ptr = Builder->CreateAlloca(Arg->getType(), nullptr, argName);
+            Builder->CreateStore(Arg, ptr);
+            NamedValues[argName] = ptr;
+            varTypes[node->args[i]->record] = Arg->getType();
+        }
 
         bool br = genBlockStatement(node->body);
         if (!br) {
@@ -460,7 +466,7 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
     return false;
 }
 
-Value* CodeGen::genIfElse(shared_ptr<IfElseNode> node) {
+void CodeGen::genIfElse(shared_ptr<IfElseNode> node) {
     Value *cond = genExpression(node->condition);
 
     Function *TheFunction = Builder->GetInsertBlock()->getParent();
@@ -506,10 +512,9 @@ Value* CodeGen::genIfElse(shared_ptr<IfElseNode> node) {
 
     MergeBB->insertInto(TheFunction);
     Builder->SetInsertPoint(MergeBB);
-    return nullptr;
 }
 
-Value* CodeGen::genWhile(shared_ptr<WhileNode> node) {
+void CodeGen::genWhile(shared_ptr<WhileNode> node) {
     Value *cond = genExpression(node->expression);
 
     Function *TheFunction = Builder->GetInsertBlock()->getParent();
@@ -535,7 +540,6 @@ Value* CodeGen::genWhile(shared_ptr<WhileNode> node) {
 
     whilecontBB->insertInto(TheFunction);
     Builder->SetInsertPoint(whilecontBB);
-    return nullptr;   
 }
 
 Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
@@ -621,7 +625,7 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node) {
 
 Value* CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
     Value *val = node->init != nullptr ? genExpression(node->init) : genDefaultValue(node->type);
-    Value *ptr = Builder->CreateAlloca(val->getType(), nullptr, "allocatmp");
+    Value *ptr = Builder->CreateAlloca(val->getType(), nullptr, getFullVarDeclNodeName(node));
     Builder->CreateStore(val, ptr);
     NamedValues[getFullVarDeclNodeName(node)] = ptr;
     varTypes[node->record] = val->getType();
