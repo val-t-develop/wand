@@ -20,6 +20,8 @@ public:
     shared_ptr<IRBuilder<>> Builder;
     shared_ptr<Module> TheModule;
     map<string, Value *> NamedValues;
+    map<shared_ptr<VarRecord>, Type *> varTypes;
+    BasicBlock *retBB;
 
     shared_ptr<CompilationUnitNode> cu;
     shared_ptr<ClassDeclNode> currClass;
@@ -45,7 +47,7 @@ public:
     Type* getType(shared_ptr<TypeNode> node);
     Function* genMethodPrototype(shared_ptr<MethodDeclNode> node);
     Function* genMethodDecl(shared_ptr<MethodDeclNode> node);
-    Value* genBlockStatement(shared_ptr<BlockNode> node);
+    bool genBlockStatement(shared_ptr<BlockNode> node);
     Value* genIfElse(shared_ptr<IfElseNode> node);
     Value* genExpression(shared_ptr<ExpressionNode> node);
     Value* genLiteral(shared_ptr<ExpressionNode> node);

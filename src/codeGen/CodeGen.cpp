@@ -365,97 +365,84 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
         }
         
         BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", TheFunction);
+        retBB = BasicBlock::Create(*TheContext, "ret");
         Builder->SetInsertPoint(BB);
 
         NamedValues.clear();
+
+        Value *ret_ptr;
+        if (TheFunction->getReturnType() != Type::getVoidTy(*TheContext)) {
+            ret_ptr = Builder->CreateAlloca(TheFunction->getReturnType(), nullptr, "retallocatmp");
+            NamedValues[getFullMethodDeclNodeName(node)+"__spl__ret"] = ret_ptr;
+        }
+        
         for (auto &Arg : TheFunction->args())
             NamedValues[string(Arg.getName())] = &Arg;
 
-        if (Value *RetVal = genBlockStatement(node->body)) {
-            Builder->CreateRet(RetVal);
-            verifyFunction(*TheFunction);
-
-
-            if (static_pointer_cast<ClassRecordNode>(node->returnType->type->child)->record->id == "int") {
-                if (node->record->id == "main") {
-                    if (node->args.size() == 1) {
-                        if (static_pointer_cast<ClassRecordNode>(node->args.at(0)->type->type->child)->record->id == "String") {
-                            Function *MainFunction = TheModule->getFunction("main");
-
-                            if (!MainFunction) {
-                                vector<Type*> args_types = vector<Type*>();
-                                FunctionType* ft = FunctionType::get(IntegerType::get(*TheContext, 32), args_types, false);
-
-                                MainFunction = Function::Create(ft, Function::ExternalLinkage, "main", *TheModule);
-                            }
-
-                            if (!MainFunction) {
-                                return nullptr;
-                            }
-                            
-                            BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", MainFunction);
-                            Builder->SetInsertPoint(BB);
-
-                            Value *RetVal = Builder->CreateCall(TheFunction, vector<Value*>({ConstantPointerNull::get(static_cast<PointerType*>(args_types[0]))}), "calltmp");
-                            if (RetVal) {
-                                Builder->CreateRet(RetVal);
-                                verifyFunction(*MainFunction);
-                            }
-                        }
-                    }
-                }
-            }
-
-
-            return TheFunction;
-        } else {
-            RetVal = ReturnInst::Create(*TheContext);
-            Builder->CreateRet(RetVal);
-            verifyFunction(*TheFunction);
-
-
-            if (static_pointer_cast<ClassRecordNode>(node->returnType->type->child)->record->id == "int") {
-                if (node->record->id == "main") {
-                    if (node->args.size() == 1) {
-                        if (static_pointer_cast<ClassRecordNode>(node->args.at(0)->type->type->child)->record->id == "String") {
-                            Function *MainFunction = TheModule->getFunction("main");
-
-                            if (!MainFunction) {
-                                vector<Type*> args_types = vector<Type*>();
-                                FunctionType* ft = FunctionType::get(IntegerType::get(*TheContext, 32), args_types, false);
-
-                                MainFunction = Function::Create(ft, Function::ExternalLinkage, "main", *TheModule);
-                            }
-
-                            if (!MainFunction) {
-                                return nullptr;
-                            }
-                            
-                            BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", MainFunction);
-                            Builder->SetInsertPoint(BB);
-
-                            Value *RetVal = Builder->CreateCall(TheFunction, vector<Value*>({ConstantPointerNull::get(static_cast<PointerType*>(args_types[0]))}), "calltmp");
-                            if (RetVal) {
-                                Builder->CreateRet(RetVal);
-                                verifyFunction(*MainFunction);
-                            }
-                        }
-                    }
-                }
-            }
-
-
-            return TheFunction;
+        bool br = genBlockStatement(node->body);
+        if (!br) {
+            Builder->CreateBr(retBB);
         }
+        
+        retBB->insertInto(TheFunction);
+        Builder->SetInsertPoint(retBB);
+
+        if (TheFunction->getReturnType() != Type::getVoidTy(*TheContext)) {
+            Value *ret_val = Builder->CreateLoad(TheFunction->getReturnType(), ret_ptr, "retloadtmp");
+            Builder->CreateRet(ret_val);
+        } else {
+            Value *ret_val = ReturnInst::Create(*TheContext);
+            Builder->CreateRet(ret_val);
+        }
+
+        verifyFunction(*TheFunction);
+
+        if (static_pointer_cast<ClassRecordNode>(node->returnType->type->child)->record->id == "int") {
+                if (node->record->id == "main") {
+                    if (node->args.size() == 1) {
+                        if (static_pointer_cast<ClassRecordNode>(node->args.at(0)->type->type->child)->record->id == "String") {
+                            Function *MainFunction = TheModule->getFunction("main");
+
+                            if (!MainFunction) {
+                                vector<Type*> args_types = vector<Type*>();
+                                FunctionType* ft = FunctionType::get(IntegerType::get(*TheContext, 32), args_types, false);
+
+                                MainFunction = Function::Create(ft, Function::ExternalLinkage, "main", *TheModule);
+                            }
+
+                            if (!MainFunction) {
+                                return nullptr;
+                            }
+                            
+                            BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", MainFunction);
+                            Builder->SetInsertPoint(BB);
+
+                            Value *RetVal = Builder->CreateCall(TheFunction, vector<Value*>({ConstantPointerNull::get(static_cast<PointerType*>(args_types[0]))}), "calltmp");
+                            if (RetVal) {
+                                Builder->CreateRet(RetVal);
+                                verifyFunction(*MainFunction);
+                            }
+                        }
+                    }
+                }
+            }
+
+        return TheFunction;
     }
 }
 
-Value* CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
+bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
     for (shared_ptr<Node> item : node->nodes) {
         if (item->kind == Node::NodeKind::BLOCK_NODE) {
-            genBlockStatement(static_pointer_cast<BlockNode>(item));
+            return genBlockStatement(static_pointer_cast<BlockNode>(item));
         } else if (item->kind == Node::NodeKind::RETURN_NODE) {
-            return genExpression(static_pointer_cast<ReturnNode>(item)->expression);
+            if (static_pointer_cast<ReturnNode>(item)->expression != nullptr) {
+                Value *val = genExpression(static_pointer_cast<ReturnNode>(item)->expression);
+                Value *ptr = NamedValues[Builder->GetInsertBlock()->getParent()->getName().str()+"__spl__ret"];
+                Builder->CreateStore(val, ptr);
+            }
+            Builder->CreateBr(retBB);
+            return true;
         } else if (item->kind == Node::NodeKind::VAR_DECL_NODE) {
             genVarDecl(static_pointer_cast<VarDeclNode>(item));
         } else if (item->kind == Node::NodeKind::VARS_DECL_NODE) {
@@ -468,7 +455,7 @@ Value* CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
             genIfElse(static_pointer_cast<IfElseNode>(item));
         }
     }
-    return nullptr;
+    return false;
 }
 
 Value* CodeGen::genIfElse(shared_ptr<IfElseNode> node) {
@@ -495,8 +482,10 @@ Value* CodeGen::genIfElse(shared_ptr<IfElseNode> node) {
 
     // Emit then value.
     Builder->SetInsertPoint(ThenBB);
-    genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->thenNode}, nullptr));
-    Builder->CreateBr(MergeBB);
+    bool br = genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->thenNode}, nullptr));
+    if (!br) {
+        Builder->CreateBr(MergeBB);
+    }
     // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
     ThenBB = Builder->GetInsertBlock();
 
@@ -504,8 +493,10 @@ Value* CodeGen::genIfElse(shared_ptr<IfElseNode> node) {
         // Emit else block.
         ElseBB->insertInto(TheFunction);
         Builder->SetInsertPoint(ElseBB);
-        genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->elseNode}, nullptr));
-        Builder->CreateBr(MergeBB);
+        br = genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->elseNode}, nullptr));
+        if (!br) {
+            Builder->CreateBr(MergeBB);
+        }
         // codegen of 'Else' can change the current block, update ElseBB for the PHI.
         ElseBB = Builder->GetInsertBlock();
     }
@@ -603,7 +594,11 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node) {
 }
 
 Value* CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
-    NamedValues[getFullVarDeclNodeName(node)] = node->init != nullptr ? genExpression(node->init) : genDefaultValue(node->type);
+    Value *val = node->init != nullptr ? genExpression(node->init) : genDefaultValue(node->type);
+    Value *ptr = Builder->CreateAlloca(val->getType(), nullptr, "allocatmp");
+    Builder->CreateStore(val, ptr);
+    NamedValues[getFullVarDeclNodeName(node)] = ptr;
+    varTypes[node->record] = val->getType();
 }
 
 Value* CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
@@ -642,7 +637,10 @@ Value* CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
 }
 
 Value* CodeGen::genVarValue(shared_ptr<VarRecordNode> node) {
-    return NamedValues[getFullVarRecordName(node->record)];
+    Value *ptr = NamedValues[getFullVarRecordName(node->record)];
+    Type *type = varTypes[node->record];
+    Value *val = Builder->CreateLoad(type, ptr, "loadtmp");
+    return val; 
 }
 
 Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
