@@ -721,8 +721,12 @@ shared_ptr<ForNode> AstBuilder::enterForStatement() {
                                  std::to_string(lexer.getCurrent()->line) +
                                  ":" + std::to_string(lexer.getCurrent()->pos));
   }
-  shared_ptr<StatementNode> update = enterStatement();
 
+  shared_ptr<StatementNode> update = nullptr;
+  if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+      update = enterStatement();
+  }
+  
   if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
     lexer.goForward();
   } else {

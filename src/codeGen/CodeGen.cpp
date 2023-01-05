@@ -439,28 +439,32 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
 
 bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
     for (shared_ptr<Node> item : node->nodes) {
-        if (item->kind == Node::NodeKind::BLOCK_NODE) {
-            return genBlockStatement(static_pointer_cast<BlockNode>(item));
-        } else if (item->kind == Node::NodeKind::RETURN_NODE) {
-            if (static_pointer_cast<ReturnNode>(item)->expression != nullptr) {
-                Value *val = genExpression(static_pointer_cast<ReturnNode>(item)->expression);
-                Value *ptr = NamedValues[Builder->GetInsertBlock()->getParent()->getName().str()+"__spl__ret"];
-                Builder->CreateStore(val, ptr);
+        if (item != nullptr) {
+            if (item->kind == Node::NodeKind::BLOCK_NODE) {
+                return genBlockStatement(static_pointer_cast<BlockNode>(item));
+            } else if (item->kind == Node::NodeKind::RETURN_NODE) {
+                if (static_pointer_cast<ReturnNode>(item)->expression != nullptr) {
+                    Value *val = genExpression(static_pointer_cast<ReturnNode>(item)->expression);
+                    Value *ptr = NamedValues[Builder->GetInsertBlock()->getParent()->getName().str()+"__spl__ret"];
+                    Builder->CreateStore(val, ptr);
+                }
+                Builder->CreateBr(retBB);
+                return true;
+            } else if (item->kind == Node::NodeKind::VAR_DECL_NODE) {
+                genVarDecl(static_pointer_cast<VarDeclNode>(item));
+            } else if (item->kind == Node::NodeKind::VARS_DECL_NODE) {
+                for (shared_ptr<VarDeclNode> decl : static_pointer_cast<VarsDeclNode>(item)->decls) {
+                    genVarDecl(decl);
+                }
+            } else if (item->isExpression()) {
+                genExpression(static_pointer_cast<ExpressionNode>(item));
+            } else if (item->kind == Node::NodeKind::IF_ELSE_NODE) {
+                genIfElse(static_pointer_cast<IfElseNode>(item));
+            } else if (item->kind == Node::NodeKind::WHILE_NODE) {
+                genWhile(static_pointer_cast<WhileNode>(item));
+            } else if (item->kind == Node::NodeKind::FOR_NODE) {
+                genFor(static_pointer_cast<ForNode>(item));
             }
-            Builder->CreateBr(retBB);
-            return true;
-        } else if (item->kind == Node::NodeKind::VAR_DECL_NODE) {
-            genVarDecl(static_pointer_cast<VarDeclNode>(item));
-        } else if (item->kind == Node::NodeKind::VARS_DECL_NODE) {
-            for (shared_ptr<VarDeclNode> decl : static_pointer_cast<VarsDeclNode>(item)->decls) {
-                genVarDecl(decl);
-            }
-        } else if (item->isExpression()) {
-            genExpression(static_pointer_cast<ExpressionNode>(item));
-        } else if (item->kind == Node::NodeKind::IF_ELSE_NODE) {
-            genIfElse(static_pointer_cast<IfElseNode>(item));
-        } else if (item->kind == Node::NodeKind::WHILE_NODE) {
-            genWhile(static_pointer_cast<WhileNode>(item));
         }
     }
     return false;
@@ -540,6 +544,48 @@ void CodeGen::genWhile(shared_ptr<WhileNode> node) {
 
     whilecontBB->insertInto(TheFunction);
     Builder->SetInsertPoint(whilecontBB);
+}
+
+void CodeGen::genFor(shared_ptr<ForNode> node) {
+
+    Function *TheFunction = Builder->GetInsertBlock()->getParent();
+
+    BasicBlock *forBB = BasicBlock::Create(*TheContext, "for");
+    BasicBlock *forcondBB = BasicBlock::Create(*TheContext, "forcond");
+    BasicBlock *forbodyBB = BasicBlock::Create(*TheContext, "forbody");
+    BasicBlock *forcontBB = BasicBlock::Create(*TheContext, "forcont");
+
+    Builder->CreateBr(forBB);
+
+    forBB->insertInto(TheFunction);
+    Builder->SetInsertPoint(forBB);
+
+    bool br = genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->init}, nullptr));
+    if (br) {
+        return;
+    } 
+    Builder->CreateBr(forcondBB);
+
+    forcondBB->insertInto(TheFunction);
+    Builder->SetInsertPoint(forcondBB);
+
+    Value *cond = genExpression(node->condition);
+    Builder->CreateCondBr(cond, forbodyBB, forcontBB);
+
+    forbodyBB->insertInto(TheFunction);
+    Builder->SetInsertPoint(forbodyBB);
+
+    br = genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->statement}, nullptr));
+    if (!br) {
+        br = genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->update}, nullptr));
+        if (br) {
+            return;
+        } 
+        Builder->CreateBr(forcondBB);
+    }
+
+    forcontBB->insertInto(TheFunction);
+    Builder->SetInsertPoint(forcontBB);
 }
 
 Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {

@@ -50,6 +50,7 @@ public:
     bool genBlockStatement(shared_ptr<BlockNode> node);
     void genIfElse(shared_ptr<IfElseNode> node);
     void genWhile(shared_ptr<WhileNode> node);
+    void genFor(shared_ptr<ForNode> node);
     Value* genExpression(shared_ptr<ExpressionNode> node);
     Value* genLiteral(shared_ptr<ExpressionNode> node);
     Value* genMethodCall(shared_ptr<MethodCallNode> node);

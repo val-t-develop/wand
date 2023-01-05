@@ -758,7 +758,10 @@ void SymbolListener::enterForStatement() {
                           std::to_string(lexer.getCurrent()->line) +
                           ":" + std::to_string(lexer.getCurrent()->pos));
     }
-    enterStatement();
+    
+    if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+        enterStatement();
+    }
 
     if(lexer.getCurrent()->kind == Token::Kind::RPAREN) {
         lexer.goForward();
