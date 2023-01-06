@@ -744,6 +744,20 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ADD_ASSIGN) {
         
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ASSIGN) {
+        if (node->left->kind == Node::NodeKind::ACCESS_NODE) {
+            if (static_pointer_cast<AccessNode>(node->left)->child->kind == Node::NodeKind::VAR_RECORD_NODE) {
+                auto rec = static_pointer_cast<VarRecordNode>(static_pointer_cast<AccessNode>(node->left)->child)->record;
+                string name = getFullVarRecordName(rec);
+                Value *ptr = NamedValues[name];
+                Type *type = varTypes[rec];
+                Builder->CreateStore(R, ptr);
+            } else {
+                Out::errorMessage("This assign kind is currently unsupported.");
+            }
+        } else {
+            Out::errorMessage("This assign kind is currently unsupported.");
+        }
+        
         
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::OR) {
         
