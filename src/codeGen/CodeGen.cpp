@@ -41,6 +41,10 @@ void CodeGen::codeGen() {
         genImport(make_shared<ImportDeclNode>(vector<string>({"spl", "core"}), nullptr));
     }
 
+    Function *splMallocFunction = TheModule->getFunction("__spl__malloc");
+    FunctionType* splMallocFunction_ft = FunctionType::get(PointerType::get(*TheContext, 0), vector<Type*>{IntegerType::get(*TheContext, 32)}, false);
+    splMallocFunction = Function::Create(splMallocFunction_ft, Function::ExternalLinkage, "__spl__malloc", *TheModule);
+
     for (shared_ptr<Node> node : cu->nodes) {
         if (node->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
             continue;
@@ -634,6 +638,8 @@ Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
         return genBinOp(static_pointer_cast<BinaryOperatorNode>(node));
     } else if (node->kind == Node::NodeKind::VAR_RECORD_NODE) {
         return genVarValue(static_pointer_cast<VarRecordNode>(node));
+    } else if (node->kind == Node::NodeKind::NEW_NODE) {
+        return genNewNode(static_pointer_cast<NewNode>(node));
     } else if (node->kind == Node::NodeKind::ACCESS_NODE) {
         shared_ptr<AccessNode> access = static_pointer_cast<AccessNode>(node);
         Value *last = nullptr;
@@ -931,4 +937,14 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::MOD) {
         
     }
+}
+
+Value* CodeGen::genNewNode(shared_ptr<NewNode> node) {
+    Type *type = getType(node->type);
+    Value *one = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), 1);
+    Value *sizeofV = GetElementPtrInst::Create(type, ConstantPointerNull::get(PointerType::get(*TheContext, 0)), vector<Value *>{one}, "sizeof", Builder->GetInsertBlock());
+    Value *sizeofIV = Builder->CreatePtrToInt(sizeofV, IntegerType::get(*TheContext, 32), "sizeofI");
+
+    Function *splMallocFunction = TheModule->getFunction("__spl__malloc");
+    return Builder->CreateCall(splMallocFunction, vector<Value *>{sizeofIV}, "heapallocatmp");
 }

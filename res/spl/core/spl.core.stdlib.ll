@@ -5,7 +5,7 @@ target triple = "x86_64-pc-linux-gnu"
 
 @.str = private unnamed_addr constant [3 x i8] c"%d\00", align 1
 @.str.1 = private unnamed_addr constant [3 x i8] c"%f\00", align 1
-@llvm.compiler.used = appending global [3 x ptr] [ptr @System.out.println__spl__void__int, ptr @System.out.println__spl__void__float, ptr @System.out.println__spl__void__double], section "llvm.metadata"
+@llvm.compiler.used = appending global [4 x ptr] [ptr @System.out.println__spl__void__int, ptr @System.out.println__spl__void__float, ptr @System.out.println__spl__void__double, ptr @__spl__malloc], section "llvm.metadata"
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @System.out.println__spl__void__int(i32 noundef %0) #0 {
@@ -37,8 +37,23 @@ define dso_local void @System.out.println__spl__void__double(double noundef %0) 
   ret void
 }
 
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local ptr @__spl__malloc(i32 noundef %0) #0 {
+  %2 = alloca i32, align 4
+  store i32 %0, ptr %2, align 4
+  %3 = load i32, ptr %2, align 4
+  %4 = sext i32 %3 to i64
+  %5 = call noalias ptr @malloc(i64 noundef %4) #3
+  ret ptr %5
+}
+
+; Function Attrs: nounwind allocsize(0)
+declare noalias ptr @malloc(i64 noundef) #2
+
 attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #1 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #2 = { nounwind allocsize(0) "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #3 = { nounwind allocsize(0) }
 
 !llvm.module.flags = !{!0, !1, !2, !3, !4}
 !llvm.ident = !{!5}
