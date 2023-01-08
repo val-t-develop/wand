@@ -29,12 +29,12 @@ public:
     string enterGenericDecl();
     string enterGenericTypeDecl();
     void enterClassMemberDecl();
-    void enterConstructorDecl();
-    void enterMethodDecl(string type, string id);
-    void enterField(string type, string id);
+    void enterConstructorDecl(vector<ModifiersNode::ModifierKind> mods);
+    void enterMethodDecl(string type, string id, vector<ModifiersNode::ModifierKind> mods);
+    void enterField(string type, string id, vector<ModifiersNode::ModifierKind> mods);
     void enterStatement();
     void enterNotVarStatement();
-    void enterLocalVar();
+    void enterLocalVar(vector<ModifiersNode::ModifierKind> mods);
     void enterMethodArgs();
     void enterBlockStatement(bool newScope);
     void enterAssertStatement();
@@ -61,6 +61,7 @@ public:
     //void enterModifiers();
     vector<string> enterExtending();
     string enterType(bool arr);
-
+    vector<ModifiersNode::ModifierKind> enterModifiers();
     
+    static map<string, ModifiersNode::ModifierKind> modKinds;
 };

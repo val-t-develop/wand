@@ -11,8 +11,6 @@ public:
 
     static bool isModifier(shared_ptr<Token> token);
 
-    static void skipModifiers(Lexer &lexer);
-
     static long double parseDouble(string token);
     static int64_t parseLong(string token);
 

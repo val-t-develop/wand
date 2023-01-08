@@ -6,8 +6,8 @@ class String {
 
 class System {
     class out {
-        public void println(int a);
-        public void println(float a);
-        public void println(double a);
+        public static void println(int a);
+        public static void println(float a);
+        public static void println(double a);
     }
 }

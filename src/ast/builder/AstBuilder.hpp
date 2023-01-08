@@ -50,7 +50,7 @@ public:
     vector<shared_ptr<VarDeclNode>> enterMethodArgs();
     shared_ptr<StatementNode> enterStatement();
     shared_ptr<StatementNode> enterNotVarStartement();
-    shared_ptr<VarsDeclNode> enterLocalVarDecl();
+    shared_ptr<VarsDeclNode> enterLocalVarDecl(shared_ptr<ModifiersNode> mods);
     shared_ptr<BlockNode> enterBlockStatement(bool enterScope);
     shared_ptr<AssertNode> enterAssertStatement();
     shared_ptr<BreakNode> enterBreakStatement();

@@ -24,6 +24,7 @@ public:
     map<Value *, shared_ptr<ExpressionNode>> StaticGlobalsInit;
     map<shared_ptr<VarRecord>, Type *> varTypes;
     BasicBlock *retBB;
+    stack<Value*> thisV;
 
     shared_ptr<CompilationUnitNode> cu;
     shared_ptr<ClassDeclNode> currClass;
@@ -46,7 +47,7 @@ public:
     string getFullMethodRecordName(shared_ptr<MethodRecord> rec);
     string getFullVarRecordName(shared_ptr<VarRecord> rec);
     void genStruct(shared_ptr<ClassDeclNode> node);
-    Type* getType(shared_ptr<TypeNode> node);
+    Type* getType(shared_ptr<TypeNode> node, bool ptr);
     Function* genMethodPrototype(shared_ptr<MethodDeclNode> node);
     Function* genMethodDecl(shared_ptr<MethodDeclNode> node);
     bool genBlockStatement(shared_ptr<BlockNode> node);
@@ -55,7 +56,7 @@ public:
     void genFor(shared_ptr<ForNode> node);
     Value* genExpression(shared_ptr<ExpressionNode> node);
     Value* genLiteral(shared_ptr<ExpressionNode> node);
-    Value* genMethodCall(shared_ptr<MethodCallNode> node);
+    Value* genMethodCall(shared_ptr<MethodCallNode> node, Value *calle);
     Value* genVarDecl(shared_ptr<VarDeclNode> node);
     Value* genDefaultValue(shared_ptr<TypeNode> node);
     Value* genVarValue(shared_ptr<VarRecordNode> node);

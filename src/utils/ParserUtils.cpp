@@ -56,16 +56,6 @@ bool ParserUtils::isModifier(shared_ptr<Token> token) {
            token->kind == Token::Kind::CONST;
 }
 
-void ParserUtils::skipModifiers(Lexer &lexer) {
-    while(true) {
-        if(isModifier(lexer.getCurrent())) {
-            lexer.goForward();
-        } else {
-            break;
-        }
-    }
-}
-
 long double ParserUtils::parseDouble(string token) {
     string a = "";
     string b = "";

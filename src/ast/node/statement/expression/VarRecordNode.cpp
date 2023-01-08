@@ -5,5 +5,5 @@ VarRecordNode::VarRecordNode(shared_ptr<VarRecord> _record, shared_ptr<Node> _pa
     : ExpressionNode(_parent, NodeKind::VAR_RECORD_NODE), record(_record) {}
 
 shared_ptr<ClassRecord> VarRecordNode::getReturnType() {
-    return nullptr;
+    return record->typeRec;
 }

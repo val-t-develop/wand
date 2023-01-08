@@ -420,6 +420,7 @@ vector<shared_ptr<VarDeclNode>> AstBuilder::enterMethodArgs() {
 }
 
 shared_ptr<StatementNode> AstBuilder::enterStatement() {
+  shared_ptr<ModifiersNode> mods = enterModifiers();
   if (lexer.getCurrent()->kind == Token::Kind::CLASS) {
     // TODO
   } else if (lexer.getCurrent()->kind == Token::Kind::IDENTIFIER ||
@@ -434,7 +435,7 @@ shared_ptr<StatementNode> AstBuilder::enterStatement() {
     int i = 1;
     while (true) {
       if (lexer.getWithOffset(i)->kind == Token::Kind::IDENTIFIER) {
-        return enterLocalVarDecl();
+        return enterLocalVarDecl(mods);
       } else if (lexer.getWithOffset(i)->kind == Token::Kind::LBRACKET ||
                  lexer.getWithOffset(i)->kind == Token::Kind::RBRACKET) {
         i++;
@@ -473,8 +474,7 @@ shared_ptr<StatementNode> AstBuilder::enterNotVarStartement() {
   }
 }
 
-shared_ptr<VarsDeclNode> AstBuilder::enterLocalVarDecl() {
-  shared_ptr<ModifiersNode> mods = enterModifiers();
+shared_ptr<VarsDeclNode> AstBuilder::enterLocalVarDecl(shared_ptr<ModifiersNode> mods) {
   shared_ptr<TypeNode> type = enterType(true);
   vector<shared_ptr<VarDeclNode>> decls = vector<shared_ptr<VarDeclNode>>();
   while (true) {
@@ -751,8 +751,8 @@ shared_ptr<ForEachNode> AstBuilder::enterForEachStatement() {
                                  std::to_string(lexer.getCurrent()->line) +
                                  ":" + std::to_string(lexer.getCurrent()->pos));
   }
-
-  shared_ptr<VarDeclNode> var = enterLocalVarDecl()->decls.at(0);
+  shared_ptr<ModifiersNode> mods = enterModifiers();
+  shared_ptr<VarDeclNode> var = enterLocalVarDecl(mods)->decls.at(0);
 
   if (lexer.getCurrent()->kind == Token::Kind::COLON) {
     lexer.goForward();

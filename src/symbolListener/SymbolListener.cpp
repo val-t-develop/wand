@@ -112,7 +112,7 @@ void SymbolListener::enterImport() {
 }
 
 void SymbolListener::enterTypeDecl() {
-    ParserUtils::skipModifiers(lexer);
+    enterModifiers();
     if(lexer.getCurrent()->kind == Token::Kind::CLASS) {
 
         enterClassDecl();
@@ -180,7 +180,6 @@ void SymbolListener::enterClassDecl() {
                 lexer.goForward();
                 break;
             }
-            ParserUtils::skipModifiers(lexer);
             enterClassMemberDecl();
         }
     } else {
@@ -248,6 +247,7 @@ string SymbolListener::enterGenericTypeDecl() {
 }
 
 void SymbolListener::enterClassMemberDecl() {
+    vector<ModifiersNode::ModifierKind> mods = enterModifiers();
     if(lexer.getCurrent()->kind == Token::Kind::CLASS) {
         enterClassDecl();
     } else if(lexer.getCurrent()->kind == Token::Kind::INTERFACE) {
@@ -256,7 +256,7 @@ void SymbolListener::enterClassMemberDecl() {
         enterEnumDecl();
     } else {
         if(lexer.getNext()->kind == Token::Kind::LPAREN) {
-            enterConstructorDecl();
+            enterConstructorDecl(mods);
         } else {
             string type, id = "";
             if(lexer.getCurrent()->kind == Token::Kind::VOID) {
@@ -270,7 +270,7 @@ void SymbolListener::enterClassMemberDecl() {
                 id = lexer.getCurrent()->str;
                 lexer.goForward();
                 if(lexer.getCurrent()->kind == Token::Kind::LPAREN) {
-                    enterMethodDecl(type, id);
+                    enterMethodDecl(type, id, mods);
                 } else {
                     if(type == "void") {
                         Out::errorMessage(
@@ -278,7 +278,7 @@ void SymbolListener::enterClassMemberDecl() {
                             std::to_string(lexer.getPrevious()->line) + ":" +
                             std::to_string(lexer.getPrevious()->pos));
                     } else {
-                        enterField(type, id);
+                        enterField(type, id, mods);
                     }
                 }
             } else {
@@ -292,7 +292,7 @@ void SymbolListener::enterClassMemberDecl() {
     }
 }
 
-void SymbolListener::enterConstructorDecl() {
+void SymbolListener::enterConstructorDecl(vector<ModifiersNode::ModifierKind> mods) {
     if(lexer.getCurrent()->str != currentClass->id) {
         Out::errorMessage(lexer, "Constructor has not same name as class [ " +
                           currentClass->id + " ] in " +
@@ -303,6 +303,7 @@ void SymbolListener::enterConstructorDecl() {
 
     currentMethod = make_shared<MethodRecord> (id, type);
     currentMethod->isConstructor = true;
+    currentMethod->mods = mods;
     symbolTable->put(currentMethod);
 
     // enter METHOD SCOPE
@@ -341,8 +342,9 @@ void SymbolListener::enterConstructorDecl() {
     symbolTable->exitScope();
 }
 
-void SymbolListener::enterMethodDecl(string type, string id) {
+void SymbolListener::enterMethodDecl(string type, string id, vector<ModifiersNode::ModifierKind> mods) {
     currentMethod = make_shared<MethodRecord> (id, type);
+    currentMethod->mods = mods;
     symbolTable->put(currentMethod);
 
     // enter METHOD SCOPE
@@ -381,7 +383,7 @@ void SymbolListener::enterMethodDecl(string type, string id) {
     symbolTable->exitScope();
 }
 
-void SymbolListener::enterField(string type, string id) {
+void SymbolListener::enterField(string type, string id, vector<ModifiersNode::ModifierKind> mods) {
     int dims = 0;
 
     while(true) {
@@ -406,6 +408,7 @@ void SymbolListener::enterField(string type, string id) {
     }
 
     shared_ptr<VarRecord> newField = make_shared<VarRecord>(id, type, Record::RecordKind::FIELD_RECORD);
+    newField->mods = mods;
     newField->next = currentClass;
     // insert record into scope
     currentClass->addField(newField);
@@ -420,6 +423,7 @@ void SymbolListener::enterField(string type, string id) {
 }
 
 void SymbolListener::enterStatement() {
+    vector<ModifiersNode::ModifierKind> mods = enterModifiers();
     if(lexer.getCurrent()->kind == Token::Kind::IDENTIFIER ||
             lexer.getCurrent()->kind == Token::Kind::BOOLEAN ||
             lexer.getCurrent()->kind == Token::Kind::CHAR ||
@@ -432,7 +436,7 @@ void SymbolListener::enterStatement() {
         int i = 1;
         while(true) {
             if(lexer.getWithOffset(i)->kind == Token::Kind::IDENTIFIER) {
-                enterLocalVar();
+                enterLocalVar(mods);
                 break;
             } else if(lexer.getWithOffset(i)->kind == Token::Kind::LBRACKET ||
                       lexer.getWithOffset(i)->kind == Token::Kind::RBRACKET) {
@@ -471,7 +475,7 @@ void SymbolListener::enterNotVarStatement() {
     }
 }
 
-void SymbolListener::enterLocalVar() {
+void SymbolListener::enterLocalVar(vector<ModifiersNode::ModifierKind> mods) {
     string type = enterType(true), id = "";
 
     while(true) {
@@ -504,6 +508,7 @@ void SymbolListener::enterLocalVar() {
             }
 
             shared_ptr<VarRecord> newVar = make_shared<VarRecord>(id, type, Record::RecordKind::LOCAL_VAR_RECORD);
+            newVar->mods = mods;
             // insert record into scope
             currentMethod->addVar(newVar);
             // insert record into scope
@@ -775,7 +780,42 @@ void SymbolListener::enterForStatement() {
     enterStatement();
 }
 
-void SymbolListener::enterForEachStatement() {}
+void SymbolListener::enterForEachStatement() {
+    lexer.goForward();
+
+    if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+        lexer.goForward();
+    } else {
+        Out::errorMessage(lexer, "Expected '(', but found:\n\t" +
+                                    lexer.getCurrent()->str + "\tin " +
+                                    std::to_string(lexer.getCurrent()->line) +
+                                    ":" + std::to_string(lexer.getCurrent()->pos));
+    }
+    std::vector<ModifiersNode::ModifierKind>mods = enterModifiers();
+    enterLocalVar(mods);
+
+    if (lexer.getCurrent()->kind == Token::Kind::COLON) {
+        lexer.goForward();
+    } else {
+        Out::errorMessage(lexer, "Expected ':', but found:\n\t" +
+                                    lexer.getCurrent()->str + "\tin " +
+                                    std::to_string(lexer.getCurrent()->line) +
+                                    ":" + std::to_string(lexer.getCurrent()->pos));
+    }
+
+    enterExpression();
+
+    if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+        lexer.goForward();
+    } else {
+        Out::errorMessage(lexer, "Expected ')', but found:\n\t" +
+                                    lexer.getCurrent()->str + "\tin " +
+                                    std::to_string(lexer.getCurrent()->line) +
+                                    ":" + std::to_string(lexer.getCurrent()->pos));
+    }
+
+    enterStatement();
+}
 
 void SymbolListener::enterExpression() {
     enterUnOpPrimary();
@@ -1061,10 +1101,6 @@ void SymbolListener::enterArrayInitializer() {
     }
 }
 
-// vector<string> SymbolListener::enterTypeList() {}
-
-// void SymbolListener::enterModifiers() {}
-
 vector<string> SymbolListener::enterExtending() {
     vector<string> superClasses {};
     if(lexer.getCurrent()->kind == Token::Kind::EXTENDS) {
@@ -1131,3 +1167,27 @@ string SymbolListener::enterType(bool arr) {
 
     return str + dims_str;
 }
+
+vector<ModifiersNode::ModifierKind> SymbolListener::enterModifiers() {
+    vector<ModifiersNode::ModifierKind> mods = vector<ModifiersNode::ModifierKind>();
+    while (true) {
+        if (ParserUtils::isModifier(lexer.getCurrent())) {
+            mods.push_back(modKinds.at(lexer.getCurrent()->str));
+            lexer.goForward();
+        } else {
+            break;
+        }
+    }
+    return mods;
+}
+
+map<string, ModifiersNode::ModifierKind> SymbolListener::modKinds = map<string, ModifiersNode::ModifierKind>({
+        {"public", ModifiersNode::ModifierKind::PUBLIC},
+        {"private", ModifiersNode::ModifierKind::PRIVATE},
+        {"protected", ModifiersNode::ModifierKind::PROTECTED},
+        {"static", ModifiersNode::ModifierKind::STATIC},
+        {"final", ModifiersNode::ModifierKind::FINAL},
+        {"synchronized", ModifiersNode::ModifierKind::SYNCHRONIZED},
+        {"abstract", ModifiersNode::ModifierKind::ABSTRACT},
+        {"native", ModifiersNode::ModifierKind::NATIVE}
+});
