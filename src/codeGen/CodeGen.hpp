@@ -20,6 +20,8 @@ public:
     shared_ptr<IRBuilder<>> Builder;
     shared_ptr<Module> TheModule;
     map<string, Value *> NamedValues;
+    map<string, Value *> GlobalNamedValues;
+    map<Value *, shared_ptr<ExpressionNode>> StaticGlobalsInit;
     map<shared_ptr<VarRecord>, Type *> varTypes;
     BasicBlock *retBB;
 

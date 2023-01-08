@@ -54,6 +54,12 @@ void CodeGen::codeGen() {
     }
     
     for (shared_ptr<Node> node : cu->nodes) {
+        if (node->kind == Node::NodeKind::CLASS_DECL_NODE) {
+            genStruct(static_pointer_cast<ClassDeclNode>(node));
+        }
+    }
+
+    for (shared_ptr<Node> node : cu->nodes) {
         if (node->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
             continue;
         } else if (node->kind == Node::NodeKind::IMPORT_DECL_NODE) {
@@ -153,6 +159,12 @@ void CodeGen::genImport(shared_ptr<ImportDeclNode> node) {
         }
 
         for (shared_ptr<Node> n : importCU->nodes) {
+            if (n->kind == Node::NodeKind::CLASS_DECL_NODE) {
+                genStruct(static_pointer_cast<ClassDeclNode>(n));
+            }
+        }
+
+        for (shared_ptr<Node> n : importCU->nodes) {
             if (n->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
                 continue;
             } else if (n->kind == Node::NodeKind::IMPORT_DECL_NODE) {
@@ -191,9 +203,6 @@ void CodeGen::genClassDecl(shared_ptr<ClassDeclNode> node, bool genMethod) {
     currClass = node;
     classesStack.push(node);
     setCurrClassName();
-
-
-    genStruct(node);
 
     for (shared_ptr<ClassDeclNode> item : node->innerClasses) {
         genClassDecl(item, genMethod);
@@ -273,7 +282,7 @@ string CodeGen::getFullMethodRecordName(shared_ptr<MethodRecord> rec) {
 
 string CodeGen::getFullVarRecordName(shared_ptr<VarRecord> rec) {
     if (rec->ir_name == "") {
-        Out::errorMessage("Internal error detected! Can not get ir_name of method" + rec->id);
+        Out::errorMessage("Internal error detected! Can not get ir_name of var or field " + rec->id);
     }
     return rec->ir_name;
 }
@@ -283,6 +292,26 @@ void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
 
     for (shared_ptr<VarDeclNode> var : node->fields) {
         types.push_back(getType(var->type));
+        varTypes[var->record] = getType(var->type);
+
+        bool isStatic = false;
+        auto mods = var->modifiers->modifiers;
+        for (auto mod : mods) {
+            if (mod == ModifiersNode::ModifierKind::STATIC) {
+                isStatic = true;
+                break;
+            }
+        }
+
+        if (isStatic) {
+            GlobalVariable *ptr = new GlobalVariable(*TheModule, PointerType::get(getType(var->type), 0), false, 
+                                                        GlobalValue::LinkageTypes::ExternalLinkage, 0, getFullVarDeclNodeName(var));
+            GlobalNamedValues[getFullVarDeclNodeName(var)] = ptr;
+            ConstantPointerNull* const_ptr_2 = ConstantPointerNull::get(PointerType::get(getType(var->type), 0));
+            ptr->setInitializer(const_ptr_2);
+            StaticGlobalsInit[ptr] = var->init;
+        }
+        
     }
     string fullName = getFullClassRecordName(node->record);
 
@@ -422,6 +451,14 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
                             
                             BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", MainFunction);
                             Builder->SetInsertPoint(BB);
+
+                            for (auto globInit : StaticGlobalsInit) {
+                                if (globInit.second != nullptr) {
+                                    Value *ptr = globInit.first;
+                                    Value *val = genExpression(globInit.second);
+                                    Builder->CreateStore(val, ptr);
+                                }
+                            }
 
                             Value *RetVal = Builder->CreateCall(TheFunction, vector<Value*>({ConstantPointerNull::get(static_cast<PointerType*>(args_types[0]))}), "calltmp");
                             if (RetVal) {
@@ -726,6 +763,9 @@ Value* CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
 
 Value* CodeGen::genVarValue(shared_ptr<VarRecordNode> node) {
     Value *ptr = NamedValues[getFullVarRecordName(node->record)];
+    if (ptr == nullptr) {
+        ptr = GlobalNamedValues[getFullVarRecordName(node->record)];
+    }
     Type *type = varTypes[node->record];
     Value *val = Builder->CreateLoad(type, ptr, "loadtmp");
     return val; 
