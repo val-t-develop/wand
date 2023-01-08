@@ -240,9 +240,9 @@ string CodeGen::getFullMethodDeclNodeName(shared_ptr<MethodDeclNode> node) {
         }
         str += rec->id;
 
-        str += "__spl__" + getFullClassRecordName(static_pointer_cast<ClassRecordNode>(node->returnType->type->child)->record);
+        str += "__spl__" + getFullClassRecordName(node->returnType->type->record);
         for (auto arg : node->args) {
-            str += "__" + getFullClassRecordName(static_pointer_cast<ClassRecordNode>(arg->type->type->child)->record);
+            str += "__" + getFullClassRecordName(arg->type->type->record);
         }
         rec->ir_name = str; 
     }
@@ -258,7 +258,7 @@ string CodeGen::getFullVarDeclNodeName(shared_ptr<VarDeclNode> node) {
         }
         str += rec->id;
 
-        str += "__spl__" + getFullClassRecordName(static_pointer_cast<ClassRecordNode>(node->type->type->child)->record);
+        str += "__spl__" + getFullClassRecordName(node->type->type->record);
         rec->ir_name = str; 
     }
     return rec->ir_name;
@@ -297,7 +297,7 @@ void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
 }
 
 Type* CodeGen::getType(shared_ptr<TypeNode> node) {
-    auto x = static_pointer_cast<ClassRecordNode>(node->type->child);
+    auto x = node->type;
     if (x->record->type == "primitive") {
         if (x->record->id == "boolean") {
             return IntegerType::get(*TheContext, 1);
@@ -403,10 +403,10 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
 
         verifyFunction(*TheFunction);
 
-        if (static_pointer_cast<ClassRecordNode>(node->returnType->type->child)->record->id == "int") {
+        if (node->returnType->type->record->id == "int") {
                 if (node->record->id == "main") {
                     if (node->args.size() == 1) {
-                        if (static_pointer_cast<ClassRecordNode>(node->args.at(0)->type->type->child)->record->id == "String") {
+                        if (node->args[0]->type->type->record->id == "String") {
                             Function *MainFunction = TheModule->getFunction("main");
 
                             if (!MainFunction) {
@@ -598,8 +598,20 @@ Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
     } else if (node->kind == Node::NodeKind::VAR_RECORD_NODE) {
         return genVarValue(static_pointer_cast<VarRecordNode>(node));
     } else if (node->kind == Node::NodeKind::ACCESS_NODE) {
-        return genExpression(static_pointer_cast<ExpressionNode>(static_pointer_cast<AccessNode>(node)->child));
+        shared_ptr<AccessNode> access = static_pointer_cast<AccessNode>(node);
+        Value *last = nullptr;
+        if (access->isExpression()) {
+            for (auto n : access->access) {
+                if (n->isExpression()) {
+                    last = genExpression(static_pointer_cast<ExpressionNode>(n)); // TODO
+                } else {
+                    break;
+                }
+            }
+            return last;
+        }
     }
+    return nullptr;
 }
 
 Value* CodeGen::genLiteral(shared_ptr<ExpressionNode> node) {
@@ -678,7 +690,7 @@ Value* CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
 }
 
 Value* CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
-    auto x = static_pointer_cast<ClassRecordNode>(node->type->child);
+    auto x = node->type;
     if (x->record->type == "primitive") {
         if (x->record->id == "boolean") {
             return ConstantInt::get(IntegerType::get(*TheContext, 32), 0);
@@ -745,8 +757,9 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
         
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ASSIGN) {
         if (node->left->kind == Node::NodeKind::ACCESS_NODE) {
-            if (static_pointer_cast<AccessNode>(node->left)->child->kind == Node::NodeKind::VAR_RECORD_NODE) {
-                auto rec = static_pointer_cast<VarRecordNode>(static_pointer_cast<AccessNode>(node->left)->child)->record;
+            shared_ptr<AccessNode> access = static_pointer_cast<AccessNode>(node->left);
+            if (access->access[access->access.size()-1]->kind == Node::NodeKind::VAR_RECORD_NODE) {
+                auto rec = static_pointer_cast<VarRecordNode>(access->access[access->access.size()-1])->record;
                 string name = getFullVarRecordName(rec);
                 Value *ptr = NamedValues[name];
                 Type *type = varTypes[rec];

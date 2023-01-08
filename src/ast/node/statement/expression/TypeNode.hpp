@@ -2,13 +2,14 @@
 #include <Defs.hpp>
 #include <ast/node/statement/expression/ExpressionNode.hpp>
 #include <ast/node/AccessNode.hpp>
+#include <ast/node/ClassRecordNode.hpp>
 
 class TypeNode : public ExpressionNode {
 public:
-    shared_ptr<AccessNode> type;
+    shared_ptr<ClassRecordNode> type;
     int dims;
 
-    TypeNode(shared_ptr<AccessNode> _type, int _dims, shared_ptr<Node> _parent);
+    TypeNode(shared_ptr<ClassRecordNode> _type, int _dims, shared_ptr<Node> _parent);
 
     shared_ptr<ClassRecord> getReturnType() override;
 };

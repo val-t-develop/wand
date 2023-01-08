@@ -405,7 +405,7 @@ void SymbolListener::enterField(string type, string id) {
         type += "[]";
     }
 
-    shared_ptr<VarRecord> newField = make_shared<VarRecord> (id, type);
+    shared_ptr<VarRecord> newField = make_shared<VarRecord>(id, type, Record::RecordKind::FIELD_RECORD);
     newField->next = currentClass;
     // insert record into scope
     currentClass->addField(newField);
@@ -503,7 +503,7 @@ void SymbolListener::enterLocalVar() {
                 type += "[]";
             }
 
-            shared_ptr<VarRecord> newVar = make_shared<VarRecord> (id, type);
+            shared_ptr<VarRecord> newVar = make_shared<VarRecord>(id, type, Record::RecordKind::LOCAL_VAR_RECORD);
             // insert record into scope
             currentMethod->addVar(newVar);
             // insert record into scope
@@ -575,7 +575,7 @@ void SymbolListener::enterMethodArgs() {
                               std::to_string(lexer.getCurrent()->pos));
         }
 
-        shared_ptr<VarRecord> arg = make_shared<VarRecord> (id, type);
+        shared_ptr<VarRecord> arg = make_shared<VarRecord>(id, type, Record::RecordKind::LOCAL_VAR_RECORD);
         // add parameter to method
         currentMethod->addArg(arg);
         // insert record into scope
@@ -586,7 +586,7 @@ void SymbolListener::enterMethodArgs() {
 void SymbolListener::enterBlockStatement(bool newScope) {
     if (newScope) {
         string id = "__jpp__" + std::to_string(getNextUniqueNumber());
-        shared_ptr<Record> record = make_shared<Record> (id, "__jpp__group");
+        shared_ptr<Record> record = make_shared<Record>(id, "__jpp__group", Record::RecordKind::UNUSED);
         symbolTable->put(record);
         symbolTable->enterScope(record);
     }

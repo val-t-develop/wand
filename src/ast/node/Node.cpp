@@ -7,8 +7,7 @@ Node::NodeKind Node::getKind() {
     return kind;
 }
 bool Node::isStatement() {
-    if (kind == NodeKind::ACCESS_NODE ||
-        kind == NodeKind::CLASS_RECORD_NODE ||
+    if (kind == NodeKind::CLASS_RECORD_NODE ||
         kind == NodeKind::VAR_DECL_NODE ||
         kind == NodeKind::VARS_DECL_NODE ||
         kind == NodeKind::ASSERT_NODE ||
@@ -38,17 +37,17 @@ bool Node::isStatement() {
         return true;
     } else if (kind == NodeKind::ACCESS_NODE) {
         AccessNode* an = static_cast<AccessNode*>(this);
-        if (an->child != nullptr) {
-            return an->child->isStatement();
-        } else if (an->next != nullptr) {
-            return an->next->isStatement();
+        if (an->access.size() == 1) {
+            if (an->access[0]->getKind() == NodeKind::CLASS_RECORD_NODE) {
+                return false;
+            }
         }
+        return true;
     }
     return false;
 }
 bool Node::isExpression() {
     if (kind == NodeKind::ARRAY_ACCESS_NODE ||
-        kind == NodeKind::ACCESS_NODE ||
         kind == NodeKind::CLASS_RECORD_NODE ||
         kind == NodeKind::ARRAY_INITIALIZER_NODE ||
         kind == NodeKind::ARRAY_CREATION_NODE ||
@@ -67,11 +66,12 @@ bool Node::isExpression() {
         return true;
     } else if (kind == NodeKind::ACCESS_NODE) {
         AccessNode* an = static_cast<AccessNode*>(this);
-        if (an->child != nullptr) {
-            return an->child->isExpression();
-        } else if (an->next != nullptr) {
-            return an->next->isExpression();
+        if (an->access.size() == 1) {
+            if (an->access[0]->getKind() == NodeKind::CLASS_RECORD_NODE) {
+                return false;
+            }
         }
+        return true;
     }
     return false;
 }

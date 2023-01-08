@@ -1,6 +1,6 @@
 #include "ClassRecord.hpp"
 
-ClassRecord::ClassRecord(string id, string type) : Record(id, type) {}
+ClassRecord::ClassRecord(string _id, string _type) : Record(_id, _type, RecordKind::CLASS_RECORD) {}
 
 bool ClassRecord::equals(shared_ptr<ClassRecord> r) {
     bool isComponentsEqual;

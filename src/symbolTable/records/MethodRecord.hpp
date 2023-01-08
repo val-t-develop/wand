@@ -1,15 +1,17 @@
 #pragma once
 #include "Record.hpp"
 #include "VarRecord.hpp"
+#include "ClassRecord.hpp"
 
 class MethodRecord : public Record {
 public:
+    shared_ptr<ClassRecord> retTypeRec;
     vector<shared_ptr<VarRecord>> vars = vector<shared_ptr<VarRecord>>();
     int argsCount = 0;
     bool isConstructor = false;
     vector<shared_ptr<MethodRecord>> similar = vector<shared_ptr<MethodRecord>>();
 
-    MethodRecord(string id, string type);
+    MethodRecord(string _id, string _type);
 
     bool equals(shared_ptr<MethodRecord> r);
     void addVar(shared_ptr<VarRecord> var);

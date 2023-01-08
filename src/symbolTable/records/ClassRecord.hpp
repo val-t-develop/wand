@@ -10,7 +10,7 @@ public:
     vector<shared_ptr<ClassRecord>> innerClasses = vector<shared_ptr<ClassRecord>>();
     string superClass = "";
 
-    ClassRecord(string id, string type);
+    ClassRecord(string _id, string _type);
 
     bool equals(shared_ptr<ClassRecord> r);
 

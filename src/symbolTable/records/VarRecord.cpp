@@ -1,6 +1,6 @@
 #include "VarRecord.hpp"
 
-VarRecord::VarRecord(string id, string type) : Record(id, type) {}
+VarRecord::VarRecord(string _id, string _type, RecordKind _kind) : Record(_id, _type, _kind) {}
 
 
 bool VarRecord::equals(shared_ptr<VarRecord> r) {

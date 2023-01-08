@@ -263,12 +263,8 @@ shared_ptr<MethodDeclNode> AstBuilder::enterConstructorDecl() {
       }
     }
     return make_shared<MethodDeclNode>(make_shared<ModifiersNode>(nullptr),
-                                       make_shared<TypeNode>(
-                                         make_shared<AccessNode>(nullptr,
-                                           make_shared<ClassRecordNode>(symbolTable->lookupClass(symbolTable->getCurrentClassName()), vector<shared_ptr<AccessNode>>(), nullptr),
-                                         nullptr),
-                                       0, nullptr), rec,
-                                       args, block, nullptr);
+                                       make_shared<TypeNode>(make_shared<ClassRecordNode>(symbolTable->lookupClass(symbolTable->getCurrentClassName()), vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr), 
+                                       rec, args, block, nullptr);
   } /* else if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
      return new ConstructorDeclNode(new ModifiersNode(nullptr),
  symbolTable->getCurrentClassName(), args, nullptr, nullptr);
@@ -362,6 +358,7 @@ AstBuilder::enterFieldDecl(shared_ptr<TypeNode> type,
     }
   }
   type->dims = type->dims + dims;
+  record->typeRec = type->type->record;
 
   shared_ptr<ExpressionNode> init = nullptr;
   if (lexer.getCurrent()->kind == Token::Kind::ASSIGN) {
@@ -407,6 +404,7 @@ vector<shared_ptr<VarDeclNode>> AstBuilder::enterMethodArgs() {
       }
 
       type->dims = type->dims + dims;
+      record->typeRec = type->type->record;
 
       args.push_back(
           make_shared<VarDeclNode>(mods, type, record, nullptr, nullptr));
@@ -506,6 +504,7 @@ shared_ptr<VarsDeclNode> AstBuilder::enterLocalVarDecl() {
       }
 
       type->dims = type->dims + dims;
+      record->typeRec = type->type->record;
 
       shared_ptr<ExpressionNode> init = nullptr;
       if (lexer.getCurrent()->kind == Token::Kind::ASSIGN) {
@@ -991,7 +990,7 @@ shared_ptr<ExpressionNode> AstBuilder::enterNew() {
     return make_shared<ArrayCreationNode>(type, args, arrayInitializer,
                                           nullptr);
   } else {
-    return make_shared<NewNode>(type->type, args, nullptr);
+    return make_shared<NewNode>(type, args, nullptr);
   }
 }
 
@@ -1012,126 +1011,293 @@ shared_ptr<ExpressionNode> AstBuilder::enterParenExpression() {
   return expr;
 }
 
-shared_ptr<AccessNode> AstBuilder::enterAccessOrCall() {
-  shared_ptr<AccessNode> access = nullptr;
-  while (true) {
-    access = enterAccessItem(access);
-
-    if (lexer.getCurrent()->kind == Token::Kind::DOT) {
-      lexer.goForward();
-    } else {
-      break;
-    }
-  }
-  return access;
-}
-
 shared_ptr<AccessNode>
-AstBuilder::enterAccessItem(shared_ptr<AccessNode> accessOld) {
-  shared_ptr<AccessNode> access =
-      make_shared<AccessNode>(accessOld, nullptr, nullptr);
+AstBuilder::enterAccessOrCall() {
+  shared_ptr<AccessNode> access = make_shared<AccessNode>(nullptr);
 
-  shared_ptr<VarRecord> varRecord = nullptr;
-  shared_ptr<ClassRecord> classRecord = nullptr;
-  shared_ptr<MethodRecord> methodRecord = nullptr;
-  shared_ptr<Record> record = nullptr;
+  string name = lexer.getCurrent()->str;
+  shared_ptr<VarRecord> varRecord = symbolTable->lookupVar(name);
+  shared_ptr<ClassRecord> classRecord = symbolTable->lookupClass(name);
+  shared_ptr<MethodRecord> methodRecord = symbolTable->lookupMethod(name);
+  shared_ptr<Record> record = symbolTable->lookupRecord(name);
+  lexer.goForward();
 
-  if (accessOld == nullptr) {
-    varRecord = symbolTable->lookupVar(lexer.getCurrent()->str);
-    classRecord = symbolTable->lookupClass(lexer.getCurrent()->str);
-    methodRecord = symbolTable->lookupMethod(lexer.getCurrent()->str);
-    record = symbolTable->lookupRecord(lexer.getCurrent()->str);
-  } else {
-    varRecord = accessOld->getReturnType()->getField(lexer.getCurrent()->str);
-    classRecord =
-        accessOld->getReturnType()->getInnerClass(lexer.getCurrent()->str);
-    methodRecord =
-        accessOld->getReturnType()->getMethod(lexer.getCurrent()->str);
-    record = accessOld->getReturnType()->get(lexer.getCurrent()->str);
-  }
-
+  Record::RecordKind kind = Record::RecordKind::UNUSED;
   if (varRecord != nullptr) {
-    lexer.goForward();
-    access->child = make_shared<VarRecordNode>(varRecord, nullptr);
-    if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
-      access = enterArrayAccess(access);
-    }
+    kind = varRecord->kind;
+    access->access.push_back(make_shared<VarRecordNode>(varRecord, nullptr));
   } else if (classRecord != nullptr) {
-    lexer.goForward();
-    shared_ptr<ClassRecordNode> node =
-        make_shared<ClassRecordNode>(classRecord, vector<shared_ptr<AccessNode>>(), nullptr);
-    if (lexer.ifCurrTokenStartsWithLT()) {
-      enterGeneric(node);
-    }
-    access->child = node;
+    access->access.push_back(make_shared<ClassRecordNode>(classRecord, vector<shared_ptr<AccessNode>>{}, nullptr));
+    kind = classRecord->kind;
   } else if (methodRecord != nullptr) {
-    lexer.goForward();
+    kind = methodRecord->kind;
+
     // TODO method reference
-    shared_ptr<MethodCallNode> node =
-        make_shared<MethodCallNode>(methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
+    shared_ptr<MethodCallNode> call =
+      make_shared<MethodCallNode>(methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
     if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
-      lexer.goForward();
+        lexer.goForward();
     } else {
-      Out::errorMessage(
-          lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
-                     "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
-                     std::to_string(lexer.getCurrent()->pos));
-    }
+        Out::errorMessage(
+            lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                      "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
+                      std::to_string(lexer.getCurrent()->pos));
+      }
 
     vector<shared_ptr<ExpressionNode>> args =
-        vector<shared_ptr<ExpressionNode>>();
+      vector<shared_ptr<ExpressionNode>>();
     while (true) {
-      if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
-        lexer.goForward();
-        break;
+        if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+          lexer.goForward();
+          break;
+        }
+
+        args.push_back(enterExpression());
+
+        if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+          lexer.goForward();
+        } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+          Out::errorMessage(
+              lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
+                        "\tin " + std::to_string(lexer.getCurrent()->line) +
+                        ":" + std::to_string(lexer.getCurrent()->pos));
+        }
       }
 
-      args.push_back(enterExpression());
+    call->args = args;
 
-      if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
-        lexer.goForward();
-      } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
-        Out::errorMessage(
-            lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
-                       "\tin " + std::to_string(lexer.getCurrent()->line) +
-                       ":" + std::to_string(lexer.getCurrent()->pos));
+    access->access.push_back(call);
+  }
+
+  while (lexer.getCurrent()->str == ".") {
+    lexer.goForward();
+    string new_name = lexer.getCurrent()->str;
+    lexer.goForward();
+
+    if (kind == Record::RecordKind::LOCAL_VAR_RECORD) {
+      shared_ptr<VarRecordNode> node = static_pointer_cast<VarRecordNode>(access->access[access->access.size()-1]);
+      shared_ptr<ClassRecord> type = node->record->typeRec;
+      shared_ptr<Record> new_record = type->get(new_name);
+      Record::RecordKind new_kind = new_record->kind;
+
+      if (new_kind == Record::RecordKind::LOCAL_VAR_RECORD) {
+        Out::errorMessage("Unexpected access: local variable.local variable");
+      } else if (new_kind == Record::RecordKind::FIELD_RECORD) {
+        shared_ptr<VarRecord> field = static_pointer_cast<VarRecord>(new_record);
+        shared_ptr<VarRecordNode> fieldNode = make_shared<VarRecordNode>(field, nullptr);
+        access->access.push_back(fieldNode);
+      } else if (new_kind == Record::RecordKind::METHOD_RECORD) {
+        shared_ptr<MethodRecord> new_methodRecord = static_pointer_cast<MethodRecord>(new_record);
+        // TODO method reference
+        shared_ptr<MethodCallNode> call =
+          make_shared<MethodCallNode>(new_methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
+        if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+            lexer.goForward();
+        } else {
+            Out::errorMessage(
+                lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                          "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
+                          std::to_string(lexer.getCurrent()->pos));
+          }
+
+        vector<shared_ptr<ExpressionNode>> args =
+          vector<shared_ptr<ExpressionNode>>();
+        while (true) {
+            if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+              lexer.goForward();
+              break;
+            }
+
+            args.push_back(enterExpression());
+
+            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+              lexer.goForward();
+            } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+              Out::errorMessage(
+                  lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
+                            "\tin " + std::to_string(lexer.getCurrent()->line) +
+                            ":" + std::to_string(lexer.getCurrent()->pos));
+            }
+          }
+
+        call->args = args;
+
+        access->access.push_back(call);
+      } else if (new_kind == Record::RecordKind::CLASS_RECORD) {
+        Out::errorMessage("Unexpected access: local variable.class");
+      } else if (new_kind == Record::RecordKind::UNUSED) {
+        Out::errorMessage("Error: using of unused record!");
       }
-    }
+      kind = new_kind;
+    } else if (kind == Record::RecordKind::FIELD_RECORD) {
+      shared_ptr<VarRecordNode> node = static_pointer_cast<VarRecordNode>(access->access[access->access.size()-1]);
+      shared_ptr<ClassRecord> type = node->record->typeRec;
+      shared_ptr<Record> new_record = type->get(new_name);
+      Record::RecordKind new_kind = new_record->kind;
 
-    node->args = args;
-    access->child = node;
-    if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
-      access = enterArrayAccess(access);
-    }
-  } else if (record != nullptr) {
-    // TODO remove this
-  } else {
-    Out::errorMessage(lexer, "Undefined symbol:\n\t" + lexer.getCurrent()->str +
-                                 "\tin " +
-                                 std::to_string(lexer.getCurrent()->line) +
-                                 ":" + std::to_string(lexer.getCurrent()->pos));
-    lexer.goForward();
-  }
-  return access;
-}
+      if (new_kind == Record::RecordKind::LOCAL_VAR_RECORD) {
+        Out::errorMessage("Unexpected access: field.local variable");
+      } else if (new_kind == Record::RecordKind::FIELD_RECORD) {
+        shared_ptr<VarRecord> field = static_pointer_cast<VarRecord>(new_record);
+        shared_ptr<VarRecordNode> fieldNode = make_shared<VarRecordNode>(field, nullptr);
+        access->access.push_back(fieldNode);
+      } else if (new_kind == Record::RecordKind::METHOD_RECORD) {
+        shared_ptr<MethodRecord> new_methodRecord = static_pointer_cast<MethodRecord>(new_record);
+        // TODO method reference
+        shared_ptr<MethodCallNode> call =
+          make_shared<MethodCallNode>(new_methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
+        if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+            lexer.goForward();
+        } else {
+            Out::errorMessage(
+                lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                          "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
+                          std::to_string(lexer.getCurrent()->pos));
+          }
 
-shared_ptr<AccessNode>
-AstBuilder::enterArrayAccess(shared_ptr<AccessNode> accessOld) {
-  shared_ptr<AccessNode> access =
-      make_shared<AccessNode>(accessOld, nullptr, nullptr);
-  lexer.goForward();
-  shared_ptr<ExpressionNode> expression = enterExpression();
-  if (lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
-    lexer.goForward();
-  } else {
-    Out::errorMessage(lexer, "Expected ']', but found:\n\t" +
-                                 lexer.getCurrent()->str + "\tin " +
-                                 std::to_string(lexer.getCurrent()->line) +
-                                 ":" + std::to_string(lexer.getCurrent()->pos));
-  }
-  access->child = make_shared<ArrayAccessNode>(accessOld, expression, nullptr);
-  if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
-    access = enterArrayAccess(access);
+        vector<shared_ptr<ExpressionNode>> args =
+          vector<shared_ptr<ExpressionNode>>();
+        while (true) {
+            if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+              lexer.goForward();
+              break;
+            }
+
+            args.push_back(enterExpression());
+
+            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+              lexer.goForward();
+            } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+              Out::errorMessage(
+                  lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
+                            "\tin " + std::to_string(lexer.getCurrent()->line) +
+                            ":" + std::to_string(lexer.getCurrent()->pos));
+            }
+          }
+
+        call->args = args;
+
+        access->access.push_back(call);
+      } else if (new_kind == Record::RecordKind::CLASS_RECORD) {
+        Out::errorMessage("Unexpected access: local variable.class");
+      } else if (new_kind == Record::RecordKind::UNUSED) {
+        Out::errorMessage("Error: using of unused record!");
+      }
+      kind = new_kind;
+    } else if (kind == Record::RecordKind::METHOD_RECORD) {
+      shared_ptr<MethodCallNode> node = static_pointer_cast<MethodCallNode>(access->access[access->access.size()-1]);
+      shared_ptr<ClassRecord> type = node->record->retTypeRec;
+      shared_ptr<Record> new_record = type->get(new_name);
+      Record::RecordKind new_kind = new_record->kind;
+
+      if (new_kind == Record::RecordKind::LOCAL_VAR_RECORD) {
+        Out::errorMessage("Unexpected access: method.local variable");
+      } else if (new_kind == Record::RecordKind::FIELD_RECORD) {
+        shared_ptr<VarRecord> field = static_pointer_cast<VarRecord>(new_record);
+        shared_ptr<VarRecordNode> fieldNode = make_shared<VarRecordNode>(field, nullptr);
+        access->access.push_back(fieldNode);
+      } else if (new_kind == Record::RecordKind::METHOD_RECORD) {
+        shared_ptr<MethodRecord> new_methodRecord = static_pointer_cast<MethodRecord>(new_record);
+        // TODO method reference
+        shared_ptr<MethodCallNode> call =
+          make_shared<MethodCallNode>(new_methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
+        if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+            lexer.goForward();
+        } else {
+            Out::errorMessage(
+                lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                          "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
+                          std::to_string(lexer.getCurrent()->pos));
+          }
+
+        vector<shared_ptr<ExpressionNode>> args =
+          vector<shared_ptr<ExpressionNode>>();
+        while (true) {
+            if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+              lexer.goForward();
+              break;
+            }
+
+            args.push_back(enterExpression());
+
+            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+              lexer.goForward();
+            } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+              Out::errorMessage(
+                  lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
+                            "\tin " + std::to_string(lexer.getCurrent()->line) +
+                            ":" + std::to_string(lexer.getCurrent()->pos));
+            }
+          }
+
+        call->args = args;
+
+        access->access.push_back(call);
+      } else if (new_kind == Record::RecordKind::CLASS_RECORD) {
+        Out::errorMessage("Unexpected access: method.class");
+      } else if (new_kind == Record::RecordKind::UNUSED) {
+        Out::errorMessage("Error: using of unused record!");
+      }
+      kind = new_kind;
+    } else if (kind == Record::RecordKind::CLASS_RECORD) {
+      shared_ptr<ClassRecordNode> node = static_pointer_cast<ClassRecordNode>(access->access[access->access.size()-1]);
+      shared_ptr<Record> new_record = node->record->get(new_name);
+      Record::RecordKind new_kind = new_record->kind;
+
+      if (new_kind == Record::RecordKind::LOCAL_VAR_RECORD) {
+        Out::errorMessage("Unexpected access: class.local variable");
+      } else if (new_kind == Record::RecordKind::FIELD_RECORD) {
+        shared_ptr<VarRecord> field = static_pointer_cast<VarRecord>(new_record);
+        shared_ptr<VarRecordNode> fieldNode = make_shared<VarRecordNode>(field, nullptr);
+        access->access[access->access.size()-1] = fieldNode;
+      } else if (new_kind == Record::RecordKind::METHOD_RECORD) {
+        shared_ptr<MethodRecord> new_methodRecord = static_pointer_cast<MethodRecord>(new_record);
+        // TODO method reference
+        shared_ptr<MethodCallNode> call =
+          make_shared<MethodCallNode>(new_methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
+        if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+            lexer.goForward();
+        } else {
+            Out::errorMessage(
+                lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                          "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
+                          std::to_string(lexer.getCurrent()->pos));
+          }
+
+        vector<shared_ptr<ExpressionNode>> args =
+          vector<shared_ptr<ExpressionNode>>();
+        while (true) {
+            if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+              lexer.goForward();
+              break;
+            }
+
+            args.push_back(enterExpression());
+
+            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+              lexer.goForward();
+            } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+              Out::errorMessage(
+                  lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
+                            "\tin " + std::to_string(lexer.getCurrent()->line) +
+                            ":" + std::to_string(lexer.getCurrent()->pos));
+            }
+          }
+
+        call->args = args;
+
+        access->access[access->access.size()-1] = call;
+      } else if (new_kind == Record::RecordKind::CLASS_RECORD) {
+        shared_ptr<ClassRecord> classRec = static_pointer_cast<ClassRecord>(new_record);
+        shared_ptr<ClassRecordNode> classNode = make_shared<ClassRecordNode>(classRec, vector<shared_ptr<AccessNode>>(), nullptr);
+        access->access[access->access.size()-1] = classNode;
+      } else if (new_kind == Record::RecordKind::UNUSED) {
+        Out::errorMessage("Error: using of unused record!");
+      }
+      kind = new_kind;
+    } else if (kind == Record::RecordKind::UNUSED) {
+      Out::errorMessage("Error: using of unused record!");
+    }
   }
   return access;
 }
@@ -1230,28 +1396,30 @@ shared_ptr<ArrayInitializerNode> AstBuilder::enterArrayInitializer() {
 shared_ptr<TypeNode> AstBuilder::enterType(bool arr) {
   shared_ptr<AccessNode> type = enterAccessOrCall();
 
-  int dims = 0;
+  if (!type->isExpression()) {
+    int dims = 0;
 
-  if (arr) {
-    while (true) {
-      if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
-        lexer.goForward();
-        dims++;
-        if (lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
+    if (arr) {
+      while (true) {
+        if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
           lexer.goForward();
+          dims++;
+          if (lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
+            lexer.goForward();
+          } else {
+            Out::errorMessage(
+                lexer, "Expected ']', but found:\n\t" + lexer.getCurrent()->str +
+                          "\tin " + std::to_string(lexer.getCurrent()->line) +
+                          ":" + std::to_string(lexer.getCurrent()->pos));
+          }
         } else {
-          Out::errorMessage(
-              lexer, "Expected ']', but found:\n\t" + lexer.getCurrent()->str +
-                         "\tin " + std::to_string(lexer.getCurrent()->line) +
-                         ":" + std::to_string(lexer.getCurrent()->pos));
+          break;
         }
-      } else {
-        break;
       }
     }
+    return make_shared<TypeNode>(static_pointer_cast<ClassRecordNode>(type->access[0]), dims, nullptr);
   }
-
-  return make_shared<TypeNode>(type, dims, nullptr);
+  return nullptr;
 }
 
 vector<shared_ptr<TypeNode>> AstBuilder::enterTypeList() {

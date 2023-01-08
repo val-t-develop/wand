@@ -1,6 +1,6 @@
 #include "MethodRecord.hpp"
 
-MethodRecord::MethodRecord(string id, string type) : Record(id, type) {}
+MethodRecord::MethodRecord(string _id, string _type) : Record(_id, _type, RecordKind::METHOD_RECORD) {}
 
 bool MethodRecord::equals(shared_ptr<MethodRecord> r) {
     bool isVarsEqual = true;
