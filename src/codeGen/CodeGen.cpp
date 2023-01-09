@@ -335,6 +335,7 @@ void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
     for (shared_ptr<VarDeclNode> var : node->fields) {
         types.push_back(getType(var->type));
         varTypes[var->record] = getType(var->type);
+        getFullVarDeclNodeName(var);
 
         bool isStatic = false;
         auto mods = var->modifiers->modifiers;
@@ -908,20 +909,80 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ASSIGN) {
         if (node->left->kind == Node::NodeKind::ACCESS_NODE) {
             shared_ptr<AccessNode> access = static_pointer_cast<AccessNode>(node->left);
-            if (access->access[access->access.size()-1]->kind == Node::NodeKind::VAR_RECORD_NODE) {
-                auto rec = static_pointer_cast<VarRecordNode>(access->access[access->access.size()-1])->record;
-                string name = getFullVarRecordName(rec);
-                Value *ptr = NamedValues[name];
-                Type *type = varTypes[rec];
-                Builder->CreateStore(R, ptr);
-            } else {
-                Out::errorMessage("This assign kind is currently unsupported.");
+            
+            Value *last = nullptr;
+            Value *last_ptr = nullptr;
+            if (access->isExpression()) {
+                for (int i = 0; i < access->access.size(); ++i) {
+                    auto n = access->access[i];
+                    if (i == 0) {
+                        if (n->isExpression()) {
+                            last = genExpression(static_pointer_cast<ExpressionNode>(n));
+                            if (n->kind == Node::NodeKind::VAR_RECORD_NODE) {
+                                last_ptr = NamedValues[getFullVarRecordName(static_pointer_cast<VarRecordNode>(n)->record)];
+                            }
+                            continue;
+                        } else {
+                            Out::errorMessage("Internall error detected: can not generate expression.");
+                            break;
+                        }
+                    }
+                    
+                    if (n->isExpression()) {
+                        auto last_n = access->access[i-1];
+                        if (n->kind == Node::NodeKind::VAR_RECORD_NODE) {
+                            shared_ptr<VarRecord> n_var_rec = static_pointer_cast<VarRecordNode>(n)->record;
+                            if (last_n->isExpression()) {
+                                auto classRecord = static_pointer_cast<ExpressionNode>(last_n)->getReturnType();
+                                shared_ptr<TypeNode> typeNode = make_shared<TypeNode>(make_shared<ClassRecordNode>(classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr);
+                                Type *t = getType(typeNode, false);
+                                int struct_n = 0;
+                                for (int j = 0; j < classRecord->fields.size(); ++j) {
+                                    if (classRecord->fields[j]->equals(n_var_rec)) {
+                                        struct_n = j;
+                                        break;
+                                    }
+                                }
+                                Value *nullV = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), 0);
+                                Value *struct_nV = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), struct_n);
+                                Value *getelementptr = GetElementPtrInst::Create(t, last, vector<Value*>{nullV, struct_nV}, "access_tmp", Builder->GetInsertBlock());
+                                
+                                auto n_classRecord = static_pointer_cast<ExpressionNode>(n)->getReturnType();
+                                shared_ptr<TypeNode> n_typeNode = make_shared<TypeNode>(make_shared<ClassRecordNode>(n_classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr);
+                                Type *n_t = getType(n_typeNode, false);
+                                last = Builder->CreateLoad(n_t, getelementptr, "loadgetelementptrtmp");
+                                last_ptr = getelementptr;
+                            } else {
+                                Out::errorMessage("Internall error detected: can not generate expression.");
+                                break;
+                            }
+                        } else if (n->kind == Node::NodeKind::METHOD_CALL_NODE) {
+                            shared_ptr<MethodCallNode> callNode = static_pointer_cast<MethodCallNode>(n);
+                            bool isStatic = false;
+                            for (auto mod : callNode->record->mods) {
+                                if (mod == ModifiersNode::ModifierKind::STATIC) {
+                                    isStatic = true;
+                                    break;
+                                }
+                            }
+                            if (isStatic) {
+                                Out::errorMessage("Error: call of static method with non class access.");
+                            } else {
+                                last = genMethodCall(callNode, last);
+                            }
+                        }
+                        continue;
+                    } else {
+                        Out::errorMessage("Internall error detected: can not generate expression.");
+                        break;
+                    }
+                }
             }
+            
+            Builder->CreateStore(R, last_ptr);
         } else {
             Out::errorMessage("This assign kind is currently unsupported.");
         }
-        
-        
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::OR) {
         
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::AND) {
