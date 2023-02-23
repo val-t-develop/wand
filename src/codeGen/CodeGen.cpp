@@ -7,6 +7,10 @@
 #include <ast/node/statement/expression/literal/FloatLiteralNode.hpp>
 #include <main.hpp>
 
+#include <llvm/Analysis/LoopAnalysisManager.h>
+#include <llvm/Analysis/CGSCCPassManager.h>
+#include <llvm/Passes/PassBuilder.h>
+
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/FileSystem.h"
@@ -74,7 +78,6 @@ void CodeGen::codeGen() {
             Out::errorMessage("Can not generate this node");
         }
     }
-    TheModule->print(errs(), nullptr);
 }
 
 void CodeGen::build() {
@@ -90,9 +93,6 @@ void CodeGen::build() {
     string Error;
     auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
 
-    // Print an error and exit if we couldn't find the requested target.
-    // This generally occurs if we've forgotten to initialise the
-    // TargetRegistry or we have a bogus target triple.
     if (!Target) {
         errs() << Error;
     }
@@ -106,6 +106,21 @@ void CodeGen::build() {
         Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
 
     TheModule->setDataLayout(TheTargetMachine->createDataLayout());
+
+    // Create the analysis managers.
+    LoopAnalysisManager LAM;
+    FunctionAnalysisManager FAM;
+    CGSCCAnalysisManager CGAM;
+    ModuleAnalysisManager MAM;
+    PassBuilder PB{TheTargetMachine};
+    PB.registerModuleAnalyses(MAM);
+    PB.registerCGSCCAnalyses(CGAM);
+    PB.registerFunctionAnalyses(FAM);
+    PB.registerLoopAnalyses(LAM);
+    PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
+    ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(OptimizationLevel::O2);
+    MPM.run(*TheModule, MAM);
+    TheModule->print(errs(), nullptr);
 
     string Filename = string(TheModule->getName()) +".o";
     std::error_code EC;
