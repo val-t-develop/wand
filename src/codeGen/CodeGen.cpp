@@ -45,9 +45,25 @@ void CodeGen::codeGen() {
         genImport(make_shared<ImportDeclNode>(vector<string>({"spl", "core"}), nullptr));
     }
 
-    Function *splMallocFunction = TheModule->getFunction("__spl__malloc");
-    FunctionType* splMallocFunction_ft = FunctionType::get(PointerType::get(*TheContext, 0), vector<Type*>{IntegerType::get(*TheContext, 32)}, false);
-    splMallocFunction = Function::Create(splMallocFunction_ft, Function::ExternalLinkage, "__spl__malloc", *TheModule);
+    Function *splInitGCmapFunction = TheModule->getFunction("__spl__init__gcmap");
+    FunctionType* splInitGCmapFunction_ft = FunctionType::get(Type::getVoidTy(*TheContext), vector<Type*>{}, false);
+    splInitGCmapFunction = Function::Create(splInitGCmapFunction_ft, Function::ExternalLinkage, "__spl__init__gcmap", *TheModule);
+
+    Function *splDestroyGCmapFunction = TheModule->getFunction("__spl__destroy__gcmap");
+    FunctionType* splDestroyGCmapFunction_ft = FunctionType::get(Type::getVoidTy(*TheContext), vector<Type*>{}, false);
+    splDestroyGCmapFunction = Function::Create(splDestroyGCmapFunction_ft, Function::ExternalLinkage, "__spl__destroy__gcmap", *TheModule);
+
+    Function *splAllocFunction = TheModule->getFunction("__spl__alloc");
+    FunctionType* splAllocFunction_ft = FunctionType::get(PointerType::get(*TheContext, 0), vector<Type*>{IntegerType::get(*TheContext, 32)}, false);
+    splAllocFunction = Function::Create(splAllocFunction_ft, Function::ExternalLinkage, "__spl__alloc", *TheModule);
+
+    Function *splWriteFunction = TheModule->getFunction("__spl__write");
+    FunctionType* splWriteFunction_ft = FunctionType::get(Type::getVoidTy(*TheContext), vector<Type*>{PointerType::get(*TheContext, 0), PointerType::get(*TheContext, 0)}, false);
+    splWriteFunction = Function::Create(splWriteFunction_ft, Function::ExternalLinkage, "__spl__write", *TheModule);
+
+    Function *splDestroyvarFunction = TheModule->getFunction("__spl__destroyvar");
+    FunctionType* splDestroyvarFunction_ft = FunctionType::get(Type::getVoidTy(*TheContext), vector<Type*>{PointerType::get(*TheContext, 0)}, false);
+    splDestroyvarFunction = Function::Create(splDestroyvarFunction_ft, Function::ExternalLinkage, "__spl__destroyvar", *TheModule);
 
     for (shared_ptr<Node> node : cu->nodes) {
         if (node->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
@@ -485,6 +501,9 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
                             BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", MainFunction);
                             Builder->SetInsertPoint(BB);
 
+                            Function *splInitGCmapFunction = TheModule->getFunction("__spl__init__gcmap");
+                            Builder->CreateCall(splInitGCmapFunction);
+
                             for (auto globInit : StaticGlobalsInit) {
                                 if (globInit.second != nullptr) {
                                     Value *ptr = globInit.first;
@@ -494,6 +513,10 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
                             }
 
                             Value *RetVal = Builder->CreateCall(TheFunction, vector<Value*>({ConstantPointerNull::get(static_cast<PointerType*>(args_types[0]))}), "calltmp");
+
+                            Function *splDestroyGCmapFunction = TheModule->getFunction("__spl__destroy__gcmap");
+                            Builder->CreateCall(splDestroyGCmapFunction);
+
                             if (RetVal) {
                                 Builder->CreateRet(RetVal);
                                 verifyFunction(*MainFunction);
@@ -508,6 +531,7 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
 }
 
 bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
+    currBlockVars.push(vector<Value*>());
     for (shared_ptr<Node> item : node->nodes) {
         if (item != nullptr) {
             if (item->kind == Node::NodeKind::BLOCK_NODE) {
@@ -537,6 +561,12 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
             }
         }
     }
+    Function *splDestroyvarFunction = TheModule->getFunction("__spl__destroyvar");
+    for (auto v : currBlockVars.top()) {
+        Value *val = Builder->CreateLoad(v->getType(), v, "loadtmp");
+        Builder->CreateCall(splDestroyvarFunction, vector<Value*>{val});
+    }
+    currBlockVars.pop();
     return false;
 }
 
@@ -850,6 +880,7 @@ Value* CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
     Builder->CreateStore(val, ptr);
     NamedValues[getFullVarDeclNodeName(node)] = ptr;
     varTypes[node->record] = val->getType();
+    currBlockVars.top().push_back(ptr);
 }
 
 Value* CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
@@ -922,6 +953,10 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ADD_ASSIGN) {
         
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ASSIGN) {
+        if (node->right->kind == Node::NodeKind::ACCESS_NODE) {
+            Function *splWriteFunction = TheModule->getFunction("__spl__write");
+            Builder->CreateCall(splWriteFunction, vector<Value *>{L, R});
+        }
         if (node->left->kind == Node::NodeKind::ACCESS_NODE) {
             shared_ptr<AccessNode> access = static_pointer_cast<AccessNode>(node->left);
             
@@ -1125,6 +1160,6 @@ Value* CodeGen::genNewNode(shared_ptr<NewNode> node) {
     Value *sizeofV = GetElementPtrInst::Create(type, ConstantPointerNull::get(PointerType::get(*TheContext, 0)), vector<Value *>{one}, "sizeof", Builder->GetInsertBlock());
     Value *sizeofIV = Builder->CreatePtrToInt(sizeofV, IntegerType::get(*TheContext, 32), "sizeofI");
 
-    Function *splMallocFunction = TheModule->getFunction("__spl__malloc");
+    Function *splMallocFunction = TheModule->getFunction("__spl__alloc");
     return Builder->CreateCall(splMallocFunction, vector<Value *>{sizeofIV}, "heapallocatmp");
 }

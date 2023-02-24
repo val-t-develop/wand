@@ -31,6 +31,7 @@ public:
     string currClassName = "";
     stack<shared_ptr<ClassDeclNode>> classesStack = stack<shared_ptr<ClassDeclNode>>();
     map<string, StructType*> classesTypes = map<string, StructType*>();
+    stack<vector<Value*>> currBlockVars = stack<vector<Value*>>();
 
     CodeGen(shared_ptr<CompilationUnitNode> _cu);
 
