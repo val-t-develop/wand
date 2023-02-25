@@ -877,6 +877,10 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
 Value* CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
     Value *val = node->init != nullptr ? genExpression(node->init) : genDefaultValue(node->type);
     Value *ptr = Builder->CreateAlloca(val->getType(), nullptr, getFullVarDeclNodeName(node));
+    if (val->getType()->isPointerTy()) {
+        Function *splWriteFunction = TheModule->getFunction("__spl__write");
+        Builder->CreateCall(splWriteFunction, vector<Value *>{ptr, val});
+    }
     Builder->CreateStore(val, ptr);
     NamedValues[getFullVarDeclNodeName(node)] = ptr;
     varTypes[node->record] = val->getType();
@@ -953,7 +957,7 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ADD_ASSIGN) {
         
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ASSIGN) {
-        if (node->right->kind == Node::NodeKind::ACCESS_NODE) {
+        if (R->getType()->isPointerTy()) {
             Function *splWriteFunction = TheModule->getFunction("__spl__write");
             Builder->CreateCall(splWriteFunction, vector<Value *>{L, R});
         }
@@ -1031,7 +1035,7 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
             
             Builder->CreateStore(R, last_ptr);
         } else {
-            Out::errorMessage("This assign kind is currently unsupported.");
+            Out::errorMessage("Can not create assign.");
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::OR) {
         
@@ -1161,5 +1165,9 @@ Value* CodeGen::genNewNode(shared_ptr<NewNode> node) {
     Value *sizeofIV = Builder->CreatePtrToInt(sizeofV, IntegerType::get(*TheContext, 32), "sizeofI");
 
     Function *splMallocFunction = TheModule->getFunction("__spl__alloc");
-    return Builder->CreateCall(splMallocFunction, vector<Value *>{sizeofIV}, "heapallocatmp");
+    Value *heapallocatmp = Builder->CreateCall(splMallocFunction, vector<Value *>{sizeofIV}, "heapallocatmp");
+    Value *ptr = Builder->CreateAlloca(heapallocatmp->getType(), nullptr, heapallocatmp->getName()+"tmp_var");
+    Builder->CreateStore(heapallocatmp, ptr);
+    currBlockVars.top().push_back(ptr);
+    return heapallocatmp;
 }
