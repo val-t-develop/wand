@@ -11,6 +11,7 @@ public:
         GENERIC_NODE,
         IMPORT_DECL_NODE,
         METHOD_DECL_NODE,
+        CONSTRUCTOR_DECL_NODE,
         MODIFIERS_NODE,
         PACKAGE_DECL_NODE,
         VAR_DECL_NODE,

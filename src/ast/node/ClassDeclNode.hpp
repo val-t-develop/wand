@@ -6,6 +6,7 @@
 #include <ast/node/ModifiersNode.hpp>
 #include <ast/node/GenericNode.hpp>
 #include <ast/node/MethodDeclNode.hpp>
+#include <ast/node/ConstructorDeclNode.hpp>
 #include <symbolTable/SymbolTable.hpp>
 
 class ClassDeclNode : public Node {
@@ -20,6 +21,8 @@ public:
     vector<shared_ptr<VarDeclNode>> fields = vector<shared_ptr<VarDeclNode>>();
     vector<shared_ptr<MethodDeclNode>> methods =
                                         vector<shared_ptr<MethodDeclNode>>();
+    vector<shared_ptr<ConstructorDeclNode>> constructors =
+                                        vector<shared_ptr<ConstructorDeclNode>>();
     vector<shared_ptr<ClassDeclNode>> innerClasses =
                                        vector<shared_ptr<ClassDeclNode>>();
 
@@ -30,6 +33,7 @@ public:
                   vector<shared_ptr<TypeNode>> _implemented,
                   vector<shared_ptr<VarDeclNode>> _fields,
                   vector<shared_ptr<MethodDeclNode>> _methods,
+                  vector<shared_ptr<ConstructorDeclNode>> _constructors,
                   vector<shared_ptr<ClassDeclNode>> _innerClasses,
                   shared_ptr<Node> _parent);
 

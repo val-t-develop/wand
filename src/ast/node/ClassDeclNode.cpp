@@ -7,8 +7,9 @@ ClassDeclNode::ClassDeclNode(
     vector<shared_ptr<TypeNode>> _implemented,
     vector<shared_ptr<VarDeclNode>> _fields,
     vector<shared_ptr<MethodDeclNode>> _methods,
+    vector<shared_ptr<ConstructorDeclNode>> _constructors,
     vector<shared_ptr<ClassDeclNode>> _innerClasses,
     shared_ptr<Node> _parent)
     : Node(_parent, NodeKind::CLASS_DECL_NODE), generic(_generic), modifiers(_modifiers), kind(_kind), record(_record),
       extended(_extended), implemented(_implemented), fields(_fields),
-      methods(_methods), innerClasses(_innerClasses) {}
+      methods(_methods), constructors(_constructors), innerClasses(_innerClasses) {}

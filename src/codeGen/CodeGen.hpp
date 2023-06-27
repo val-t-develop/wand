@@ -31,7 +31,7 @@ public:
     string currClassName = "";
     stack<shared_ptr<ClassDeclNode>> classesStack = stack<shared_ptr<ClassDeclNode>>();
     map<string, StructType*> classesTypes = map<string, StructType*>();
-    stack<vector<Value*>> currBlockVars = stack<vector<Value*>>();
+    stack<vector<pair<Value*, string>>> currBlockVars = stack<vector<pair<Value*, string>>>();
 
     CodeGen(shared_ptr<CompilationUnitNode> _cu);
 
@@ -50,7 +50,11 @@ public:
     void genStruct(shared_ptr<ClassDeclNode> node);
     Type* getType(shared_ptr<TypeNode> node, bool ptr);
     Function* genMethodPrototype(shared_ptr<MethodDeclNode> node);
+    Function* genDestructorPrototype(shared_ptr<ClassDeclNode> node);
+    Function* genConstructorPrototype(shared_ptr<ConstructorDeclNode> node);
     Function* genMethodDecl(shared_ptr<MethodDeclNode> node);
+    Function* genDestructorDecl(shared_ptr<ClassDeclNode> node);
+    Function* genConstructorDecl(shared_ptr<ConstructorDeclNode> node);
     bool genBlockStatement(shared_ptr<BlockNode> node);
     void genIfElse(shared_ptr<IfElseNode> node);
     void genWhile(shared_ptr<WhileNode> node);

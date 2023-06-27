@@ -97,6 +97,7 @@ void CodeGen::codeGen() {
 }
 
 void CodeGen::build() {
+    TheModule->print(errs(), nullptr);
     InitializeAllTargetInfos();
     InitializeAllTargets();
     InitializeAllTargetMCs();
@@ -136,7 +137,7 @@ void CodeGen::build() {
     PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
     ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(OptimizationLevel::O2);
     MPM.run(*TheModule, MAM);
-    TheModule->print(errs(), nullptr);
+    //TheModule->print(errs(), nullptr);
 
     string Filename = string(TheModule->getName()) +".o";
     std::error_code EC;
@@ -263,8 +264,14 @@ void CodeGen::createClassType(shared_ptr<ClassDeclNode> node) {
         createClassType(item);
     }
 
+    genDestructorPrototype(node);
+
     for (shared_ptr<MethodDeclNode> item : node->methods) {
         genMethodPrototype(item);
+    }
+
+    for (shared_ptr<ConstructorDeclNode> item : node->constructors) {
+        genConstructorPrototype(item);
     }
 
     classesStack.pop();
@@ -282,8 +289,12 @@ void CodeGen::genClassDecl(shared_ptr<ClassDeclNode> node, bool genMethod) {
     }
 
     if (genMethod) {
+        genDestructorDecl(node);
         for (shared_ptr<MethodDeclNode> item : node->methods) {
             genMethodDecl(item);
+        }
+        for (shared_ptr<ConstructorDeclNode> item : node->constructors) {
+            genConstructorDecl(item);
         }
     }
     
@@ -419,6 +430,46 @@ Function* CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {
     return TheFunction;
 }
 
+Function* CodeGen::genDestructorPrototype(shared_ptr<ClassDeclNode> node) {
+    Function *TheFunction = TheModule->getFunction("__spl__destructor__"+currClassName);
+
+    if (!TheFunction) {
+        vector<Type*> args_types = vector<Type*>();
+        args_types.push_back(getType(make_shared<TypeNode>(make_shared<ClassRecordNode>(currClass->record, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr)));
+        
+        FunctionType* ft = FunctionType::get(Type::getVoidTy(*TheContext), args_types, false);
+
+        TheFunction = Function::Create(ft, Function::ExternalLinkage, "__spl__destructor__"+currClassName, *TheModule);
+    }
+
+    if (!TheFunction) {
+        return nullptr;
+    }
+    return TheFunction;
+}
+
+Function* CodeGen::genConstructorPrototype(shared_ptr<ConstructorDeclNode> node) {
+    string str = "__spl__constructor__"+currClassName;
+    for (auto arg : node->args) {
+        str += "__" + getFullClassRecordName(arg->type->type->record);
+    }
+    Function *TheFunction = TheModule->getFunction(str);
+
+
+    vector<Type*> args_types = vector<Type*>();
+    if (!TheFunction) {
+        
+        for (shared_ptr<VarDeclNode> arg : node->args) {
+            args_types.push_back(getType(arg->type));
+        }
+        FunctionType* ft = FunctionType::get(
+            getType(make_shared<TypeNode>(make_shared<ClassRecordNode>(currClass->record,vector<shared_ptr<AccessNode>>{}, nullptr), 0, nullptr)), 
+            args_types, false);
+
+        TheFunction = Function::Create(ft, Function::ExternalLinkage, str, *TheModule);
+    }
+}
+
 Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
     if (node->body != nullptr) {
         Function *TheFunction = TheModule->getFunction(getFullMethodDeclNodeName(node));
@@ -475,8 +526,9 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
             Value *ret_val = Builder->CreateLoad(TheFunction->getReturnType(), ret_ptr, "retloadtmp");
             Builder->CreateRet(ret_val);
         } else {
-            Value *ret_val = ReturnInst::Create(*TheContext);
-            Builder->CreateRet(ret_val);
+            /*Value *ret_val = ReturnInst::Create(*TheContext);
+            Builder->CreateRet(ret_val);*/
+            Builder->CreateRet(UndefValue::get(Type::getVoidTy(*TheContext)));
         }
 
         verifyFunction(*TheFunction);
@@ -530,8 +582,122 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
     }
 }
 
+Function* CodeGen::genDestructorDecl(shared_ptr<ClassDeclNode> node) {
+    
+    Function *TheFunction = TheModule->getFunction("__spl__destructor__"+currClassName);
+
+    vector<Type*> args_types = vector<Type*>();
+    args_types.push_back(getType(make_shared<TypeNode>(make_shared<ClassRecordNode>(currClass->record, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr)));
+    
+    if (!TheFunction) {
+        return nullptr;
+    }
+        
+    BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", TheFunction);
+    retBB = BasicBlock::Create(*TheContext, "ret");
+    Builder->SetInsertPoint(BB);
+
+    NamedValues.clear();
+
+    Value *val = Builder->CreateLoad(PointerType::get(classesTypes.at(getFullClassRecordName(node->record)), 0), TheFunction->getArg(0), "loadtmp");
+    //Value *val = TheFunction->getArg(0);
+    for (shared_ptr<VarDeclNode> f : node->fields) {
+        /*shared_ptr<VarRecord> n_var_rec = f->record;
+        auto classRecord = node->record;
+        shared_ptr<TypeNode> typeNode = make_shared<TypeNode>(make_shared<ClassRecordNode>(classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr);
+        Type *t = getType(typeNode, false);
+        int struct_n = 0;
+        for (int j = 0; j < classRecord->fields.size(); ++j) {
+            if (classRecord->fields[j]->equals(n_var_rec)) {
+                struct_n = j;
+                break;
+            }
+        }
+        Value *nullV = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), 0);
+        Value *struct_nV = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), struct_n);
+        Value *getelementptr = GetElementPtrInst::Create(t, val, vector<Value*>{nullV, struct_nV}, "access_tmp", Builder->GetInsertBlock());
+        
+        auto n_classRecord = f->type->type->record;
+        shared_ptr<TypeNode> n_typeNode = make_shared<TypeNode>(make_shared<ClassRecordNode>(n_classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr);
+        Type *n_t = getType(n_typeNode, false);
+        Value *to_destruct = Builder->CreateLoad(n_t, getelementptr, "loadgetelementptrtmp");
+
+        if(getelementptr->getType()->isPointerTy()) {
+            Value *cond = Builder->CreatePtrDiff(PointerType::get(n_t, 0), getelementptr, ConstantPointerNull::get(PointerType::get(n_t, 0)), "cond");
+            BasicBlock *ThenBB = BasicBlock::Create(*TheContext, "then", TheFunction);
+            BasicBlock *MergeBB = BasicBlock::Create(*TheContext, "ifcont");
+            Builder->CreateCondBr(cond, ThenBB, MergeBB);
+            
+            Builder->SetInsertPoint(ThenBB);
+
+            Function *destructor = TheModule->getFunction("__spl__destructor__"+getFullClassRecordName(classRecord));
+            Builder->CreateCall(destructor, vector<Value*>{val});
+
+            Function *splDestroyvarFunction = TheModule->getFunction("__spl__destroyvar"); 
+            Builder->CreateCall(splDestroyvarFunction, vector<Value*>{val});
+
+            Builder->CreateBr(MergeBB);
+            // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+            ThenBB = Builder->GetInsertBlock();         
+
+            MergeBB->insertInto(TheFunction);
+            Builder->SetInsertPoint(MergeBB);
+
+        }*/
+    }
+
+    Builder->CreateBr(retBB);
+        
+    retBB->insertInto(TheFunction);
+    Builder->SetInsertPoint(retBB);
+
+    Builder->CreateRet(UndefValue::get(Type::getVoidTy(*TheContext)));
+
+    verifyFunction(*TheFunction);
+
+    return TheFunction;
+}
+
+Function* CodeGen::genConstructorDecl(shared_ptr<ConstructorDeclNode> node) {
+    string str = "__spl__constructor__"+currClassName;
+    for (auto arg : node->args) {
+        str += "__" + getFullClassRecordName(arg->type->type->record);
+    }
+    Function *TheFunction = TheModule->getFunction(str);
+
+    vector<Type*> args_types = vector<Type*>();
+    for (shared_ptr<VarDeclNode> arg : node->args) {
+        args_types.push_back(getType(arg->type));
+    }
+    if (!TheFunction) {
+        return nullptr;
+    }
+    
+    BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", TheFunction);
+    retBB = BasicBlock::Create(*TheContext, "ret");
+    Builder->SetInsertPoint(BB);
+    NamedValues.clear();
+    
+    for (int i = 0; i < node->args.size(); ++i) {
+        auto Arg = TheFunction->getArg(i);
+        string argName = getFullVarDeclNodeName(node->args[i]);
+        Value *ptr = Builder->CreateAlloca(Arg->getType(), nullptr, argName);
+        Builder->CreateStore(Arg, ptr);
+        NamedValues[argName] = ptr;
+        varTypes[node->args[i]->record] = Arg->getType();
+    }
+
+    Builder->CreateBr(retBB);
+    
+    retBB->insertInto(TheFunction);
+    Builder->SetInsertPoint(retBB);
+    Builder->CreateRet(UndefValue::get(Type::getVoidTy(*TheContext)));
+    verifyFunction(*TheFunction);
+    return TheFunction;
+}
+
 bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
-    currBlockVars.push(vector<Value*>());
+    currBlockVars.push(vector<pair<Value*, string>>());
     for (shared_ptr<Node> item : node->nodes) {
         if (item != nullptr) {
             if (item->kind == Node::NodeKind::BLOCK_NODE) {
@@ -563,7 +729,21 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
     }
     Function *splDestroyvarFunction = TheModule->getFunction("__spl__destroyvar");
     for (auto v : currBlockVars.top()) {
-        Value *val = Builder->CreateLoad(v->getType(), v, "loadtmp");
+        Value *val = Builder->CreateLoad(v.first->getType(), v.first, "loadtmp");
+        if (v.second != "boolean" && 
+            v.second != "int" && 
+            v.second != "byte" && 
+            v.second != "short" && 
+            v.second != "long" && 
+            v.second != "float" && 
+            v.second != "double" && 
+            v.second != "char" && 
+            v.second != "void") {
+
+            Function *destructor = TheModule->getFunction("__spl__destructor__"+v.second);
+            Builder->CreateCall(destructor, vector<Value*>{val});
+        }
+        
         Builder->CreateCall(splDestroyvarFunction, vector<Value*>{val});
     }
     currBlockVars.pop();
@@ -884,7 +1064,7 @@ Value* CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
     Builder->CreateStore(val, ptr);
     NamedValues[getFullVarDeclNodeName(node)] = ptr;
     varTypes[node->record] = val->getType();
-    currBlockVars.top().push_back(ptr);
+    currBlockVars.top().push_back(pair<Value*, string>(ptr, getFullClassRecordName(node->type->type->record)));
 }
 
 Value* CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
@@ -1168,6 +1348,6 @@ Value* CodeGen::genNewNode(shared_ptr<NewNode> node) {
     Value *heapallocatmp = Builder->CreateCall(splMallocFunction, vector<Value *>{sizeofIV}, "heapallocatmp");
     Value *ptr = Builder->CreateAlloca(heapallocatmp->getType(), nullptr, heapallocatmp->getName()+"tmp_var");
     Builder->CreateStore(heapallocatmp, ptr);
-    currBlockVars.top().push_back(ptr);
+    currBlockVars.top().push_back(pair<Value*, string>(ptr, getFullClassRecordName(node->type->type->record)));
     return heapallocatmp;
 }

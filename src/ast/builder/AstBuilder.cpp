@@ -116,8 +116,8 @@ AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
         vector<shared_ptr<MethodDeclNode>>();
     vector<shared_ptr<ClassDeclNode>> innerClasses =
         vector<shared_ptr<ClassDeclNode>>();
-    vector<shared_ptr<MethodDeclNode>> constructors =
-        vector<shared_ptr<MethodDeclNode>>();
+    vector<shared_ptr<ConstructorDeclNode>> constructors =
+        vector<shared_ptr<ConstructorDeclNode>>();
 
     if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
       lexer.goForward();
@@ -136,8 +136,8 @@ AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
           methods.push_back(static_pointer_cast<MethodDeclNode>(n));
         } else if (n->getKind() == Node::NodeKind::CLASS_DECL_NODE) {
           innerClasses.push_back(static_pointer_cast<ClassDeclNode>(n));
-        } else if (n->getKind() == Node::NodeKind::METHOD_DECL_NODE) {
-          constructors.push_back(static_pointer_cast<MethodDeclNode>(n));
+        } else if (n->getKind() == Node::NodeKind::CONSTRUCTOR_DECL_NODE) {
+          constructors.push_back(static_pointer_cast<ConstructorDeclNode>(n));
         }
       }
       symbolTable->exitScope();
@@ -149,7 +149,7 @@ AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
     }
 
     return make_shared<ClassDeclNode>(generic, nullptr, kind, record, extended,
-                                      implemented, fields, methods,
+                                      implemented, fields, methods, constructors,
                                       innerClasses, nullptr);
   } else {
     Out::errorMessage(lexer, "Expected identifier, but found:\n\t" +
@@ -215,7 +215,7 @@ shared_ptr<Node> AstBuilder::enterClassMemberDecl() {
     return nullptr;
   } else {
     if (lexer.getNext()->kind == Token::Kind::LPAREN) {
-      shared_ptr<MethodDeclNode> decl = enterConstructorDecl();
+      shared_ptr<ConstructorDeclNode> decl = enterConstructorDecl();
       decl->modifiers = mods;
       return decl;
     }
@@ -249,27 +249,15 @@ shared_ptr<Node> AstBuilder::enterClassMemberDecl() {
   return nullptr;
 }
 
-shared_ptr<MethodDeclNode> AstBuilder::enterConstructorDecl() {
+shared_ptr<ConstructorDeclNode> AstBuilder::enterConstructorDecl() {
   lexer.goForward();
   symbolTable->enterScope(nullptr);
   vector<shared_ptr<VarDeclNode>> args = enterMethodArgs();
   if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
     shared_ptr<BlockNode> block = enterBlockStatement(false);
-
-    shared_ptr<MethodRecord> rec = symbolTable->lookupMethod(symbolTable->getCurrentClassName());
-    if (rec != nullptr) {
-      if (rec->type != "__constructor") {
-        rec = nullptr;
-      }
-    }
-    return make_shared<MethodDeclNode>(make_shared<ModifiersNode>(nullptr),
-                                       make_shared<TypeNode>(make_shared<ClassRecordNode>(symbolTable->lookupClass(symbolTable->getCurrentClassName()), vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr), 
-                                       rec, args, block, nullptr);
-  } /* else if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
-     return new ConstructorDeclNode(new ModifiersNode(nullptr),
- symbolTable->getCurrentClassName(), args, nullptr, nullptr);
- } */
-  else {
+    symbolTable->exitScope();
+    return make_shared<ConstructorDeclNode>(make_shared<ModifiersNode>(nullptr), nullptr, args, block, nullptr);
+  } else {
     Out::errorMessage(lexer, "Expected '{', but found:\n\t" +
                                  lexer.getCurrent()->str + "\tin " +
                                  std::to_string(lexer.getCurrent()->line) +
