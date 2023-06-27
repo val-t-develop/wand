@@ -11,11 +11,16 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Verifier.h>
+#include <codeGen/utils/CodeGenUtils.hpp>
 
 using namespace llvm;
 
+class CodeGenUtils;
+
 class CodeGen {
 public:
+    shared_ptr<CodeGenUtils> utils;
+
     shared_ptr<LLVMContext> TheContext;
     shared_ptr<IRBuilder<>> Builder;
     shared_ptr<Module> TheModule;
@@ -27,10 +32,8 @@ public:
     stack<Value*> thisV;
 
     shared_ptr<CompilationUnitNode> cu;
-    shared_ptr<ClassDeclNode> currClass;
-    string currClassName = "";
+    
     stack<shared_ptr<ClassDeclNode>> classesStack = stack<shared_ptr<ClassDeclNode>>();
-    map<string, StructType*> classesTypes = map<string, StructType*>();
     stack<vector<pair<Value*, string>>> currBlockVars = stack<vector<pair<Value*, string>>>();
 
     CodeGen(shared_ptr<CompilationUnitNode> _cu);
@@ -41,14 +44,9 @@ public:
     void genImport(shared_ptr<ImportDeclNode> node);
     void createClassType(shared_ptr<ClassDeclNode> node);
     void genClassDecl(shared_ptr<ClassDeclNode> node, bool genMethod);
-    void setCurrClassName();
-    string getFullClassRecordName(shared_ptr<ClassRecord> rec);
-    string getFullMethodDeclNodeName(shared_ptr<MethodDeclNode> node);
-    string getFullVarDeclNodeName(shared_ptr<VarDeclNode> node);
-    string getFullMethodRecordName(shared_ptr<MethodRecord> rec);
-    string getFullVarRecordName(shared_ptr<VarRecord> rec);
+    
     void genStruct(shared_ptr<ClassDeclNode> node);
-    Type* getType(shared_ptr<TypeNode> node, bool ptr);
+    
     Function* genMethodPrototype(shared_ptr<MethodDeclNode> node);
     Function* genDestructorPrototype(shared_ptr<ClassDeclNode> node);
     Function* genConstructorPrototype(shared_ptr<ConstructorDeclNode> node);
