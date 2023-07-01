@@ -568,7 +568,6 @@ Function* CodeGen::genConstructorDecl(shared_ptr<ConstructorDeclNode> node) {
     }
     
     BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", TheFunction);
-    retBB = BasicBlock::Create(*TheContext, "ret");
     Builder->SetInsertPoint(BB);
     NamedValues.clear();
     
@@ -580,12 +579,8 @@ Function* CodeGen::genConstructorDecl(shared_ptr<ConstructorDeclNode> node) {
         NamedValues[argName] = ptr;
         varTypes[node->args[i]->record] = Arg->getType();
     }
-
-    Builder->CreateBr(retBB);
+    genConstructorBlockStatement(node, str);
     
-    retBB->insertInto(TheFunction);
-    Builder->SetInsertPoint(retBB);
-    Builder->CreateRet(UndefValue::get(Type::getVoidTy(*TheContext)));
     verifyFunction(*TheFunction);
     return TheFunction;
 }
@@ -642,6 +637,79 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
     }
     currBlockVars.pop();
     return false;
+}
+
+bool CodeGen::genConstructorBlockStatement(shared_ptr<ConstructorDeclNode> constructor, string str) {
+    shared_ptr<BlockNode> node = constructor->body;
+    currBlockVars.push(vector<pair<Value*, string>>());
+    
+    Type *type = utils->getType(make_shared<TypeNode>(make_shared<ClassRecordNode>(utils->currClass->record,vector<shared_ptr<AccessNode>>{}, nullptr), 0, nullptr));
+    Value *one = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), 1);
+    Value *sizeofV = GetElementPtrInst::Create(type, ConstantPointerNull::get(PointerType::get(*TheContext, 0)), vector<Value *>{one}, "sizeof", Builder->GetInsertBlock());
+    Value *sizeofIV = Builder->CreatePtrToInt(sizeofV, IntegerType::get(*TheContext, 32), "sizeofI");
+
+    Function *splMallocFunction = TheModule->getFunction("__spl__alloc");
+    Value *heapallocatmp = Builder->CreateCall(splMallocFunction, vector<Value *>{sizeofIV}, "heapallocatmp");
+    Value *ptr = Builder->CreateAlloca(heapallocatmp->getType(), nullptr, heapallocatmp->getName()+"tmp_var");
+    Builder->CreateStore(heapallocatmp, ptr);
+    currBlockVars.top().push_back(pair<Value*, string>(ptr, utils->currClassName));
+    
+
+    
+
+    for (shared_ptr<Node> item : node->nodes) {
+        if (item != nullptr) {
+            if (item->kind == Node::NodeKind::BLOCK_NODE) {
+                return genBlockStatement(static_pointer_cast<BlockNode>(item));
+            } else if (item->kind == Node::NodeKind::RETURN_NODE) {
+                if (static_pointer_cast<ReturnNode>(item)->expression != nullptr) {
+                    Value *val = genExpression(static_pointer_cast<ReturnNode>(item)->expression);
+                    Value *ptr = NamedValues[Builder->GetInsertBlock()->getParent()->getName().str()+"__spl__ret"];
+                    Builder->CreateStore(val, ptr);
+                }
+                Builder->CreateBr(retBB);
+                return true;
+            } else if (item->kind == Node::NodeKind::VAR_DECL_NODE) {
+                genVarDecl(static_pointer_cast<VarDeclNode>(item));
+            } else if (item->kind == Node::NodeKind::VARS_DECL_NODE) {
+                for (shared_ptr<VarDeclNode> decl : static_pointer_cast<VarsDeclNode>(item)->decls) {
+                    genVarDecl(decl);
+                }
+            } else if (item->isExpression()) {
+                genExpression(static_pointer_cast<ExpressionNode>(item));
+            } else if (item->kind == Node::NodeKind::IF_ELSE_NODE) {
+                genIfElse(static_pointer_cast<IfElseNode>(item));
+            } else if (item->kind == Node::NodeKind::WHILE_NODE) {
+                genWhile(static_pointer_cast<WhileNode>(item));
+            } else if (item->kind == Node::NodeKind::FOR_NODE) {
+                genFor(static_pointer_cast<ForNode>(item));
+            }
+        }
+    }
+    Function *splDestroyvarFunction = TheModule->getFunction("__spl__destroyvar");
+    for (auto v : currBlockVars.top()) {
+        Value *val = Builder->CreateLoad(v.first->getType(), v.first, "loadtmp");
+        if (v.second != "boolean" && 
+            v.second != "int" && 
+            v.second != "byte" && 
+            v.second != "short" && 
+            v.second != "long" && 
+            v.second != "float" && 
+            v.second != "double" && 
+            v.second != "char" && 
+            v.second != "void") {
+
+            Function *destructor = TheModule->getFunction("__spl__destructor__"+v.second);
+            Builder->CreateCall(destructor, vector<Value*>{val});
+        }
+        
+        Builder->CreateCall(splDestroyvarFunction, vector<Value*>{val});
+    }
+    currBlockVars.pop();
+
+
+    // heapallocatmp
+    Builder->CreateRet(UndefValue::get(Type::getVoidTy(*TheContext)));
 }
 
 void CodeGen::genIfElse(shared_ptr<IfElseNode> node) {
@@ -1233,15 +1301,15 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
 }
 
 Value* CodeGen::genNewNode(shared_ptr<NewNode> node) {
-    Type *type = utils->getType(node->type);
-    Value *one = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), 1);
-    Value *sizeofV = GetElementPtrInst::Create(type, ConstantPointerNull::get(PointerType::get(*TheContext, 0)), vector<Value *>{one}, "sizeof", Builder->GetInsertBlock());
-    Value *sizeofIV = Builder->CreatePtrToInt(sizeofV, IntegerType::get(*TheContext, 32), "sizeofI");
-
-    Function *splMallocFunction = TheModule->getFunction("__spl__alloc");
-    Value *heapallocatmp = Builder->CreateCall(splMallocFunction, vector<Value *>{sizeofIV}, "heapallocatmp");
-    Value *ptr = Builder->CreateAlloca(heapallocatmp->getType(), nullptr, heapallocatmp->getName()+"tmp_var");
-    Builder->CreateStore(heapallocatmp, ptr);
-    currBlockVars.top().push_back(pair<Value*, string>(ptr, utils->getFullClassRecordName(node->type->type->record)));
-    return heapallocatmp;
+    string str = "__spl__constructor__"+utils->getFullClassRecordName(node->type->type->record);
+    for (auto arg : node->args) {
+        str += "__" + utils->getFullClassRecordName(arg->getReturnType());
+    }
+    vector<Value*> args{};
+    for (auto arg : node->args) {
+        args.push_back(genExpression(arg));
+    }
+    Function *TheFunction = TheModule->getFunction(str);
+    auto tmp =  Builder->CreateCall(TheFunction, args, "calltmp");
+    return tmp;
 }
