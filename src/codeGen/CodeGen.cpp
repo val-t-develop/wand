@@ -235,6 +235,9 @@ void CodeGen::createClassType(shared_ptr<ClassDeclNode> node) {
     for (shared_ptr<ConstructorDeclNode> item : node->constructors) {
         genConstructorPrototype(item);
     }
+    if (node->constructors.empty()) {
+        genConstructorPrototype(make_shared<ConstructorDeclNode>(nullptr, nullptr, vector<shared_ptr<VarDeclNode>>{}, nullptr, nullptr));
+    }
 
     classesStack.pop();
     utils->currClass = classesStack.empty() ? nullptr : classesStack.top();
@@ -257,6 +260,12 @@ void CodeGen::genClassDecl(shared_ptr<ClassDeclNode> node, bool genMethod) {
         }
         for (shared_ptr<ConstructorDeclNode> item : node->constructors) {
             genConstructorDecl(item);
+        }
+        if (node->constructors.empty()) {
+            genConstructorDecl(make_shared<ConstructorDeclNode>(nullptr, nullptr, 
+                                                                vector<shared_ptr<VarDeclNode>>{},
+                                                                make_shared<BlockNode>(vector<shared_ptr<Node>>{}, nullptr),
+                                                                nullptr));
         }
     }
     
