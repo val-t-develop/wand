@@ -63,6 +63,7 @@ src_files = ['src/main.cpp', 'src/main.hpp',
     'src/ast/node/statement/expression/literal/CharLiteralNode.hpp', 'src/ast/node/statement/expression/literal/CharLiteralNode.cpp', 
     'src/ast/node/statement/expression/literal/BoolLiteralNode.hpp', 'src/ast/node/statement/expression/literal/BoolLiteralNode.cpp',
     'src/codeGen/CodeGen.cpp', 'src/codeGen/CodeGen.hpp',
-    'src/codeGen/utils/CodeGenUtils.cpp', 'src/codeGen/utils/CodeGenUtils.hpp']
+    'src/codeGen/utils/CodeGenUtils.cpp', 'src/codeGen/utils/CodeGenUtils.hpp',
+    'src/codeGen/utils/LLVMHelper.cpp', 'src/codeGen/utils/LLVMHelper.hpp']
 
 executable('spl', src_files, dependencies : llvm_dep, include_directories : incdir)

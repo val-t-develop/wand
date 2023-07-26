@@ -1,4 +1,5 @@
 #include "MethodRecord.hpp"
+#include <utils/Out.hpp>
 
 MethodRecord::MethodRecord(string _id, string _type) : Record(_id, _type, RecordKind::METHOD_RECORD) {}
 
@@ -42,4 +43,11 @@ bool MethodRecord::containArg(shared_ptr<VarRecord> var, int n) {
         }
     }
     return false;
+}
+
+string MethodRecord::getFullName() {
+    if (ir_name == "") {
+        Out::errorMessage("Internal error detected! Can not get ir_name of method " + id);
+    }
+    return ir_name;
 }

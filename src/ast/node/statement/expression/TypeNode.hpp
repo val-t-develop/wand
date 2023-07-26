@@ -12,4 +12,6 @@ public:
     TypeNode(shared_ptr<ClassRecordNode> _type, int _dims, shared_ptr<Node> _parent);
 
     shared_ptr<ClassRecord> getReturnType() override;
+
+    string getFullName();
 };

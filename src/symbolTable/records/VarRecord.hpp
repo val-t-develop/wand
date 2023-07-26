@@ -11,4 +11,6 @@ public:
     VarRecord(string _id, string _type, RecordKind _kind);
 
     bool equals(shared_ptr<VarRecord> r);
+
+    string getFullName();
 };

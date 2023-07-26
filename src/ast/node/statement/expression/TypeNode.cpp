@@ -7,3 +7,7 @@ TypeNode::TypeNode(shared_ptr<ClassRecordNode> _type, int _dims, shared_ptr<Node
 shared_ptr<ClassRecord> TypeNode::getReturnType() {
     return nullptr;
 }
+
+string TypeNode::getFullName() {
+    return type->getFullName();
+}

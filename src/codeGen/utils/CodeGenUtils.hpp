@@ -11,7 +11,9 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Verifier.h>
+#include "LLVMHelper.hpp"
 #include <codeGen/CodeGen.hpp>
+#include "LLVMHelper.hpp"
 
 using namespace llvm;
 
@@ -20,6 +22,7 @@ class CodeGen;
 class CodeGenUtils {
 public:
     CodeGen* codeGen;
+    shared_ptr<LLVMHelper> helper;
 
     shared_ptr<ClassDeclNode> currClass;
     string currClassName = "";
@@ -29,11 +32,6 @@ public:
     CodeGenUtils(CodeGen* _codeGen);
 
     void setCurrClassName();
-    string getFullClassRecordName(shared_ptr<ClassRecord> rec);
-    string getFullMethodDeclNodeName(shared_ptr<MethodDeclNode> node);
-    string getFullVarDeclNodeName(shared_ptr<VarDeclNode> node);
-    string getFullMethodRecordName(shared_ptr<MethodRecord> rec);
-    string getFullVarRecordName(shared_ptr<VarRecord> rec);
-    Type* getType(shared_ptr<TypeNode> node);
-    Type* getTypeNoPtr(shared_ptr<TypeNode> node);
+    Type* getType(shared_ptr<ClassRecord> node);
+    Type* getTypeNoPtr(shared_ptr<ClassRecord> node);
 };

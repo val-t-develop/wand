@@ -14,4 +14,6 @@ public:
     shared_ptr<BlockNode> body;
 
     MethodDeclNode(shared_ptr<ModifiersNode> _modifiers, shared_ptr<TypeNode> _returnType, shared_ptr<MethodRecord> _record, vector<shared_ptr<VarDeclNode>> _args, shared_ptr<BlockNode> _body, shared_ptr<Node> _parent);
+
+    string getFullName();
 };

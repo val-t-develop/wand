@@ -13,3 +13,7 @@ ClassDeclNode::ClassDeclNode(
     : Node(_parent, NodeKind::CLASS_DECL_NODE), generic(_generic), modifiers(_modifiers), kind(_kind), record(_record),
       extended(_extended), implemented(_implemented), fields(_fields),
       methods(_methods), constructors(_constructors), innerClasses(_innerClasses) {}
+
+string ClassDeclNode::getFullName() {
+    return record->getFullName();
+}

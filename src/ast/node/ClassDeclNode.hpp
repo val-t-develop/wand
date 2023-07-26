@@ -37,5 +37,5 @@ public:
                   vector<shared_ptr<ClassDeclNode>> _innerClasses,
                   shared_ptr<Node> _parent);
 
-
+    string getFullName();
 };

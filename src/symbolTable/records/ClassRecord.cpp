@@ -85,3 +85,15 @@ shared_ptr<Record> ClassRecord::get(string name) {
         return innerClass;
     }
 }
+
+string ClassRecord::getFullName() {
+    if (ir_name == "") {
+        string str = "";
+        if (next != nullptr) {
+            str += static_pointer_cast<ClassRecord>(next)->getFullName() + ".";
+        }
+        str += id;
+        ir_name = str;
+    }
+    return ir_name;
+}

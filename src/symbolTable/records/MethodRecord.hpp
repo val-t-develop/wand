@@ -20,4 +20,6 @@ public:
     void addArg(shared_ptr<VarRecord> var);
     bool containArg(shared_ptr<VarRecord> var);
     bool containArg(shared_ptr<VarRecord> var, int n);
+
+    string getFullName();
 };

@@ -7,3 +7,7 @@ VarRecordNode::VarRecordNode(shared_ptr<VarRecord> _record, shared_ptr<Node> _pa
 shared_ptr<ClassRecord> VarRecordNode::getReturnType() {
     return record->typeRec;
 }
+
+string VarRecordNode::getFullName() {
+    return record->getFullName();
+}

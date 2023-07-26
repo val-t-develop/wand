@@ -8,3 +8,7 @@ ClassRecordNode::ClassRecordNode(shared_ptr<ClassRecord> _record,
 shared_ptr<ClassRecord> ClassRecordNode::getReturnType() {
     return record;
 }
+
+string ClassRecordNode::getFullName() {
+    return record->getFullName();
+}

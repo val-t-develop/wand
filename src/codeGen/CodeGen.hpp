@@ -12,6 +12,7 @@
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Verifier.h>
 #include <codeGen/utils/CodeGenUtils.hpp>
+#include <codeGen/utils/LLVMHelper.hpp>
 
 using namespace llvm;
 
@@ -20,10 +21,8 @@ class CodeGenUtils;
 class CodeGen {
 public:
     shared_ptr<CodeGenUtils> utils;
+    shared_ptr<LLVMHelper> helper;
 
-    shared_ptr<LLVMContext> TheContext;
-    shared_ptr<IRBuilder<>> Builder;
-    shared_ptr<Module> TheModule;
     map<string, Value *> NamedValues;
     map<string, Value *> GlobalNamedValues;
     map<Value *, shared_ptr<ExpressionNode>> StaticGlobalsInit;

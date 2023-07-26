@@ -22,4 +22,6 @@ public:
     shared_ptr<VarRecord> getField(string name);
     shared_ptr<ClassRecord> getInnerClass(string name);
     shared_ptr<Record> get(string name);
+
+    string getFullName();
 };

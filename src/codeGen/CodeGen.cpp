@@ -3,7 +3,6 @@
 #include <ast/node/statement/expression/literal/IntLiteralNode.hpp>
 #include <ast/node/statement/expression/literal/BoolLiteralNode.hpp>
 #include <ast/node/statement/expression/literal/CharLiteralNode.hpp>
-#include <ast/node/statement/expression/literal/NullNode.hpp>
 #include <ast/node/statement/expression/literal/FloatLiteralNode.hpp>
 #include <main.hpp>
 
@@ -15,15 +14,9 @@
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Host.h"
-#include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetOptions.h"
 
 CodeGen::CodeGen(shared_ptr<CompilationUnitNode> _cu) : cu(_cu) {
-    utils = make_shared<CodeGenUtils>(this);
-    TheContext = make_shared<LLVMContext>();
-
     string moduleName = "__unnamedModule";
     if (cu->nodes[0]->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
         moduleName = "";
@@ -35,36 +28,22 @@ CodeGen::CodeGen(shared_ptr<CompilationUnitNode> _cu) : cu(_cu) {
         moduleName.pop_back();
     }
 
-    TheModule = make_shared<Module>(moduleName, *TheContext);
-    Builder = make_shared<IRBuilder<>>(*TheContext);
+    helper = make_shared<LLVMHelper>(moduleName);
+    utils = make_shared<CodeGenUtils>(this);
 }
 
 void CodeGen::codeGen() {
-    if (TheModule->getName() == "__unnamedModule" || 
-        TheModule->getName() != "spl.core") {
+    if (helper->getModuleName() == "__unnamedModule" ||
+        helper->getModuleName() != "spl.core") {
         genImport(make_shared<ImportDeclNode>(vector<string>({"spl", "core"}), nullptr));
     }
-
-    Function *splInitGCmapFunction = TheModule->getFunction("__spl__init__gcmap");
-    FunctionType* splInitGCmapFunction_ft = FunctionType::get(Type::getVoidTy(*TheContext), vector<Type*>{}, false);
-    splInitGCmapFunction = Function::Create(splInitGCmapFunction_ft, Function::ExternalLinkage, "__spl__init__gcmap", *TheModule);
-
-    Function *splDestroyGCmapFunction = TheModule->getFunction("__spl__destroy__gcmap");
-    FunctionType* splDestroyGCmapFunction_ft = FunctionType::get(Type::getVoidTy(*TheContext), vector<Type*>{}, false);
-    splDestroyGCmapFunction = Function::Create(splDestroyGCmapFunction_ft, Function::ExternalLinkage, "__spl__destroy__gcmap", *TheModule);
-
-    Function *splAllocFunction = TheModule->getFunction("__spl__alloc");
-    FunctionType* splAllocFunction_ft = FunctionType::get(PointerType::get(*TheContext, 0), vector<Type*>{IntegerType::get(*TheContext, 32)}, false);
-    splAllocFunction = Function::Create(splAllocFunction_ft, Function::ExternalLinkage, "__spl__alloc", *TheModule);
-
-    Function *splWriteFunction = TheModule->getFunction("__spl__write");
-    FunctionType* splWriteFunction_ft = FunctionType::get(Type::getVoidTy(*TheContext), vector<Type*>{PointerType::get(*TheContext, 0), PointerType::get(*TheContext, 0)}, false);
-    splWriteFunction = Function::Create(splWriteFunction_ft, Function::ExternalLinkage, "__spl__write", *TheModule);
-
-    Function *splDestroyvarFunction = TheModule->getFunction("__spl__destroyvar");
-    FunctionType* splDestroyvarFunction_ft = FunctionType::get(Type::getVoidTy(*TheContext), vector<Type*>{PointerType::get(*TheContext, 0)}, false);
-    splDestroyvarFunction = Function::Create(splDestroyvarFunction_ft, Function::ExternalLinkage, "__spl__destroyvar", *TheModule);
-
+    
+    helper->createFunctionPrototype("__spl__init__gcmap", helper->getVoidType(), vector<Type*>{});
+    helper->createFunctionPrototype("__spl__destroy__gcmap", helper->getVoidType(), vector<Type*>{});
+    helper->createFunctionPrototype("__spl__alloc", helper->getPointerType(helper->getVoidType()), vector<Type*>{helper->getIntType(32)});
+    helper->createFunctionPrototype("__spl__write", helper->getVoidType(), vector<Type*>{helper->getPointerType(helper->getVoidType()), helper->getPointerType(helper->getVoidType())});
+    helper->createFunctionPrototype("__spl__destroyvar", helper->getVoidType(), vector<Type*>{helper->getPointerType(helper->getVoidType())});
+    
     for (shared_ptr<Node> node : cu->nodes) {
         if (node->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
             continue;
@@ -97,49 +76,12 @@ void CodeGen::codeGen() {
 }
 
 void CodeGen::build() {
-    TheModule->print(errs(), nullptr);
-    InitializeAllTargetInfos();
-    InitializeAllTargets();
-    InitializeAllTargetMCs();
-    InitializeAllAsmParsers();
-    InitializeAllAsmPrinters();
+    helper->printModule();
+    helper->prepareBuild();
+    helper->runPasses();
 
-    auto TargetTriple = sys::getDefaultTargetTriple();
-    TheModule->setTargetTriple(TargetTriple);
 
-    string Error;
-    auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
-
-    if (!Target) {
-        errs() << Error;
-    }
-
-    auto CPU = "generic";
-    auto Features = "";
-
-    TargetOptions opt;
-    auto RM = Optional<Reloc::Model>();
-    auto TheTargetMachine =
-        Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
-
-    TheModule->setDataLayout(TheTargetMachine->createDataLayout());
-
-    // Create the analysis managers.
-    LoopAnalysisManager LAM;
-    FunctionAnalysisManager FAM;
-    CGSCCAnalysisManager CGAM;
-    ModuleAnalysisManager MAM;
-    PassBuilder PB{TheTargetMachine};
-    PB.registerModuleAnalyses(MAM);
-    PB.registerCGSCCAnalyses(CGAM);
-    PB.registerFunctionAnalyses(FAM);
-    PB.registerLoopAnalyses(LAM);
-    PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
-    ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(OptimizationLevel::O2);
-    MPM.run(*TheModule, MAM);
-    //TheModule->print(errs(), nullptr);
-
-    string Filename = string(TheModule->getName()) +".o";
+    string Filename = helper->getModuleName() +".o";
     std::error_code EC;
     raw_fd_ostream dest(Filename, EC, sys::fs::OF_None);
 
@@ -147,15 +89,7 @@ void CodeGen::build() {
         errs() << "Could not open file: " << EC.message();
     }
 
-    legacy::PassManager pass;
-    auto FileType = CGFT_ObjectFile;
-
-    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
-        errs() << "TheTargetMachine can't emit a file of this type";
-    }
-
-    pass.run(*TheModule);
-    dest.flush();
+    helper->build(dest);
     Main::obj_files.push_back(Filename);
 }
 
@@ -219,7 +153,7 @@ void CodeGen::createClassType(shared_ptr<ClassDeclNode> node) {
     classesStack.push(node);
     utils->setCurrClassName();
 
-    StructType *structType = StructType::create(*TheContext, utils->currClassName);
+    StructType *structType = helper->createStructType(utils->currClassName);
     utils->classesTypes.insert({utils->currClassName, structType});
 
     for (shared_ptr<ClassDeclNode> item : node->innerClasses) {
@@ -278,9 +212,9 @@ void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
     vector<Type*> types = vector<Type*>();
 
     for (shared_ptr<VarDeclNode> var : node->fields) {
-        types.push_back(utils->getType(var->type));
-        varTypes[var->record] = utils->getType(var->type);
-        utils->getFullVarDeclNodeName(var);
+        types.push_back(utils->getType(var->type->type->record));
+        varTypes[var->record] = utils->getType(var->type->type->record);
+        var->getFullName();
 
         bool isStatic = false;
         auto mods = var->modifiers->modifiers;
@@ -292,16 +226,15 @@ void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
         }
 
         if (isStatic) {
-            GlobalVariable *ptr = new GlobalVariable(*TheModule, PointerType::get(utils->getType(var->type), 0), false, 
-                                                        GlobalValue::LinkageTypes::ExternalLinkage, 0, utils->getFullVarDeclNodeName(var));
-            GlobalNamedValues[utils->getFullVarDeclNodeName(var)] = ptr;
-            ConstantPointerNull* const_ptr_2 = ConstantPointerNull::get(PointerType::get(utils->getType(var->type), 0));
+            GlobalVariable *ptr = helper->createGlobalVar(helper->getPointerType(utils->getType(var->type->type->record)), var->getFullName());
+            GlobalNamedValues[var->getFullName()] = ptr;
+            ConstantPointerNull* const_ptr_2 = helper->getNullptr(helper->getPointerType(utils->getType(var->type->type->record)));
             ptr->setInitializer(const_ptr_2);
             StaticGlobalsInit[ptr] = var->init;
         }
         
     }
-    string fullName = utils->getFullClassRecordName(node->record);
+    string fullName = node->getFullName();
 
     StructType *structType;
     if (utils->classesTypes.contains(fullName)) {
@@ -314,68 +247,35 @@ void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
 }
 
 Function* CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {
-    Function *TheFunction = TheModule->getFunction(utils->getFullMethodDeclNodeName(node));
-
     vector<Type*> args_types = vector<Type*>();
-    if (!TheFunction) {
-        
-        for (shared_ptr<VarDeclNode> arg : node->args) {
-            args_types.push_back(utils->getType(arg->type));
-        }
-        FunctionType* ft = FunctionType::get(utils->getType(node->returnType), args_types, false);
-
-        TheFunction = Function::Create(ft, Function::ExternalLinkage, utils->getFullMethodDeclNodeName(node), *TheModule);
+    // TODO STATIC
+    for (shared_ptr<VarDeclNode> arg : node->args) {
+        args_types.push_back(utils->getType(arg->type->type->record));
     }
-
-    if (!TheFunction) {
-        return nullptr;
-    }
-    return TheFunction;
+    return helper->createFunctionPrototype(node->getFullName(), utils->getType(node->returnType->type->record), args_types);
 }
 
 Function* CodeGen::genDestructorPrototype(shared_ptr<ClassDeclNode> node) {
-    Function *TheFunction = TheModule->getFunction("__spl__destructor__"+utils->currClassName);
-
-    if (!TheFunction) {
-        vector<Type*> args_types = vector<Type*>();
-        args_types.push_back(utils->getType(make_shared<TypeNode>(make_shared<ClassRecordNode>(utils->currClass->record, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr)));
-        
-        FunctionType* ft = FunctionType::get(Type::getVoidTy(*TheContext), args_types, false);
-
-        TheFunction = Function::Create(ft, Function::ExternalLinkage, "__spl__destructor__"+utils->currClassName, *TheModule);
-    }
-
-    if (!TheFunction) {
-        return nullptr;
-    }
-    return TheFunction;
+    vector<Type*> args_types = vector<Type*>();
+    args_types.push_back(utils->getType(utils->currClass->record));
+    return helper->createFunctionPrototype("__spl__destructor__"+utils->currClassName, helper->getVoidType(), args_types);
 }
 
 Function* CodeGen::genConstructorPrototype(shared_ptr<ConstructorDeclNode> node) {
     string str = "__spl__constructor__"+utils->currClassName;
     for (auto arg : node->args) {
-        str += "__" + utils->getFullClassRecordName(arg->type->type->record);
+        str += "__" + arg->type->getFullName();
     }
-    Function *TheFunction = TheModule->getFunction(str);
-
-
     vector<Type*> args_types = vector<Type*>();
-    if (!TheFunction) {
-        
-        for (shared_ptr<VarDeclNode> arg : node->args) {
-            args_types.push_back(utils->getType(arg->type));
-        }
-        FunctionType* ft = FunctionType::get(
-            utils->getType(make_shared<TypeNode>(make_shared<ClassRecordNode>(utils->currClass->record,vector<shared_ptr<AccessNode>>{}, nullptr), 0, nullptr)), 
-            args_types, false);
-
-        TheFunction = Function::Create(ft, Function::ExternalLinkage, str, *TheModule);
+    for (shared_ptr<VarDeclNode> arg : node->args) {
+        args_types.push_back(utils->getType(arg->type->type->record));
     }
+    return helper->createFunctionPrototype(str, utils->getType(utils->currClass->record), args_types);
 }
 
 Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
     if (node->body != nullptr) {
-        Function *TheFunction = TheModule->getFunction(utils->getFullMethodDeclNodeName(node));
+        Function *TheFunction = helper->getFunction(node->getFullName());
 
         vector<Type*> args_types = vector<Type*>();
         bool isStatic = false;
@@ -386,52 +286,49 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
             }
         }
         if (!isStatic) {
-            args_types.push_back(utils->getType(make_shared<TypeNode>(make_shared<ClassRecordNode>(utils->currClass->record, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr)));
+            args_types.push_back(utils->getType(utils->currClass->record));
         }
         for (shared_ptr<VarDeclNode> arg : node->args) {
-            args_types.push_back(utils->getType(arg->type));
+            args_types.push_back(utils->getType(arg->type->type->record));
         }
 
         if (!TheFunction) {
             return nullptr;
         }
-        
-        BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", TheFunction);
-        retBB = BasicBlock::Create(*TheContext, "ret");
-        Builder->SetInsertPoint(BB);
+
+        BasicBlock* BB = helper->createBBinFunc("entry", TheFunction);
+        retBB = helper->createBBinFunc("ret", TheFunction);
+        helper->activateBB(BB);
 
         NamedValues.clear();
 
         Value *ret_ptr;
-        if (TheFunction->getReturnType() != Type::getVoidTy(*TheContext)) {
-            ret_ptr = Builder->CreateAlloca(TheFunction->getReturnType(), nullptr, "retallocatmp");
-            NamedValues[utils->getFullMethodDeclNodeName(node)+"__spl__ret"] = ret_ptr;
+        if (TheFunction->getReturnType() != helper->getVoidType()) {
+            ret_ptr = helper->createAlloca(TheFunction->getReturnType(), nullptr, "retallocatmp");
+            NamedValues[node->getFullName()+"__spl__ret"] = ret_ptr;
         }
         
         for (int i = 0; i < node->args.size(); ++i) {
             auto Arg = TheFunction->getArg(i);
-            string argName = utils->getFullVarDeclNodeName(node->args[i]);
-            Value *ptr = Builder->CreateAlloca(Arg->getType(), nullptr, argName);
-            Builder->CreateStore(Arg, ptr);
+            string argName = node->args[i]->getFullName();
+            Value *ptr = helper->createAlloca(Arg->getType(), nullptr, argName);
+            helper->createStore(Arg, ptr);
             NamedValues[argName] = ptr;
             varTypes[node->args[i]->record] = Arg->getType();
         }
 
         bool br = genBlockStatement(node->body);
         if (!br) {
-            Builder->CreateBr(retBB);
+            helper->createBr(retBB);
         }
-        
-        retBB->insertInto(TheFunction);
-        Builder->SetInsertPoint(retBB);
 
-        if (TheFunction->getReturnType() != Type::getVoidTy(*TheContext)) {
-            Value *ret_val = Builder->CreateLoad(TheFunction->getReturnType(), ret_ptr, "retloadtmp");
-            Builder->CreateRet(ret_val);
+        helper->activateBB(retBB);
+
+        if (TheFunction->getReturnType() != helper->getVoidType()) {
+            Value *ret_val = helper->createLoad(TheFunction->getReturnType(), ret_ptr, "retloadtmp");
+            helper->createRet(ret_val);
         } else {
-            /*Value *ret_val = ReturnInst::Create(*TheContext);
-            Builder->CreateRet(ret_val);*/
-            Builder->CreateRet(UndefValue::get(Type::getVoidTy(*TheContext)));
+            helper->createRet(UndefValue::get(helper->getVoidType()));
         }
 
         verifyFunction(*TheFunction);
@@ -440,40 +337,31 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
                 if (node->record->id == "main") {
                     if (node->args.size() == 1) {
                         if (node->args[0]->type->type->record->id == "String") {
-                            Function *MainFunction = TheModule->getFunction("main");
-
-                            if (!MainFunction) {
-                                vector<Type*> args_types = vector<Type*>();
-                                FunctionType* ft = FunctionType::get(IntegerType::get(*TheContext, 32), args_types, false);
-
-                                MainFunction = Function::Create(ft, Function::ExternalLinkage, "main", *TheModule);
-                            }
+                            Function *MainFunction = helper->createFunctionPrototype("main", helper->getIntType(32), vector<Type*>());
 
                             if (!MainFunction) {
                                 return nullptr;
                             }
-                            
-                            BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", MainFunction);
-                            Builder->SetInsertPoint(BB);
 
-                            Function *splInitGCmapFunction = TheModule->getFunction("__spl__init__gcmap");
-                            Builder->CreateCall(splInitGCmapFunction);
+                            BasicBlock* mainBB = helper->createBBinFunc("entry", MainFunction);
+                            helper->activateBB(mainBB);
+
+                            helper->createCall("__spl__init__gcmap");
 
                             for (auto globInit : StaticGlobalsInit) {
                                 if (globInit.second != nullptr) {
                                     Value *ptr = globInit.first;
                                     Value *val = genExpression(globInit.second);
-                                    Builder->CreateStore(val, ptr);
+                                    helper->createStore(val, ptr);
                                 }
                             }
 
-                            Value *RetVal = Builder->CreateCall(TheFunction, vector<Value*>({ConstantPointerNull::get(static_cast<PointerType*>(args_types[0]))}), "calltmp");
+                            Value *RetVal = helper->createCall(TheFunction, vector<Value*>({helper->getNullptr(static_cast<PointerType*>(args_types[0]))}));
 
-                            Function *splDestroyGCmapFunction = TheModule->getFunction("__spl__destroy__gcmap");
-                            Builder->CreateCall(splDestroyGCmapFunction);
+                            helper->createCall("__spl__destroy__gcmap");
 
                             if (RetVal) {
-                                Builder->CreateRet(RetVal);
+                                helper->createRet(RetVal);
                                 verifyFunction(*MainFunction);
                             }
                         }
@@ -487,22 +375,22 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
 
 Function* CodeGen::genDestructorDecl(shared_ptr<ClassDeclNode> node) {
     
-    Function *TheFunction = TheModule->getFunction("__spl__destructor__"+utils->currClassName);
+    Function *TheFunction = helper->getFunction("__spl__destructor__"+utils->currClassName);
 
     vector<Type*> args_types = vector<Type*>();
-    args_types.push_back(utils->getType(make_shared<TypeNode>(make_shared<ClassRecordNode>(utils->currClass->record, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr)));
+    args_types.push_back(utils->getType(utils->currClass->record));
     
     if (!TheFunction) {
         return nullptr;
     }
-        
-    BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", TheFunction);
-    retBB = BasicBlock::Create(*TheContext, "ret");
-    Builder->SetInsertPoint(BB);
+
+    BasicBlock* BB = helper->createBBinFunc("entry", TheFunction);
+    retBB = helper->createBBinFunc("ret", TheFunction);
+    helper->activateBB(BB);
 
     NamedValues.clear();
 
-    Value *val = Builder->CreateLoad(PointerType::get(utils->classesTypes.at(utils->getFullClassRecordName(node->record)), 0), TheFunction->getArg(0), "loadtmp");
+    Value *val = helper->createLoad(helper->getPointerType(utils->classesTypes.at(node->getFullName())), TheFunction->getArg(0));
     //Value *val = TheFunction->getArg(0);
     for (shared_ptr<VarDeclNode> f : node->fields) {
         /*shared_ptr<VarRecord> n_var_rec = f->record;
@@ -516,45 +404,42 @@ Function* CodeGen::genDestructorDecl(shared_ptr<ClassDeclNode> node) {
                 break;
             }
         }
-        Value *nullV = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), 0);
-        Value *struct_nV = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), struct_n);
-        Value *getelementptr = GetElementPtrInst::Create(t, val, vector<Value*>{nullV, struct_nV}, "access_tmp", Builder->GetInsertBlock());
+        Value *nullV = helper->getConstInt(helper->getIntType(32), 0);
+        Value *struct_nV = helper->getConstInt(helper->getIntType(32), struct_n);
+        Value *getelementptr = helper->createGetElementPtr(t, val, vector<Value*>{nullV, struct_nV}, "access_tmp");
         
         auto n_classRecord = f->type->type->record;
         shared_ptr<TypeNode> n_typeNode = make_shared<TypeNode>(make_shared<ClassRecordNode>(n_classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr);
         Type *n_t = getType(n_typeNode, false);
-        Value *to_destruct = Builder->CreateLoad(n_t, getelementptr, "loadgetelementptrtmp");
+        Value *to_destruct = helper->createLoad(n_t, getelementptr, "loadgetelementptrtmp");
 
         if(getelementptr->getType()->isPointerTy()) {
-            Value *cond = Builder->CreatePtrDiff(PointerType::get(n_t, 0), getelementptr, ConstantPointerNull::get(PointerType::get(n_t, 0)), "cond");
-            BasicBlock *ThenBB = BasicBlock::Create(*TheContext, "then", TheFunction);
-            BasicBlock *MergeBB = BasicBlock::Create(*TheContext, "ifcont");
-            Builder->CreateCondBr(cond, ThenBB, MergeBB);
+            Value *cond = (helper->Builder)->CreatePtrDiff(helper->getPointerType(n_t), getelementptr, helper->getNullptr(helper->getPointerType(n_t)), "cond");
+            BasicBlock *ThenBB = BasicBlock::Create(*(helper->TheContext), "then", TheFunction);
+            BasicBlock *MergeBB = BasicBlock::Create(*(helper->TheContext), "ifcont");
+            helper->createIfElse(cond, ThenBB, MergeBB);
             
-            Builder->SetInsertPoint(ThenBB);
+            (helper->Builder)->SetInsertPoint(ThenBB);
 
-            Function *destructor = TheModule->getFunction("__spl__destructor__"+getFullClassRecordName(classRecord));
-            Builder->CreateCall(destructor, vector<Value*>{val});
+            helper->createCall("__spl__destructor__"+getFullClassRecordName(classRecord), vector<Value*>{val});
 
-            Function *splDestroyvarFunction = TheModule->getFunction("__spl__destroyvar"); 
-            Builder->CreateCall(splDestroyvarFunction, vector<Value*>{val});
+            helper->createCall("__spl__destroyvar", vector<Value*>{val});
 
-            Builder->CreateBr(MergeBB);
+            helper->createBr(MergeBB);
             // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
-            ThenBB = Builder->GetInsertBlock();         
+            ThenBB = helper->getActiveBB();
 
             MergeBB->insertInto(TheFunction);
-            Builder->SetInsertPoint(MergeBB);
+            (helper->Builder)->SetInsertPoint(MergeBB);
 
         }*/
     }
 
-    Builder->CreateBr(retBB);
+    helper->createBr(retBB);
         
-    retBB->insertInto(TheFunction);
-    Builder->SetInsertPoint(retBB);
+    helper->activateBB(retBB);
 
-    Builder->CreateRet(UndefValue::get(Type::getVoidTy(*TheContext)));
+    helper->createRet(UndefValue::get(helper->getVoidType()));
 
     verifyFunction(*TheFunction);
 
@@ -564,32 +449,33 @@ Function* CodeGen::genDestructorDecl(shared_ptr<ClassDeclNode> node) {
 Function* CodeGen::genConstructorDecl(shared_ptr<ConstructorDeclNode> node) {
     string str = "__spl__constructor__"+utils->currClassName;
     for (auto arg : node->args) {
-        str += "__" + utils->getFullClassRecordName(arg->type->type->record);
+        str += "__" + arg->type->getFullName();
     }
-    Function *TheFunction = TheModule->getFunction(str);
+    Function *TheFunction = helper->getFunction(str);
 
     vector<Type*> args_types = vector<Type*>();
     for (shared_ptr<VarDeclNode> arg : node->args) {
-        args_types.push_back(utils->getType(arg->type));
+        args_types.push_back(utils->getType(arg->type->type->record));
     }
     if (!TheFunction) {
         return nullptr;
     }
-    
-    BasicBlock *BB = BasicBlock::Create(*TheContext, "entry", TheFunction);
-    Builder->SetInsertPoint(BB);
+
+    BasicBlock* BB = helper->createBBinFunc("entry", TheFunction);
+    helper->activateBB(BB);
+
     NamedValues.clear();
     
     for (int i = 0; i < node->args.size(); ++i) {
         auto Arg = TheFunction->getArg(i);
-        string argName = utils->getFullVarDeclNodeName(node->args[i]);
-        Value *ptr = Builder->CreateAlloca(Arg->getType(), nullptr, argName);
-        Builder->CreateStore(Arg, ptr);
+        string argName = node->args[i]->getFullName();
+        Value *ptr = helper->createAlloca(Arg->getType(), nullptr, argName);
+        helper->createStore(Arg, ptr);
         NamedValues[argName] = ptr;
         varTypes[node->args[i]->record] = Arg->getType();
     }
     genConstructorBlockStatement(node, str);
-    
+
     verifyFunction(*TheFunction);
     return TheFunction;
 }
@@ -605,8 +491,8 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
             } else if (item->kind == Node::NodeKind::RETURN_NODE) {
                 if (static_pointer_cast<ReturnNode>(item)->expression != nullptr) {
                     Value *val = genExpression(static_pointer_cast<ReturnNode>(item)->expression);
-                    Value *ptr = NamedValues[Builder->GetInsertBlock()->getParent()->getName().str()+"__spl__ret"];
-                    Builder->CreateStore(val, ptr);
+                    Value *ptr = NamedValues[helper->getCurrFunction()->getName().str()+"__spl__ret"];
+                    helper->createStore(val, ptr);
                 }
                 ret = true;
                 break;
@@ -627,10 +513,9 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
             }
         }
     }
-    Function *splDestroyvarFunction = TheModule->getFunction("__spl__destroyvar");
     
     for (auto v : currBlockVars.top()) {
-        Value *val = Builder->CreateLoad(v.first->getType(), v.first, "loadtmp");
+        Value *val = helper->createLoad(v.first->getType(), v.first);
         if (v.second != "boolean" && 
             v.second != "int" && 
             v.second != "byte" && 
@@ -641,14 +526,13 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
             v.second != "char" && 
             v.second != "void") {
 
-            Function *destructor = TheModule->getFunction("__spl__destructor__"+v.second);
-            Builder->CreateCall(destructor, vector<Value*>{val});
+            helper->createCall("__spl__destructor__"+v.second, vector<Value*>{val});
         }
         
-        Builder->CreateCall(splDestroyvarFunction, vector<Value*>{val});
+        helper->createCall("__spl__destroyvar", vector<Value*>{val});
     }
     if (ret) {
-        Builder->CreateBr(retBB);
+        helper->createBr(retBB);
     }
     currBlockVars.pop();
     return ret;
@@ -658,21 +542,17 @@ bool CodeGen::genConstructorBlockStatement(shared_ptr<ConstructorDeclNode> const
     shared_ptr<BlockNode> node = constructor->body;
     currBlockVars.push(vector<pair<Value*, string>>());
     
-    Type *type = utils->getType(make_shared<TypeNode>(make_shared<ClassRecordNode>(utils->currClass->record,vector<shared_ptr<AccessNode>>{}, nullptr), 0, nullptr));
-    Value *one = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), 1);
-    Value *sizeofV = GetElementPtrInst::Create(type, ConstantPointerNull::get(PointerType::get(*TheContext, 0)), vector<Value *>{one}, "sizeof", Builder->GetInsertBlock());
-    Value *sizeofIV = Builder->CreatePtrToInt(sizeofV, IntegerType::get(*TheContext, 32), "sizeofI");
+    Type *type = utils->getType(utils->currClass->record);
+    Value *sizeofIV = helper->createSizeof(type, 32);
 
-    Function *splMallocFunction = TheModule->getFunction("__spl__alloc");
-    Value *heapallocatmp = Builder->CreateCall(splMallocFunction, vector<Value *>{sizeofIV}, "heapallocatmp");
-    Value *ptr = Builder->CreateAlloca(heapallocatmp->getType(), nullptr, heapallocatmp->getName()+"tmp_var");
-    Builder->CreateStore(heapallocatmp, ptr);
+    Value *heapallocatmp = helper->createCall("__spl__alloc", vector<Value *>{sizeofIV}, "heapallocatmp");
+    Value *ptr = helper->createAlloca(heapallocatmp->getType(), nullptr, string(heapallocatmp->getName())+"tmp_var");
+    helper->createStore(heapallocatmp, ptr);
     
     for (int i = 0; i < utils->currClass->fields.size(); i++) {
         shared_ptr<VarRecord> n_var_rec = utils->currClass->fields[i]->record;
         auto classRecord = utils->currClass->record;
-        shared_ptr<TypeNode> typeNode = make_shared<TypeNode>(make_shared<ClassRecordNode>(classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr);
-        Type *t = utils->getTypeNoPtr(typeNode);
+        Type *t = utils->getTypeNoPtr(classRecord);
         int struct_n = 0;
         for (int j = 0; j < classRecord->fields.size(); ++j) {
             if (classRecord->fields[j]->equals(n_var_rec)) {
@@ -680,17 +560,16 @@ bool CodeGen::genConstructorBlockStatement(shared_ptr<ConstructorDeclNode> const
                 break;
             }
         }
-        Value *nullV = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), 0);
-        Value *struct_nV = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), struct_n);
-        Value *getelementptr = GetElementPtrInst::Create(t, heapallocatmp, vector<Value*>{nullV, struct_nV}, "access_tmp", Builder->GetInsertBlock());
+        Value *nullV = helper->getConstInt(32, 0);
+        Value *struct_nV = helper->getConstInt(32, struct_n);
+        Value *getelementptr = helper->createGetElementPtr(t, heapallocatmp, vector<Value*>{nullV, struct_nV}, "access_tmp");
         
         auto n_classRecord = utils->currClass->fields[i]->type->type->record;
-        shared_ptr<TypeNode> n_typeNode = make_shared<TypeNode>(make_shared<ClassRecordNode>(n_classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr);
-        Type *n_t = utils->getTypeNoPtr(n_typeNode);
-        auto last = Builder->CreateLoad(n_t, getelementptr, "loadgetelementptrtmp");
+        Type *n_t = utils->getTypeNoPtr(n_classRecord);
+        auto last = helper->createLoad(n_t, getelementptr, "loadgetelementptrtmp");
         auto last_ptr = getelementptr;
 
-        Builder->CreateStore(genDefaultValue(n_typeNode), last_ptr);
+        helper->createStore(genDefaultValue(make_shared<TypeNode>(make_shared<ClassRecordNode>(n_classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr)), last_ptr);
     }
 
     for (shared_ptr<Node> item : node->nodes) {
@@ -700,10 +579,10 @@ bool CodeGen::genConstructorBlockStatement(shared_ptr<ConstructorDeclNode> const
             } else if (item->kind == Node::NodeKind::RETURN_NODE) {
                 if (static_pointer_cast<ReturnNode>(item)->expression != nullptr) {
                     Value *val = genExpression(static_pointer_cast<ReturnNode>(item)->expression);
-                    Value *ptr = NamedValues[Builder->GetInsertBlock()->getParent()->getName().str()+"__spl__ret"];
-                    Builder->CreateStore(val, ptr);
+                    Value *ptr = NamedValues[helper->getCurrFunction()->getName().str()+"__spl__ret"];
+                    helper->createStore(val, ptr);
                 }
-                Builder->CreateBr(retBB);
+                helper->createBr(retBB);
                 return true;
             } else if (item->kind == Node::NodeKind::VAR_DECL_NODE) {
                 genVarDecl(static_pointer_cast<VarDeclNode>(item));
@@ -722,9 +601,8 @@ bool CodeGen::genConstructorBlockStatement(shared_ptr<ConstructorDeclNode> const
             }
         }
     }
-    Function *splDestroyvarFunction = TheModule->getFunction("__spl__destroyvar");
     for (auto v : currBlockVars.top()) {
-        Value *val = Builder->CreateLoad(v.first->getType(), v.first, "loadtmp");
+        Value *val = helper->createLoad(v.first->getType(), v.first);
         if (v.second != "boolean" && 
             v.second != "int" && 
             v.second != "byte" && 
@@ -735,121 +613,111 @@ bool CodeGen::genConstructorBlockStatement(shared_ptr<ConstructorDeclNode> const
             v.second != "char" && 
             v.second != "void") {
 
-            Function *destructor = TheModule->getFunction("__spl__destructor__"+v.second);
-            Builder->CreateCall(destructor, vector<Value*>{val});
+            helper->createCall("__spl__destructor__"+v.second, vector<Value*>{val});
         }
         
-        Builder->CreateCall(splDestroyvarFunction, vector<Value*>{val});
+        helper->createCall("__spl__destroyvar", vector<Value*>{val});
     }
     currBlockVars.pop();
 
-    Builder->CreateRet(heapallocatmp);
+    helper->createRet(heapallocatmp);
 }
 
 void CodeGen::genIfElse(shared_ptr<IfElseNode> node) {
     Value *cond = genExpression(node->condition);
 
-    Function *TheFunction = Builder->GetInsertBlock()->getParent();
+    Function *TheFunction = helper->getCurrFunction();
 
     // Create blocks for the then and else cases.  Insert the 'then' block at the
     // end of the function.
-    BasicBlock *ThenBB =
-        BasicBlock::Create(*TheContext, "then", TheFunction);
+    BasicBlock *ThenBB = helper->createBBinFunc("then", TheFunction);
     BasicBlock *ElseBB = nullptr;
     if (node->elseNode != nullptr) {
-        ElseBB = BasicBlock::Create(*TheContext, "else");
+        ElseBB = helper->createBBinFunc("else", TheFunction);
     }
-    BasicBlock *MergeBB = BasicBlock::Create(*TheContext, "ifcont");
+    BasicBlock *MergeBB = helper->createBBinFunc("ifcont", TheFunction);
 
     if (node->elseNode != nullptr) {
-        Builder->CreateCondBr(cond, ThenBB, ElseBB);
+        helper->createIfElse(cond, ThenBB, ElseBB);
     } else {
-        Builder->CreateCondBr(cond, ThenBB, MergeBB);
+        helper->createIfElse(cond, ThenBB, MergeBB);
     }
     
 
     // Emit then value.
-    Builder->SetInsertPoint(ThenBB);
+    helper->activateBB(ThenBB);
     bool br = genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->thenNode}, nullptr));
     if (!br) {
-        Builder->CreateBr(MergeBB);
+        helper->createBr(MergeBB);
     }
     // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
-    ThenBB = Builder->GetInsertBlock();
+    ThenBB = helper->getActiveBB();
 
     if (node->elseNode != nullptr) {
         // Emit else block.
-        ElseBB->insertInto(TheFunction);
-        Builder->SetInsertPoint(ElseBB);
+        helper->activateBB(ElseBB);
         br = genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->elseNode}, nullptr));
         if (!br) {
-            Builder->CreateBr(MergeBB);
+            helper->createBr(MergeBB);
         }
         // codegen of 'Else' can change the current block, update ElseBB for the PHI.
-        ElseBB = Builder->GetInsertBlock();
+        ElseBB = helper->getActiveBB();
     }
     
 
-    MergeBB->insertInto(TheFunction);
-    Builder->SetInsertPoint(MergeBB);
+    helper->activateBB(MergeBB);
 }
 
 void CodeGen::genWhile(shared_ptr<WhileNode> node) {
     Value *cond = genExpression(node->expression);
 
-    Function *TheFunction = Builder->GetInsertBlock()->getParent();
+    Function *TheFunction = helper->getCurrFunction();
 
-    BasicBlock *whileBB = BasicBlock::Create(*TheContext, "while");
-    BasicBlock *whilebodyBB = BasicBlock::Create(*TheContext, "whilebody");
-    BasicBlock *whilecontBB = BasicBlock::Create(*TheContext, "whilecont");
+    BasicBlock *whileBB = helper->createBBinFunc("while", TheFunction);
+    BasicBlock *whilebodyBB = helper->createBBinFunc("whilebody", TheFunction);
+    BasicBlock *whilecontBB = helper->createBBinFunc("whilecont", TheFunction);
 
-    Builder->CreateBr(whileBB);
+    helper->createBr(whileBB);
 
-    whileBB->insertInto(TheFunction);
-    Builder->SetInsertPoint(whileBB);
+    helper->activateBB(whileBB);
 
-    Builder->CreateCondBr(cond, whilebodyBB, whilecontBB);
+    helper->createIfElse(cond, whilebodyBB, whilecontBB);
 
-    whilebodyBB->insertInto(TheFunction);
-    Builder->SetInsertPoint(whilebodyBB);
+    helper->activateBB(whilebodyBB);
 
     bool br = genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->statement}, nullptr));
     if (!br) {
-        Builder->CreateBr(whileBB);
+        helper->createBr(whileBB);
     }
 
-    whilecontBB->insertInto(TheFunction);
-    Builder->SetInsertPoint(whilecontBB);
+    helper->activateBB(whilecontBB);
 }
 
 void CodeGen::genFor(shared_ptr<ForNode> node) {
 
-    Function *TheFunction = Builder->GetInsertBlock()->getParent();
+    Function *TheFunction = helper->getCurrFunction();
 
-    BasicBlock *forBB = BasicBlock::Create(*TheContext, "for");
-    BasicBlock *forcondBB = BasicBlock::Create(*TheContext, "forcond");
-    BasicBlock *forbodyBB = BasicBlock::Create(*TheContext, "forbody");
-    BasicBlock *forcontBB = BasicBlock::Create(*TheContext, "forcont");
+    BasicBlock *forBB = helper->createBBinFunc("for", TheFunction);
+    BasicBlock *forcondBB = helper->createBBinFunc("forcond", TheFunction);
+    BasicBlock *forbodyBB = helper->createBBinFunc("forbody", TheFunction);
+    BasicBlock *forcontBB = helper->createBBinFunc("forcont", TheFunction);
 
-    Builder->CreateBr(forBB);
+    helper->createBr(forBB);
 
-    forBB->insertInto(TheFunction);
-    Builder->SetInsertPoint(forBB);
+    helper->activateBB(forBB);
 
     bool br = genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->init}, nullptr));
     if (br) {
         return;
     } 
-    Builder->CreateBr(forcondBB);
+    helper->createBr(forcondBB);
 
-    forcondBB->insertInto(TheFunction);
-    Builder->SetInsertPoint(forcondBB);
+    helper->activateBB(forcondBB);
 
     Value *cond = genExpression(node->condition);
-    Builder->CreateCondBr(cond, forbodyBB, forcontBB);
+    helper->createIfElse(cond, forbodyBB, forcontBB);
 
-    forbodyBB->insertInto(TheFunction);
-    Builder->SetInsertPoint(forbodyBB);
+    helper->activateBB(forbodyBB);
 
     br = genBlockStatement(make_shared<BlockNode>(vector<shared_ptr<Node>>{node->statement}, nullptr));
     if (!br) {
@@ -857,11 +725,10 @@ void CodeGen::genFor(shared_ptr<ForNode> node) {
         if (br) {
             return;
         } 
-        Builder->CreateBr(forcondBB);
+        helper->createBr(forcondBB);
     }
-
-    forcontBB->insertInto(TheFunction);
-    Builder->SetInsertPoint(forcontBB);
+    // TODO br forcont
+    helper->activateBB(forcontBB);
 }
 
 Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
@@ -915,8 +782,7 @@ Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
                         shared_ptr<VarRecord> n_var_rec = static_pointer_cast<VarRecordNode>(n)->record;
                         if (last_n->isExpression()) {
                             auto classRecord = static_pointer_cast<ExpressionNode>(last_n)->getReturnType();
-                            shared_ptr<TypeNode> typeNode = make_shared<TypeNode>(make_shared<ClassRecordNode>(classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr);
-                            Type *t = utils->getTypeNoPtr(typeNode);
+                            Type *t = utils->getTypeNoPtr(classRecord);
                             int struct_n = 0;
                             for (int j = 0; j < classRecord->fields.size(); ++j) {
                                 if (classRecord->fields[j]->equals(n_var_rec)) {
@@ -924,14 +790,13 @@ Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
                                     break;
                                 }
                             }
-                            Value *nullV = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), 0);
-                            Value *struct_nV = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), struct_n);
-                            Value *getelementptr = GetElementPtrInst::Create(t, last, vector<Value*>{nullV, struct_nV}, "access_tmp", Builder->GetInsertBlock());
+                            Value *nullV = helper->getConstInt(32, 0);
+                            Value *struct_nV = helper->getConstInt(32, struct_n);
+                            Value *getelementptr = helper->createGetElementPtr(t, last, vector<Value*>{nullV, struct_nV}, "access_tmp");
                             
                             auto n_classRecord = static_pointer_cast<ExpressionNode>(n)->getReturnType();
-                            shared_ptr<TypeNode> n_typeNode = make_shared<TypeNode>(make_shared<ClassRecordNode>(n_classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr);
-                            Type *n_t = utils->getTypeNoPtr(n_typeNode);
-                            last = Builder->CreateLoad(n_t, getelementptr, "loadgetelementptrtmp");
+                            Type *n_t = utils->getTypeNoPtr(n_classRecord);
+                            last = helper->createLoad(n_t, getelementptr, "loadgetelementptrtmp");
                         } else {
                             Out::errorMessage("Internall error detected: can not generate expression.");
                             break;
@@ -966,27 +831,25 @@ Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
 Value* CodeGen::genLiteral(shared_ptr<ExpressionNode> node) {
     if (node->kind == Node::NodeKind::INT_LITERAL_NODE) {
         if (static_pointer_cast<IntLiteralNode>(node)->longVal) {
-            return ConstantInt::getSigned(IntegerType::get(*TheContext, 64), static_pointer_cast<IntLiteralNode>(node)->value);
+            return helper->getConstInt(64, static_pointer_cast<IntLiteralNode>(node)->value);
         } else {
-            return ConstantInt::getSigned(IntegerType::get(*TheContext, 32), static_pointer_cast<IntLiteralNode>(node)->value);
+            return helper->getConstInt(32, static_pointer_cast<IntLiteralNode>(node)->value);
         }
     } else if (node->kind == Node::NodeKind::BOOL_LITERAL_NODE) {
-        return ConstantInt::getSigned(IntegerType::get(*TheContext, 1), static_pointer_cast<BoolLiteralNode>(node)->value);
+        return helper->getConstInt(1, static_pointer_cast<BoolLiteralNode>(node)->value);
     } else if (node->kind == Node::NodeKind::CHAR_LITERAL_NODE) {
-        return ConstantInt::getSigned(IntegerType::get(*TheContext, 8), static_pointer_cast<CharLiteralNode>(node)->str[0]);
+        return helper->getConstInt(8, static_pointer_cast<CharLiteralNode>(node)->str[0]);
     } else if (node->kind == Node::NodeKind::FLOAT_LITERAL_NODE) {
         if (static_pointer_cast<FloatLiteralNode>(node)->doubleVal) {
-            return ConstantFP::get(Type::getDoubleTy(*TheContext), static_pointer_cast<FloatLiteralNode>(node)->value);
+            return helper->getConstDouble(static_pointer_cast<FloatLiteralNode>(node)->value);
         } else {
-            return ConstantFP::get(Type::getFloatTy(*TheContext), static_pointer_cast<FloatLiteralNode>(node)->value);
+            return helper->getConstFloat(static_pointer_cast<FloatLiteralNode>(node)->value);
         }
     }
 }
 
 Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
     if (node->record->similar.empty()) {
-        string fullName = utils->getFullMethodRecordName(node->record);
-        Function *TheFunction = TheModule->getFunction(fullName);
         vector<Value*> args = vector<Value*>();
         if (calle != nullptr) {
             args.push_back(calle);
@@ -995,7 +858,7 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
         for (shared_ptr<ExpressionNode> arg : node->args) {
             args.push_back(genExpression(arg));
         }
-        auto tmp =  Builder->CreateCall(TheFunction, args, "calltmp");
+        auto tmp = helper->createCall(node->getFullName(), args);
         if (calle != nullptr) {
             thisV.pop();
         }
@@ -1012,8 +875,7 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
 
         auto funcsRecord = node->record->similar;
         for (auto funRecord : funcsRecord) {
-            string fullName = utils->getFullMethodRecordName(funRecord);
-            Function *TheFunction = TheModule->getFunction(fullName);
+            Function *TheFunction = helper->getFunction(funRecord->getFullName());
             bool same = true;
             for (int i = 0; i < args.size(); ++i) {
                 if (args[i]->getType() != TheFunction->getArg(i)->getType()) {
@@ -1021,7 +883,7 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
                 }
             }
             if (same) {
-                auto tmp = Builder->CreateCall(TheFunction, args, "calltmp");
+                auto tmp = helper->createCall(TheFunction, args);
                 if (calle != nullptr) {
                     thisV.pop();
                 }
@@ -1029,8 +891,8 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
             }
         }
         auto funRecord = node->record;
-        string fullName = utils->getFullMethodRecordName(funRecord);
-        Function *TheFunction = TheModule->getFunction(fullName);
+        string fullName = funRecord->getFullName();
+        Function *TheFunction = helper->getFunction(fullName);
         bool same = true;
         for (int i = 0; i < args.size(); ++i) {
             if (args[i]->getType() != TheFunction->getArg(i)->getType()) {
@@ -1038,7 +900,7 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
             }
         }
         if (same) {
-            auto tmp = Builder->CreateCall(TheFunction, args, "calltmp");
+            auto tmp = helper->createCall(TheFunction, args);
             if (calle != nullptr) {
                 thisV.pop();
             }
@@ -1052,59 +914,58 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
 
 Value* CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
     Value *val = node->init != nullptr ? genExpression(node->init) : genDefaultValue(node->type);
-    Value *ptr = Builder->CreateAlloca(val->getType(), nullptr, utils->getFullVarDeclNodeName(node));
+    Value *ptr = helper->createAlloca(val->getType(), nullptr, node->getFullName());
     if (val->getType()->isPointerTy()) {
-        Function *splWriteFunction = TheModule->getFunction("__spl__write");
-        Builder->CreateCall(splWriteFunction, vector<Value *>{ptr, val});
+        helper->createCall("__spl__write", vector<Value *>{ptr, val});
     }
-    Builder->CreateStore(val, ptr);
-    NamedValues[utils->getFullVarDeclNodeName(node)] = ptr;
+    helper->createStore(val, ptr);
+    NamedValues[node->getFullName()] = ptr;
     varTypes[node->record] = val->getType();
-    currBlockVars.top().push_back(pair<Value*, string>(ptr, utils->getFullClassRecordName(node->type->type->record)));
+    currBlockVars.top().push_back(pair<Value*, string>(ptr, node->type->getFullName()));
 }
 
 Value* CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
     auto x = node->type;
     if (x->record->type == "primitive") {
         if (x->record->id == "boolean") {
-            return ConstantInt::get(IntegerType::get(*TheContext, 32), 0);
+            return helper->getConstInt(32, 0);
         } else if (x->record->id == "int") {
-            return ConstantInt::get(IntegerType::get(*TheContext, 32), 0);
+            return helper->getConstInt(32, 0);
         } else if (x->record->id == "byte") {
-            return ConstantInt::get(IntegerType::get(*TheContext, 8), 0);
+            return helper->getConstInt(8, 0);
         } else if (x->record->id == "short") {
-            return ConstantInt::get(IntegerType::get(*TheContext, 16), 0);
+            return helper->getConstInt(16, 0);
         } else if (x->record->id == "long") {
-            return ConstantInt::get(IntegerType::get(*TheContext, 64), 0);
+            return helper->getConstInt(64, 0);
         } else if (x->record->id == "float") {
-            return ConstantFP::get(Type::getFloatTy(*TheContext), 0);
+            return helper->getConstFloat(0);
         } else if (x->record->id == "double") {
-            return ConstantFP::get(Type::getDoubleTy(*TheContext), 0);
+            return helper->getConstDouble(0);
         } else if (x->record->id == "char") {
-            return ConstantInt::get(IntegerType::get(*TheContext, 8), 0);
+            return helper->getConstInt(8, 0);
         } else if (x->record->id == "void") {
             return nullptr;
         }
     } else {
         StructType *structType;
-        if (utils->classesTypes.contains(utils->getFullClassRecordName(x->record))) {
-            structType = utils->classesTypes.at(utils->getFullClassRecordName(x->record));
+        if (utils->classesTypes.contains(x->getFullName())) {
+            structType = utils->classesTypes.at(x->getFullName());
         } else {
             structType = nullptr;
-            Out::errorMessage("Can not get " + utils->getFullClassRecordName(x->record));
+            Out::errorMessage("Can not get " + x->getFullName());
         }
-        PointerType *structPtrType = PointerType::get(structType, 0);
-        return ConstantPointerNull::get(structPtrType);
+        PointerType *structPtrType = helper->getPointerType(structType);
+        return helper->getNullptr(structPtrType);
     }
 }
 
 Value* CodeGen::genVarValue(shared_ptr<VarRecordNode> node) {
-    Value *ptr = NamedValues[utils->getFullVarRecordName(node->record)];
+    Value *ptr = NamedValues[node->getFullName()];
     if (ptr == nullptr) {
-        ptr = GlobalNamedValues[utils->getFullVarRecordName(node->record)];
+        ptr = GlobalNamedValues[node->getFullName()];
     }
     Type *type = varTypes[node->record];
-    Value *val = Builder->CreateLoad(type, ptr, "loadtmp");
+    Value *val = helper->createLoad(type, ptr);
     return val; 
 }
 
@@ -1134,8 +995,7 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
         
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ASSIGN) {
         /*if (R->getType()->isPointerTy()) {
-            Function *splWriteFunction = TheModule->getFunction("__spl__write");
-            Builder->CreateCall(splWriteFunction, vector<Value *>{L, R});
+            helper->createCall("__spl__write", vector<Value *>{L, R});
         }*/
         if (node->left->kind == Node::NodeKind::ACCESS_NODE) {
             shared_ptr<AccessNode> access = static_pointer_cast<AccessNode>(node->left);
@@ -1149,7 +1009,7 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                         if (n->isExpression()) {
                             last = genExpression(static_pointer_cast<ExpressionNode>(n));
                             if (n->kind == Node::NodeKind::VAR_RECORD_NODE) {
-                                last_ptr = NamedValues[utils->getFullVarRecordName(static_pointer_cast<VarRecordNode>(n)->record)];
+                                last_ptr = NamedValues[static_pointer_cast<VarRecordNode>(n)->getFullName()];
                             }
                             continue;
                         } else {
@@ -1164,8 +1024,7 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                             shared_ptr<VarRecord> n_var_rec = static_pointer_cast<VarRecordNode>(n)->record;
                             if (last_n->isExpression()) {
                                 auto classRecord = static_pointer_cast<ExpressionNode>(last_n)->getReturnType();
-                                shared_ptr<TypeNode> typeNode = make_shared<TypeNode>(make_shared<ClassRecordNode>(classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr);
-                                Type *t = utils->getTypeNoPtr(typeNode);
+                                Type *t = utils->getTypeNoPtr(classRecord);
                                 int struct_n = 0;
                                 for (int j = 0; j < classRecord->fields.size(); ++j) {
                                     if (classRecord->fields[j]->equals(n_var_rec)) {
@@ -1173,14 +1032,13 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                                         break;
                                     }
                                 }
-                                Value *nullV = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), 0);
-                                Value *struct_nV = ConstantInt::getSigned(IntegerType::get(*TheContext, 32), struct_n);
-                                Value *getelementptr = GetElementPtrInst::Create(t, last, vector<Value*>{nullV, struct_nV}, "access_tmp", Builder->GetInsertBlock());
+                                Value *nullV = helper->getConstInt(32, 0);
+                                Value *struct_nV = helper->getConstInt(32, struct_n);
+                                Value *getelementptr = helper->createGetElementPtr(t, last, vector<Value*>{nullV, struct_nV}, "access_tmp");
                                 
                                 auto n_classRecord = static_pointer_cast<ExpressionNode>(n)->getReturnType();
-                                shared_ptr<TypeNode> n_typeNode = make_shared<TypeNode>(make_shared<ClassRecordNode>(n_classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr);
-                                Type *n_t = utils->getTypeNoPtr(n_typeNode);
-                                last = Builder->CreateLoad(n_t, getelementptr, "loadgetelementptrtmp");
+                                Type *n_t = utils->getTypeNoPtr(n_classRecord);
+                                last = helper->createLoad(n_t, getelementptr, "loadgetelementptrtmp");
                                 last_ptr = getelementptr;
                             } else {
                                 Out::errorMessage("Internall error detected: can not generate expression.");
@@ -1209,7 +1067,7 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                 }
             }
             
-            Builder->CreateStore(R, last_ptr);
+            helper->createStore(R, last_ptr);
         } else {
             Out::errorMessage("Can not create assign.");
         }
@@ -1224,64 +1082,40 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::BIT_AND) {
         
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::EQUAL) {
-        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
-            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
-
-            return Builder->CreateFCmp(CmpInst::Predicate::FCMP_OEQ, Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       "fpeqtmp"); 
+        if (helper->isFloatingPointValue(L) || helper->isFloatingPointValue(R)) {
+            return helper->createFPEQ(helper->castToDouble(L), helper->castToDouble(R));
         } else {
-            return Builder->CreateICmp(CmpInst::Predicate::ICMP_EQ, L, R, "eqtmp");
+            return helper->createEQ(L, R);
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::NOT_EQUAL) {
-        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
-            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
-
-            return Builder->CreateFCmp(CmpInst::Predicate::FCMP_ONE, Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       "fpneqtmp"); 
+        if (helper->isFloatingPointValue(L) || helper->isFloatingPointValue(R)) {
+            return helper->createFPNE(helper->castToDouble(L), helper->castToDouble(R));
         } else {
-            return Builder->CreateICmp(CmpInst::Predicate::ICMP_NE, L, R, "neqtmp");
+            return helper->createNE(L, R);
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::LESS) {
-        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
-            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
-
-            return Builder->CreateFCmp(CmpInst::Predicate::FCMP_OLT, Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       "fplttmp"); 
+        if (helper->isFloatingPointValue(L) || helper->isFloatingPointValue(R)) {
+            return helper->createFPLT(helper->castToDouble(L), helper->castToDouble(R));
         } else {
-            return Builder->CreateICmp(CmpInst::Predicate::ICMP_SLT, L, R, "lttmp");
+            return helper->createLT(L, R);
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::GREATER) {
-        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
-            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
-
-            return Builder->CreateFCmp(CmpInst::Predicate::FCMP_OGT, Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       "fpgttmp"); 
+        if (helper->isFloatingPointValue(L) || helper->isFloatingPointValue(R)) {
+            return helper->createFPGT(helper->castToDouble(L), helper->castToDouble(R));
         } else {
-            return Builder->CreateICmp(CmpInst::Predicate::ICMP_SGT, L, R, "gttmp");
+            return helper->createGT(L, R);
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::LESS_EQUAL) {
-        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
-            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
-
-            return Builder->CreateFCmp(CmpInst::Predicate::FCMP_OLE, Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       "fpletmp"); 
+        if (helper->isFloatingPointValue(L) || helper->isFloatingPointValue(R)) {
+            return helper->createFPLE(helper->castToDouble(L), helper->castToDouble(R));
         } else {
-            return Builder->CreateICmp(CmpInst::Predicate::ICMP_SLE, L, R, "letmp");
+            return helper->createLE(L, R);
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::GREATER_EQUAL) {
-        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
-            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
-
-            return Builder->CreateFCmp(CmpInst::Predicate::FCMP_OGE, Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       "fpgetmp"); 
+        if (helper->isFloatingPointValue(L) || helper->isFloatingPointValue(R)) {
+            return helper->createFPGE(helper->castToDouble(L), helper->castToDouble(R));
         } else {
-            return Builder->CreateICmp(CmpInst::Predicate::ICMP_SGE, L, R, "getmp");
+            return helper->createGE(L, R);
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::INSTANCEOF) {
         
@@ -1290,44 +1124,28 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::RIGHT_SHIFT) {
         
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ADD) {
-        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
-            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
-
-            return Builder->CreateFAdd(Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       "fpaddtmp"); 
+        if (helper->isFloatingPointValue(L) || helper->isFloatingPointValue(R)) {
+            return helper->createFPAdd(helper->castToDouble(L), helper->castToDouble(R));
         } else {
-            return Builder->CreateAdd(L, R, "addtmp");
+            return helper->createAdd(L, R);
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::SUB) {
-        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
-            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
-
-            return Builder->CreateFSub(Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       "fpsubtmp"); 
+        if (helper->isFloatingPointValue(L) || helper->isFloatingPointValue(R)) {
+            return helper->createFPSub(helper->castToDouble(L), helper->castToDouble(R));
         } else {
-            return Builder->CreateSub(L, R, "subtmp");
+            return helper->createSub(L, R);
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::MUL) {
-        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
-            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
-
-            return Builder->CreateFMul(Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       "fpmultmp"); 
+        if (helper->isFloatingPointValue(L) || helper->isFloatingPointValue(R)) {
+            return helper->createFPMul(helper->castToDouble(L), helper->castToDouble(R));
         } else {
-            return Builder->CreateMul(L, R, "multmp");
+            return helper->createMul(L, R);
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::DIV) {
-        if (L->getType()->isDoubleTy() || L->getType()->isFloatTy() ||
-            R->getType()->isDoubleTy() || R->getType()->isFloatTy()) {
-
-            return Builder->CreateFDiv(Builder->CreateFPCast(L, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       Builder->CreateFPCast(R, Type::getDoubleTy(*TheContext), "fpcast"),
-                                       "fpdivtmp"); 
+        if (helper->isFloatingPointValue(L) || helper->isFloatingPointValue(R)) {
+            return helper->createFPDiv(helper->castToDouble(L), helper->castToDouble(R));
         } else {
-            return Builder->CreateSDiv(L, R, "divtmp");
+            return helper->createDiv(L, R);
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::MOD) {
         
@@ -1335,19 +1153,18 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
 }
 
 Value* CodeGen::genNewNode(shared_ptr<NewNode> node) {
-    string str = "__spl__constructor__"+utils->getFullClassRecordName(node->type->type->record);
+    string str = "__spl__constructor__"+node->type->getFullName();
     for (auto arg : node->args) {
-        str += "__" + utils->getFullClassRecordName(arg->getReturnType());
+        str += "__" + arg->getReturnType()->getFullName();
     }
     vector<Value*> args{};
     for (auto arg : node->args) {
         args.push_back(genExpression(arg));
     }
-    Function *TheFunction = TheModule->getFunction(str);
-    auto tmp =  Builder->CreateCall(TheFunction, args, "calltmp");
-    Value *ptr = Builder->CreateAlloca(tmp->getType(), nullptr, tmp->getName()+"tmp_var");
-    Builder->CreateStore(tmp, ptr);
-    currBlockVars.top().push_back(pair<Value*, string>(ptr, utils->getFullClassRecordName(node->type->type->record)));
+    auto tmp =  helper->createCall(str, args);
+    Value *ptr = helper->createAlloca(tmp->getType(), nullptr, string(tmp->getName())+"tmp_var");
+    helper->createStore(tmp, ptr);
+    currBlockVars.top().push_back(pair<Value*, string>(ptr, node->type->getFullName()));
 
     return tmp;
 }

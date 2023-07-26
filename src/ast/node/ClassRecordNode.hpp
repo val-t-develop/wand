@@ -13,4 +13,6 @@ public:
                     shared_ptr<Node> _parent);
 
     shared_ptr<ClassRecord> getReturnType() override;
+
+    string getFullName();
 };
