@@ -5,8 +5,7 @@ CodeGenUtils::CodeGenUtils(CodeGen* _codeGen) : codeGen(_codeGen), helper(_codeG
 
 void CodeGenUtils::setCurrClassName() {
     if (currClass != nullptr) {
-        string str = currClass->record->getFullName();
-        currClassName = str;
+        currClassName = currClass->getFullName();
     } else {
         currClassName = "";
     }
@@ -46,7 +45,6 @@ Type* CodeGenUtils::getType(shared_ptr<ClassRecord> node) {
 }
 
 Type* CodeGenUtils::getTypeNoPtr(shared_ptr<ClassRecord> node) {
-    auto x = node->type;
     if (node->type == "primitive") {
         if (node->id == "boolean") {
             return helper->getIntType(1);

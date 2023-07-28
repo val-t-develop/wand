@@ -146,7 +146,8 @@ Value *LLVMHelper::createCall(Function *func, vector<Value *> args, string name)
 
 Value *LLVMHelper::createCall(string func, vector<Value *> args, string name) {
     Function* f = getFunction(func);
-    Out::errorMessage("Can not create call instruction for " + func);
+    if (!f)
+        Out::errorMessage("Can not create call instruction for " + func);
     return Builder->CreateCall(f, args, name);
 }
 

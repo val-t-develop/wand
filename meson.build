@@ -1,7 +1,7 @@
 project('spl', 'cpp', default_options : 'cpp_std=c++20')
 add_project_arguments('-W', '-Wall', '-Wextra', '-Wpedantic', '-g', language : 'cpp')
 
-llvm_dep = dependency('llvm', version : '>13.0.0')
+llvm_dep = dependency('llvm', version : '>15.0.0')
 
 incdir = include_directories('src')
 

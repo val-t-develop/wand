@@ -43,7 +43,9 @@ void CodeGen::codeGen() {
     helper->createFunctionPrototype("__spl__alloc", helper->getPointerType(helper->getVoidType()), vector<Type*>{helper->getIntType(32)});
     helper->createFunctionPrototype("__spl__write", helper->getVoidType(), vector<Type*>{helper->getPointerType(helper->getVoidType()), helper->getPointerType(helper->getVoidType())});
     helper->createFunctionPrototype("__spl__destroyvar", helper->getVoidType(), vector<Type*>{helper->getPointerType(helper->getVoidType())});
-    
+    helper->createFunctionPrototype("__spl__dec__refs", helper->getVoidType(), vector<Type*>{helper->getPointerType(helper->getVoidType())});
+    helper->createFunctionPrototype("__spl__inc__refs", helper->getVoidType(), vector<Type*>{helper->getPointerType(helper->getVoidType())});
+
     for (shared_ptr<Node> node : cu->nodes) {
         if (node->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
             continue;
@@ -490,8 +492,9 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
                 break;
             } else if (item->kind == Node::NodeKind::RETURN_NODE) {
                 if (static_pointer_cast<ReturnNode>(item)->expression != nullptr) {
-                    Value *val = genExpression(static_pointer_cast<ReturnNode>(item)->expression);
                     Value *ptr = NamedValues[helper->getCurrFunction()->getName().str()+"__spl__ret"];
+                    Value *val = genExpression(static_pointer_cast<ReturnNode>(item)->expression);
+                    helper->createCall("__spl__write", vector<Value*>{ptr, val});
                     helper->createStore(val, ptr);
                 }
                 ret = true;
@@ -862,6 +865,7 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
         if (calle != nullptr) {
             thisV.pop();
         }
+        helper->createCall("__spl__dec__refs", vector<Value*>{tmp});
         return tmp;
     } else {
         vector<Value*> args = vector<Value*>();
@@ -887,6 +891,7 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
                 if (calle != nullptr) {
                     thisV.pop();
                 }
+                helper->createCall("__spl__dec__refs", vector<Value*>{tmp});
                 return tmp;
             }
         }
@@ -904,6 +909,7 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
             if (calle != nullptr) {
                 thisV.pop();
             }
+            helper->createCall("__spl__dec__refs", vector<Value*>{tmp});
             return tmp;
         }
 
