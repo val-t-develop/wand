@@ -7,7 +7,6 @@
 #include <main.hpp>
 
 #include <llvm/Analysis/LoopAnalysisManager.h>
-#include <llvm/Analysis/CGSCCPassManager.h>
 #include <llvm/Passes/PassBuilder.h>
 
 #include "llvm/IR/LegacyPassManager.h"
@@ -308,6 +307,7 @@ Function* CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
         if (TheFunction->getReturnType() != helper->getVoidType()) {
             ret_ptr = helper->createAlloca(TheFunction->getReturnType(), nullptr, "retallocatmp");
             NamedValues[node->getFullName()+"__spl__ret"] = ret_ptr;
+            helper->createStore(genDefaultValue(node->returnType), ret_ptr);
         }
         
         for (int i = 0; i < node->args.size(); ++i) {
@@ -476,7 +476,7 @@ Function* CodeGen::genConstructorDecl(shared_ptr<ConstructorDeclNode> node) {
         NamedValues[argName] = ptr;
         varTypes[node->args[i]->record] = Arg->getType();
     }
-    genConstructorBlockStatement(node, str);
+    genConstructorBlockStatement(node);
 
     verifyFunction(*TheFunction);
     return TheFunction;
@@ -541,12 +541,12 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
     return ret;
 }
 
-bool CodeGen::genConstructorBlockStatement(shared_ptr<ConstructorDeclNode> constructor, string str) {
+bool CodeGen::genConstructorBlockStatement(shared_ptr<ConstructorDeclNode> constructor) {
     shared_ptr<BlockNode> node = constructor->body;
     currBlockVars.push(vector<pair<Value*, string>>());
     
-    Type *type = utils->getType(utils->currClass->record);
-    Value *sizeofIV = helper->createSizeof(type, 32);
+    Type *type = utils->getTypeNoPtr(utils->currClass->record);
+    Value *sizeofIV = helper->createSizeof(type);
 
     Value *heapallocatmp = helper->createCall("__spl__alloc", vector<Value *>{sizeofIV}, "heapallocatmp");
     Value *ptr = helper->createAlloca(heapallocatmp->getType(), nullptr, string(heapallocatmp->getName())+"tmp_var");
@@ -765,68 +765,36 @@ Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
         return genNewNode(static_pointer_cast<NewNode>(node));
     } else if (node->kind == Node::NodeKind::ACCESS_NODE) {
         shared_ptr<AccessNode> access = static_pointer_cast<AccessNode>(node);
-        Value *last = nullptr;
-        if (access->isExpression()) {
-            for (int i = 0; i < access->access.size(); ++i) {
-                auto n = access->access[i];
-                if (i == 0) {
-                    if (n->isExpression()) {
-                        last = genExpression(static_pointer_cast<ExpressionNode>(n));
-                        continue;
-                    } else {
-                        Out::errorMessage("Internall error detected: can not generate expression.");
+        Value *val = genExpression(static_pointer_cast<ExpressionNode>(access->access[0]));
+        shared_ptr<ClassRecord> val_type = nullptr;
+        if (access->access[0]->kind == Node::NodeKind::VAR_RECORD_NODE) {
+            val_type = static_pointer_cast<VarRecordNode>(access->access[0])->getReturnType();
+        } else if (access->access[0]->kind == Node::NodeKind::METHOD_CALL_NODE) {
+            val_type = static_pointer_cast<MethodCallNode>(access->access[0])->getReturnType();
+        } else {
+            Out::errorMessage("Can not generate expression");
+        }
+        for (int i = 1; i < access->access.size(); ++i) {
+            if (access->access[i]->kind == Node::NodeKind::VAR_RECORD_NODE) {
+                int n = -1;
+                for (int j = 0; j < val_type->fields.size(); ++j) {
+                    if (val_type->fields[j]->id == static_pointer_cast<VarRecordNode>(access->access[i])->record->id) {
+                        n = j;
                         break;
                     }
                 }
-                
-                if (n->isExpression()) {
-                    auto last_n = access->access[i-1];
-                    if (n->kind == Node::NodeKind::VAR_RECORD_NODE) {
-                        shared_ptr<VarRecord> n_var_rec = static_pointer_cast<VarRecordNode>(n)->record;
-                        if (last_n->isExpression()) {
-                            auto classRecord = static_pointer_cast<ExpressionNode>(last_n)->getReturnType();
-                            Type *t = utils->getTypeNoPtr(classRecord);
-                            int struct_n = 0;
-                            for (int j = 0; j < classRecord->fields.size(); ++j) {
-                                if (classRecord->fields[j]->equals(n_var_rec)) {
-                                    struct_n = j;
-                                    break;
-                                }
-                            }
-                            Value *nullV = helper->getConstInt(32, 0);
-                            Value *struct_nV = helper->getConstInt(32, struct_n);
-                            Value *getelementptr = helper->createGetElementPtr(t, last, vector<Value*>{nullV, struct_nV}, "access_tmp");
-                            
-                            auto n_classRecord = static_pointer_cast<ExpressionNode>(n)->getReturnType();
-                            Type *n_t = utils->getTypeNoPtr(n_classRecord);
-                            last = helper->createLoad(n_t, getelementptr, "loadgetelementptrtmp");
-                        } else {
-                            Out::errorMessage("Internall error detected: can not generate expression.");
-                            break;
-                        }
-                    } else if (n->kind == Node::NodeKind::METHOD_CALL_NODE) {
-                        shared_ptr<MethodCallNode> callNode = static_pointer_cast<MethodCallNode>(n);
-                        bool isStatic = false;
-                        for (auto mod : callNode->record->mods) {
-                            if (mod == ModifiersNode::ModifierKind::STATIC) {
-                                isStatic = true;
-                                break;
-                            }
-                        }
-                        if (isStatic) {
-                            Out::errorMessage("Error: call of static method with non class access.");
-                        } else {
-                            last = genMethodCall(callNode, last);
-                        }
-                    }
-                    continue;
-                } else {
-                    Out::errorMessage("Internall error detected: can not generate expression.");
-                    break;
+                if (n == -1) {
+                    Out::errorMessage("Can not find field in class");
                 }
+                vector<Value*> ids = vector<Value*>{helper->getConstInt(32, 0), helper->getConstInt(32, n)};
+                Value *getelementptr = helper->createGetElementPtr(utils->getTypeNoPtr(val_type), val, ids);
+                val_type = static_pointer_cast<VarRecordNode>(access->access[i])->getReturnType();
+                val = helper->createLoad(utils->getType(val_type), getelementptr);
+            } else if (access->access[i]->kind == Node::NodeKind::METHOD_CALL_NODE) {
+                // TODO
             }
-            return last;
         }
+        return val;
     }
     return nullptr;
 }
@@ -865,7 +833,9 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
         if (calle != nullptr) {
             thisV.pop();
         }
-        helper->createCall("__spl__dec__refs", vector<Value*>{tmp});
+        if (tmp->getType() != helper->getVoidType()) {
+            helper->createCall("__spl__dec__refs", vector<Value*>{tmp});
+        }
         return tmp;
     } else {
         vector<Value*> args = vector<Value*>();
@@ -891,7 +861,9 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
                 if (calle != nullptr) {
                     thisV.pop();
                 }
-                helper->createCall("__spl__dec__refs", vector<Value*>{tmp});
+                if (tmp->getType() != helper->getVoidType()) {
+                    helper->createCall("__spl__dec__refs", vector<Value*>{tmp});
+                }
                 return tmp;
             }
         }
@@ -909,7 +881,9 @@ Value* CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
             if (calle != nullptr) {
                 thisV.pop();
             }
-            helper->createCall("__spl__dec__refs", vector<Value*>{tmp});
+            if (tmp->getType() != helper->getVoidType()) {
+                helper->createCall("__spl__dec__refs", vector<Value*>{tmp});
+            }
             return tmp;
         }
 
@@ -1000,80 +974,48 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ADD_ASSIGN) {
         
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ASSIGN) {
-        /*if (R->getType()->isPointerTy()) {
-            helper->createCall("__spl__write", vector<Value *>{L, R});
-        }*/
         if (node->left->kind == Node::NodeKind::ACCESS_NODE) {
             shared_ptr<AccessNode> access = static_pointer_cast<AccessNode>(node->left);
-            
-            Value *last = nullptr;
-            Value *last_ptr = nullptr;
-            if (access->isExpression()) {
-                for (int i = 0; i < access->access.size(); ++i) {
-                    auto n = access->access[i];
-                    if (i == 0) {
-                        if (n->isExpression()) {
-                            last = genExpression(static_pointer_cast<ExpressionNode>(n));
-                            if (n->kind == Node::NodeKind::VAR_RECORD_NODE) {
-                                last_ptr = NamedValues[static_pointer_cast<VarRecordNode>(n)->getFullName()];
-                            }
-                            continue;
-                        } else {
-                            Out::errorMessage("Internall error detected: can not generate expression.");
+            Value *ptr = nullptr;
+            Value *val = nullptr;
+            shared_ptr<ClassRecord> val_type = nullptr;
+            if (access->access[0]->kind == Node::NodeKind::VAR_RECORD_NODE) {
+                shared_ptr<VarRecordNode> var = static_pointer_cast<VarRecordNode>(access->access[0]);
+                ptr = NamedValues[var->getFullName()];
+                if (ptr == nullptr) {
+                    ptr = GlobalNamedValues[var->getFullName()];
+                }
+                Type *type = varTypes[var->record];
+                val = helper->createLoad(type, ptr);
+                val_type = var->getReturnType();
+            } else if (access->access[0]->kind == Node::NodeKind::METHOD_CALL_NODE) {
+                Out::errorMessage("Can not assign to method call result");
+            } else {
+                Out::errorMessage("Can not generate expression");
+            }
+            for (int i = 1; i < access->access.size(); ++i) {
+                if (access->access[i]->kind == Node::NodeKind::VAR_RECORD_NODE) {
+                    int n = -1;
+                    for (int j = 0; j < val_type->fields.size(); ++j) {
+                        if (val_type->fields[j]->id == static_pointer_cast<VarRecordNode>(access->access[i])->record->id) {
+                            n = j;
                             break;
                         }
                     }
-                    
-                    if (n->isExpression()) {
-                        auto last_n = access->access[i-1];
-                        if (n->kind == Node::NodeKind::VAR_RECORD_NODE) {
-                            shared_ptr<VarRecord> n_var_rec = static_pointer_cast<VarRecordNode>(n)->record;
-                            if (last_n->isExpression()) {
-                                auto classRecord = static_pointer_cast<ExpressionNode>(last_n)->getReturnType();
-                                Type *t = utils->getTypeNoPtr(classRecord);
-                                int struct_n = 0;
-                                for (int j = 0; j < classRecord->fields.size(); ++j) {
-                                    if (classRecord->fields[j]->equals(n_var_rec)) {
-                                        struct_n = j;
-                                        break;
-                                    }
-                                }
-                                Value *nullV = helper->getConstInt(32, 0);
-                                Value *struct_nV = helper->getConstInt(32, struct_n);
-                                Value *getelementptr = helper->createGetElementPtr(t, last, vector<Value*>{nullV, struct_nV}, "access_tmp");
-                                
-                                auto n_classRecord = static_pointer_cast<ExpressionNode>(n)->getReturnType();
-                                Type *n_t = utils->getTypeNoPtr(n_classRecord);
-                                last = helper->createLoad(n_t, getelementptr, "loadgetelementptrtmp");
-                                last_ptr = getelementptr;
-                            } else {
-                                Out::errorMessage("Internall error detected: can not generate expression.");
-                                break;
-                            }
-                        } else if (n->kind == Node::NodeKind::METHOD_CALL_NODE) {
-                            shared_ptr<MethodCallNode> callNode = static_pointer_cast<MethodCallNode>(n);
-                            bool isStatic = false;
-                            for (auto mod : callNode->record->mods) {
-                                if (mod == ModifiersNode::ModifierKind::STATIC) {
-                                    isStatic = true;
-                                    break;
-                                }
-                            }
-                            if (isStatic) {
-                                Out::errorMessage("Error: call of static method with non class access.");
-                            } else {
-                                last = genMethodCall(callNode, last);
-                            }
-                        }
-                        continue;
-                    } else {
-                        Out::errorMessage("Internall error detected: can not generate expression.");
-                        break;
+                    if (n == -1) {
+                        Out::errorMessage("Can not find field in class");
                     }
+                    vector<Value*> ids = vector<Value*>{helper->getConstInt(32, 0), helper->getConstInt(32, n)};
+                    Value *getelementptr = helper->createGetElementPtr(utils->getTypeNoPtr(val_type), val, ids);
+                    val_type = static_pointer_cast<VarRecordNode>(access->access[i])->getReturnType();
+                    val = helper->createLoad(utils->getType(val_type), getelementptr);
+                    ptr = getelementptr;
+                } else if (access->access[i]->kind == Node::NodeKind::METHOD_CALL_NODE) {
+                    // TODO
                 }
             }
-            
-            helper->createStore(R, last_ptr);
+            helper->createStore(R, ptr);
+
         } else {
             Out::errorMessage("Can not create assign.");
         }

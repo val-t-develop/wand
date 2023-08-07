@@ -5,7 +5,7 @@ MethodCallNode::MethodCallNode(shared_ptr<MethodRecord> _record, vector<shared_p
 
 
 shared_ptr<ClassRecord> MethodCallNode::getReturnType() {
-    return nullptr;
+    return record->retTypeRec;
 }
 
 string MethodCallNode::getFullName() {

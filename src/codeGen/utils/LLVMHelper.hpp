@@ -87,7 +87,7 @@ public:
     bool isDoubleValue(Value* val);
     bool isFloatingPointValue(Value* val);
 
-    Value* createSizeof(Type* type, int intSize);
+    Value* createSizeof(Type* type);
 
     void printModule();
     void prepareBuild();

@@ -53,7 +53,7 @@ public:
     Function* genDestructorDecl(shared_ptr<ClassDeclNode> node);
     Function* genConstructorDecl(shared_ptr<ConstructorDeclNode> node);
     bool genBlockStatement(shared_ptr<BlockNode> node);
-    bool genConstructorBlockStatement(shared_ptr<ConstructorDeclNode> constructor, string str);
+    bool genConstructorBlockStatement(shared_ptr<ConstructorDeclNode> constructor);
     void genIfElse(shared_ptr<IfElseNode> node);
     void genWhile(shared_ptr<WhileNode> node);
     void genFor(shared_ptr<ForNode> node);

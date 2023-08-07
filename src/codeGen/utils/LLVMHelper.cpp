@@ -203,11 +203,8 @@ Value *LLVMHelper::createGetElementPtr(Type *type, Value *ptr, vector<Value *> i
     return GetElementPtrInst::Create(type, ptr, indexes, name, getActiveBB());
 }
 
-Value *LLVMHelper::createSizeof(Type *type, int intSize) {
-    Value *one = getConstInt(32, 1);
-    Value *sizeofV = createGetElementPtr(type, getNullptr(getPointerType(type)), vector<Value *>{one}, "sizeof");
-    Value *sizeofIV = createPtrToInt(sizeofV, getIntType(intSize), "sizeofI");
-    return sizeofIV;
+Value *LLVMHelper::createSizeof(Type *type) {
+    return ConstantExpr::getSizeOf(type);
 }
 
 Value *LLVMHelper::createEQ(Value *lhs, Value *rhs, string name) {
