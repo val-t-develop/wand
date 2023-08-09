@@ -1014,6 +1014,7 @@ Value* CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                     // TODO
                 }
             }
+            helper->createCall("__spl__write", vector<Value*>{ptr, R});
             helper->createStore(R, ptr);
 
         } else {
