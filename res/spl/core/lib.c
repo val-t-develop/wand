@@ -105,11 +105,15 @@ void __spl__write(void *dest, void *data) {
 }
 
 __attribute__((used))
-void __spl__destroyvar(void *ptr) {
+void __spl__destroyvar(void *ptr, void (*destructor)(void*)) {
+
     if (ptr != 0) {
         __spl__dec__refs(ptr);
         if (__spl__get__refs(ptr) == 0) {
             __spl__set__refs(ptr, -1);
+            if (destructor != 0) {
+                destructor(ptr);
+            }
             free(ptr);
         }
     }

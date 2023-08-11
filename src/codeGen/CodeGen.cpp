@@ -41,7 +41,7 @@ void CodeGen::codeGen() {
     helper->createFunctionPrototype("__spl__destroy__gcmap", helper->getVoidType(), vector<Type*>{});
     helper->createFunctionPrototype("__spl__alloc", helper->getPointerType(helper->getVoidType()), vector<Type*>{helper->getIntType(32)});
     helper->createFunctionPrototype("__spl__write", helper->getVoidType(), vector<Type*>{helper->getPointerType(helper->getVoidType()), helper->getPointerType(helper->getVoidType())});
-    helper->createFunctionPrototype("__spl__destroyvar", helper->getVoidType(), vector<Type*>{helper->getPointerType(helper->getVoidType())});
+    helper->createFunctionPrototype("__spl__destroyvar", helper->getVoidType(), vector<Type*>{helper->getPointerType(helper->getVoidType()), helper->getPointerType(helper->getVoidType())});
     helper->createFunctionPrototype("__spl__dec__refs", helper->getVoidType(), vector<Type*>{helper->getPointerType(helper->getVoidType())});
     helper->createFunctionPrototype("__spl__inc__refs", helper->getVoidType(), vector<Type*>{helper->getPointerType(helper->getVoidType())});
 
@@ -392,49 +392,15 @@ Function* CodeGen::genDestructorDecl(shared_ptr<ClassDeclNode> node) {
 
     NamedValues.clear();
 
-    Value *val = helper->createLoad(helper->getPointerType(utils->classesTypes.at(node->getFullName())), TheFunction->getArg(0));
-    //Value *val = TheFunction->getArg(0);
-    for (shared_ptr<VarDeclNode> f : node->fields) {
-        /*shared_ptr<VarRecord> n_var_rec = f->record;
-        auto classRecord = node->record;
-        shared_ptr<TypeNode> typeNode = make_shared<TypeNode>(make_shared<ClassRecordNode>(classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr);
-        Type *t = getType(typeNode, false);
-        int struct_n = 0;
-        for (int j = 0; j < classRecord->fields.size(); ++j) {
-            if (classRecord->fields[j]->equals(n_var_rec)) {
-                struct_n = j;
-                break;
-            }
+    Value *val = TheFunction->getArg(0);
+    for (int i = 0; i < node->fields.size(); ++i) {
+        Value* ptr = helper->createGetElementPtr(utils->getTypeNoPtr(node->record), val,
+                                                 vector<Value*>{helper->getConstInt(32, 0), helper->getConstInt(32, i)});
+        Value *loadptr = helper->createLoad(utils->getType(node->fields[i]->type->getReturnType()), ptr);
+        if (node->fields[i]->type->type->record->type != "primitive") {
+            helper->createCall("__spl__destroyvar",
+                               vector<Value*>{loadptr, helper->getFunction("__spl__destructor__"+node->fields[i]->type->getFullName())});
         }
-        Value *nullV = helper->getConstInt(helper->getIntType(32), 0);
-        Value *struct_nV = helper->getConstInt(helper->getIntType(32), struct_n);
-        Value *getelementptr = helper->createGetElementPtr(t, val, vector<Value*>{nullV, struct_nV}, "access_tmp");
-        
-        auto n_classRecord = f->type->type->record;
-        shared_ptr<TypeNode> n_typeNode = make_shared<TypeNode>(make_shared<ClassRecordNode>(n_classRecord, vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr);
-        Type *n_t = getType(n_typeNode, false);
-        Value *to_destruct = helper->createLoad(n_t, getelementptr, "loadgetelementptrtmp");
-
-        if(getelementptr->getType()->isPointerTy()) {
-            Value *cond = (helper->Builder)->CreatePtrDiff(helper->getPointerType(n_t), getelementptr, helper->getNullptr(helper->getPointerType(n_t)), "cond");
-            BasicBlock *ThenBB = BasicBlock::Create(*(helper->TheContext), "then", TheFunction);
-            BasicBlock *MergeBB = BasicBlock::Create(*(helper->TheContext), "ifcont");
-            helper->createIfElse(cond, ThenBB, MergeBB);
-            
-            (helper->Builder)->SetInsertPoint(ThenBB);
-
-            helper->createCall("__spl__destructor__"+getFullClassRecordName(classRecord), vector<Value*>{val});
-
-            helper->createCall("__spl__destroyvar", vector<Value*>{val});
-
-            helper->createBr(MergeBB);
-            // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
-            ThenBB = helper->getActiveBB();
-
-            MergeBB->insertInto(TheFunction);
-            (helper->Builder)->SetInsertPoint(MergeBB);
-
-        }*/
     }
 
     helper->createBr(retBB);
@@ -529,10 +495,8 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
             v.second != "char" && 
             v.second != "void") {
 
-            helper->createCall("__spl__destructor__"+v.second, vector<Value*>{val});
+            helper->createCall("__spl__destroyvar", vector<Value*>{val, helper->getFunction("__spl__destructor__"+v.second)});
         }
-        
-        helper->createCall("__spl__destroyvar", vector<Value*>{val});
     }
     if (ret) {
         helper->createBr(retBB);
@@ -616,10 +580,8 @@ bool CodeGen::genConstructorBlockStatement(shared_ptr<ConstructorDeclNode> const
             v.second != "char" && 
             v.second != "void") {
 
-            helper->createCall("__spl__destructor__"+v.second, vector<Value*>{val});
+            helper->createCall("__spl__destroyvar", vector<Value*>{val, helper->getFunction("__spl__destructor__"+v.second)});
         }
-        
-        helper->createCall("__spl__destroyvar", vector<Value*>{val});
     }
     currBlockVars.pop();
 

@@ -5,7 +5,7 @@ TypeNode::TypeNode(shared_ptr<ClassRecordNode> _type, int _dims, shared_ptr<Node
     : ExpressionNode(_parent, NodeKind::TYPE_NODE), type(_type), dims(_dims) {}
 
 shared_ptr<ClassRecord> TypeNode::getReturnType() {
-    return nullptr;
+    return type->getReturnType();
 }
 
 string TypeNode::getFullName() {
