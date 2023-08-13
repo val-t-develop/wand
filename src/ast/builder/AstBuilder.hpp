@@ -66,9 +66,8 @@ public:
     shared_ptr<ExpressionNode> enterPrimary();
     shared_ptr<ExpressionNode> enterNew();
     shared_ptr<ExpressionNode> enterParenExpression();
-    shared_ptr<AccessNode> enterAccessOrCall();
-    shared_ptr<AccessNode> enterAccessItem(shared_ptr<AccessNode> accessOld);
-    shared_ptr<AccessNode> enterArrayAccess(shared_ptr<AccessNode> accessOld);
+    shared_ptr<AccessNode> enterAccessOrCall(bool arr=false);
+    void  enterAccessWithoutArray(shared_ptr<AccessNode> access);
     void enterGeneric(shared_ptr<ClassRecordNode> classRecordNode);
     shared_ptr<ExpressionNode> enterLiteral();
     shared_ptr<ArrayInitializerNode> enterArrayInitializer();

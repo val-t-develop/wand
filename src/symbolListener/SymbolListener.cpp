@@ -900,6 +900,11 @@ void SymbolListener::enterPrimary() {
 
 void SymbolListener::enterNew() {
     lexer.goForward();
+
+    if (lexer.getCurrent()->kind == Token::Kind::STATIC) {
+        lexer.goForward();
+    }
+
     enterType(false);
 
     if(lexer.getCurrent()->kind == Token::Kind::LPAREN) {

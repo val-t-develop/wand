@@ -75,3 +75,18 @@ Type* CodeGenUtils::getTypeNoPtr(shared_ptr<ClassRecord> node) {
         return structType;
     }
 }
+
+Type *CodeGenUtils::getType(shared_ptr<TypeNode> node) {
+    Type* recTy = getType(node->type->record);
+    for (int i = 0; i < node->dims; ++i) {
+        recTy = helper->getPointerType(recTy);
+    }
+    return recTy;
+}
+
+Type *CodeGenUtils::getTypeNoPtr(shared_ptr<TypeNode> node) {
+    Type* recTy = getTypeNoPtr(node->type->record);
+    return recTy;
+}
+
+

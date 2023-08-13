@@ -725,6 +725,37 @@ Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
         return genVarValue(static_pointer_cast<VarRecordNode>(node));
     } else if (node->kind == Node::NodeKind::NEW_NODE) {
         return genNewNode(static_pointer_cast<NewNode>(node));
+    } else if (node->kind == Node::NodeKind::ARRAY_CREATION_NODE) {
+        auto n = static_pointer_cast<ArrayCreationNode>(node);
+        if (n->isStatic) {
+            Type* lastTy = utils->getType(n->type->type->record);
+            Value* mul = helper->getConstInt(64, 1);
+            for (int i = n->dims.size()-1; i >= 0; --i) {
+                if (n->dims[i]->kind == Node::NodeKind::INT_LITERAL_NODE) {
+                    lastTy = helper->getArrayType(lastTy, static_pointer_cast<IntLiteralNode>(n->dims[i])->value);
+                } else {
+                    Value* expr = genExpression(n->dims[i]);
+                    if (expr->getType()->isIntegerTy()) {
+                        if (expr->getType()->getPrimitiveSizeInBits() < 64) {
+                            expr = CastInst::CreateZExtOrBitCast(expr, helper->getIntType(64));
+                        }
+                    } else {
+                        Out::errorMessage("Array size is not int type!");
+                    }
+                    mul = helper->createMul(mul, expr);
+                }
+            }
+            Value* alloca = helper->createAlloca(lastTy, mul);
+            return alloca;
+        } else {
+            Out::errorMessage("No dynamic arrays support yet.");
+        }
+    } else if (node->kind == Node::NodeKind::ARRAY_INITIALIZER_NODE) {
+
+    } else if (node->kind == Node::NodeKind::ARRAY_ACCESS_NODE) {
+        auto n = static_pointer_cast<ArrayAccessNode>(node);
+        Value* arr = genExpression(n->array);
+        // TODO
     } else if (node->kind == Node::NodeKind::ACCESS_NODE) {
         shared_ptr<AccessNode> access = static_pointer_cast<AccessNode>(node);
         Value *val = genExpression(static_pointer_cast<ExpressionNode>(access->access[0]));
@@ -733,6 +764,9 @@ Value* CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
             val_type = static_pointer_cast<VarRecordNode>(access->access[0])->getReturnType();
         } else if (access->access[0]->kind == Node::NodeKind::METHOD_CALL_NODE) {
             val_type = static_pointer_cast<MethodCallNode>(access->access[0])->getReturnType();
+        } else if (access->access[0]->kind == Node::NodeKind::ARRAY_ACCESS_NODE) {
+            // TODO
+            //val_type = static_pointer_cast<MethodCallNode>(access->access[0])->getReturnType();
         } else {
             Out::errorMessage("Can not generate expression");
         }

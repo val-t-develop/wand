@@ -8,7 +8,8 @@ class NewNode : public ExpressionNode {
 public:
     shared_ptr<TypeNode> type;
     vector<shared_ptr<ExpressionNode>> args = vector<shared_ptr<ExpressionNode>>();
+    bool isStatic;
 
-    NewNode(shared_ptr<TypeNode> _type, vector<shared_ptr<ExpressionNode>> _args, shared_ptr<Node> _parent);
+    NewNode(shared_ptr<TypeNode> _type, vector<shared_ptr<ExpressionNode>> _args, bool _isStatic, shared_ptr<Node> _parent);
     shared_ptr<ClassRecord> getReturnType() override;
 };

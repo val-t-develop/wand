@@ -901,12 +901,19 @@ shared_ptr<ExpressionNode> AstBuilder::enterPrimary() {
   } else if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
     return enterArrayInitializer();
   } else {
-    return enterAccessOrCall();
+    return enterAccessOrCall(true);
   }
 }
 
 shared_ptr<ExpressionNode> AstBuilder::enterNew() {
   lexer.goForward();
+
+  bool isStatic = false;
+  if (lexer.getCurrent()->kind == Token::Kind::STATIC) {
+      isStatic = true;
+      lexer.goForward();
+  }
+
   shared_ptr<TypeNode> type = enterType(false);
 
   vector<shared_ptr<ExpressionNode>> args =
@@ -975,10 +982,9 @@ shared_ptr<ExpressionNode> AstBuilder::enterNew() {
   }
 
   if (arr) {
-    return make_shared<ArrayCreationNode>(type, args, arrayInitializer,
-                                          nullptr);
+    return make_shared<ArrayCreationNode>(type, args, arrayInitializer, isStatic, nullptr);
   } else {
-    return make_shared<NewNode>(type, args, nullptr);
+    return make_shared<NewNode>(type, args, isStatic, nullptr);
   }
 }
 
@@ -1000,9 +1006,36 @@ shared_ptr<ExpressionNode> AstBuilder::enterParenExpression() {
 }
 
 shared_ptr<AccessNode>
-AstBuilder::enterAccessOrCall() {
+AstBuilder::enterAccessOrCall(bool arr) {
   shared_ptr<AccessNode> access = make_shared<AccessNode>(nullptr);
+  while (true) {
+    enterAccessWithoutArray(access);
+    if (arr) {
+      if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
+        shared_ptr<ArrayAccessNode> arrayAccessNode = make_shared<ArrayAccessNode>(access,
+                                                                                   vector<shared_ptr<ExpressionNode>>{},
+                                                                                   nullptr);
+        while (true) {
+          lexer.goForward();
+          arrayAccessNode->indexes.push_back(enterExpression());
+          lexer.goForward();
+          if (lexer.getCurrent()->kind != Token::Kind::RBRACKET) {
+            break;
+          }
+        }
+        access = make_shared<AccessNode>(nullptr);
+        access->access.push_back(arrayAccessNode);
+      } else {
+        break;
+      }
+    } else {
+      break;
+    }
+  }
+  return access;
+}
 
+void AstBuilder::enterAccessWithoutArray(shared_ptr<AccessNode> access) {
   string name = lexer.getCurrent()->str;
   shared_ptr<VarRecord> varRecord = symbolTable->lookupVar(name);
   shared_ptr<ClassRecord> classRecord = symbolTable->lookupClass(name);
@@ -1022,35 +1055,35 @@ AstBuilder::enterAccessOrCall() {
 
     // TODO method reference
     shared_ptr<MethodCallNode> call =
-      make_shared<MethodCallNode>(methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
+            make_shared<MethodCallNode>(methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
     if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
-        lexer.goForward();
+      lexer.goForward();
     } else {
-        Out::errorMessage(
-            lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
-                      "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
-                      std::to_string(lexer.getCurrent()->pos));
-      }
+      Out::errorMessage(
+              lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                     "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
+                     std::to_string(lexer.getCurrent()->pos));
+    }
 
     vector<shared_ptr<ExpressionNode>> args =
-      vector<shared_ptr<ExpressionNode>>();
+            vector<shared_ptr<ExpressionNode>>();
     while (true) {
-        if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
-          lexer.goForward();
-          break;
-        }
-
-        args.push_back(enterExpression());
-
-        if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
-          lexer.goForward();
-        } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
-          Out::errorMessage(
-              lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
-                        "\tin " + std::to_string(lexer.getCurrent()->line) +
-                        ":" + std::to_string(lexer.getCurrent()->pos));
-        }
+      if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+        lexer.goForward();
+        break;
       }
+
+      args.push_back(enterExpression());
+
+      if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+        lexer.goForward();
+      } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+        Out::errorMessage(
+                lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
+      }
+    }
 
     call->args = args;
 
@@ -1078,35 +1111,35 @@ AstBuilder::enterAccessOrCall() {
         shared_ptr<MethodRecord> new_methodRecord = static_pointer_cast<MethodRecord>(new_record);
         // TODO method reference
         shared_ptr<MethodCallNode> call =
-          make_shared<MethodCallNode>(new_methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
+                make_shared<MethodCallNode>(new_methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
         if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
-            lexer.goForward();
+          lexer.goForward();
         } else {
-            Out::errorMessage(
-                lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
-                          "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
-                          std::to_string(lexer.getCurrent()->pos));
-          }
+          Out::errorMessage(
+                  lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                         "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
+                         std::to_string(lexer.getCurrent()->pos));
+        }
 
         vector<shared_ptr<ExpressionNode>> args =
-          vector<shared_ptr<ExpressionNode>>();
+                vector<shared_ptr<ExpressionNode>>();
         while (true) {
-            if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
-              lexer.goForward();
-              break;
-            }
-
-            args.push_back(enterExpression());
-
-            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
-              lexer.goForward();
-            } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
-              Out::errorMessage(
-                  lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
-                            "\tin " + std::to_string(lexer.getCurrent()->line) +
-                            ":" + std::to_string(lexer.getCurrent()->pos));
-            }
+          if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+            lexer.goForward();
+            break;
           }
+
+          args.push_back(enterExpression());
+
+          if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+            lexer.goForward();
+          } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+            Out::errorMessage(
+                    lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
+                           "\tin " + std::to_string(lexer.getCurrent()->line) +
+                           ":" + std::to_string(lexer.getCurrent()->pos));
+          }
+        }
 
         call->args = args;
 
@@ -1133,35 +1166,35 @@ AstBuilder::enterAccessOrCall() {
         shared_ptr<MethodRecord> new_methodRecord = static_pointer_cast<MethodRecord>(new_record);
         // TODO method reference
         shared_ptr<MethodCallNode> call =
-          make_shared<MethodCallNode>(new_methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
+                make_shared<MethodCallNode>(new_methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
         if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
-            lexer.goForward();
+          lexer.goForward();
         } else {
-            Out::errorMessage(
-                lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
-                          "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
-                          std::to_string(lexer.getCurrent()->pos));
-          }
+          Out::errorMessage(
+                  lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                         "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
+                         std::to_string(lexer.getCurrent()->pos));
+        }
 
         vector<shared_ptr<ExpressionNode>> args =
-          vector<shared_ptr<ExpressionNode>>();
+                vector<shared_ptr<ExpressionNode>>();
         while (true) {
-            if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
-              lexer.goForward();
-              break;
-            }
-
-            args.push_back(enterExpression());
-
-            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
-              lexer.goForward();
-            } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
-              Out::errorMessage(
-                  lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
-                            "\tin " + std::to_string(lexer.getCurrent()->line) +
-                            ":" + std::to_string(lexer.getCurrent()->pos));
-            }
+          if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+            lexer.goForward();
+            break;
           }
+
+          args.push_back(enterExpression());
+
+          if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+            lexer.goForward();
+          } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+            Out::errorMessage(
+                    lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
+                           "\tin " + std::to_string(lexer.getCurrent()->line) +
+                           ":" + std::to_string(lexer.getCurrent()->pos));
+          }
+        }
 
         call->args = args;
 
@@ -1188,35 +1221,35 @@ AstBuilder::enterAccessOrCall() {
         shared_ptr<MethodRecord> new_methodRecord = static_pointer_cast<MethodRecord>(new_record);
         // TODO method reference
         shared_ptr<MethodCallNode> call =
-          make_shared<MethodCallNode>(new_methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
+                make_shared<MethodCallNode>(new_methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
         if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
-            lexer.goForward();
+          lexer.goForward();
         } else {
-            Out::errorMessage(
-                lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
-                          "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
-                          std::to_string(lexer.getCurrent()->pos));
-          }
+          Out::errorMessage(
+                  lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                         "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
+                         std::to_string(lexer.getCurrent()->pos));
+        }
 
         vector<shared_ptr<ExpressionNode>> args =
-          vector<shared_ptr<ExpressionNode>>();
+                vector<shared_ptr<ExpressionNode>>();
         while (true) {
-            if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
-              lexer.goForward();
-              break;
-            }
-
-            args.push_back(enterExpression());
-
-            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
-              lexer.goForward();
-            } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
-              Out::errorMessage(
-                  lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
-                            "\tin " + std::to_string(lexer.getCurrent()->line) +
-                            ":" + std::to_string(lexer.getCurrent()->pos));
-            }
+          if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+            lexer.goForward();
+            break;
           }
+
+          args.push_back(enterExpression());
+
+          if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+            lexer.goForward();
+          } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+            Out::errorMessage(
+                    lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
+                           "\tin " + std::to_string(lexer.getCurrent()->line) +
+                           ":" + std::to_string(lexer.getCurrent()->pos));
+          }
+        }
 
         call->args = args;
 
@@ -1242,35 +1275,35 @@ AstBuilder::enterAccessOrCall() {
         shared_ptr<MethodRecord> new_methodRecord = static_pointer_cast<MethodRecord>(new_record);
         // TODO method reference
         shared_ptr<MethodCallNode> call =
-          make_shared<MethodCallNode>(new_methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
+                make_shared<MethodCallNode>(new_methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
         if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
-            lexer.goForward();
+          lexer.goForward();
         } else {
-            Out::errorMessage(
-                lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
-                          "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
-                          std::to_string(lexer.getCurrent()->pos));
-          }
+          Out::errorMessage(
+                  lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                         "\tin " + std::to_string(lexer.getCurrent()->line) + ":" +
+                         std::to_string(lexer.getCurrent()->pos));
+        }
 
         vector<shared_ptr<ExpressionNode>> args =
-          vector<shared_ptr<ExpressionNode>>();
+                vector<shared_ptr<ExpressionNode>>();
         while (true) {
-            if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
-              lexer.goForward();
-              break;
-            }
-
-            args.push_back(enterExpression());
-
-            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
-              lexer.goForward();
-            } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
-              Out::errorMessage(
-                  lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
-                            "\tin " + std::to_string(lexer.getCurrent()->line) +
-                            ":" + std::to_string(lexer.getCurrent()->pos));
-            }
+          if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+            lexer.goForward();
+            break;
           }
+
+          args.push_back(enterExpression());
+
+          if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+            lexer.goForward();
+          } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+            Out::errorMessage(
+                    lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
+                           "\tin " + std::to_string(lexer.getCurrent()->line) +
+                           ":" + std::to_string(lexer.getCurrent()->pos));
+          }
+        }
 
         call->args = args;
 
@@ -1287,7 +1320,6 @@ AstBuilder::enterAccessOrCall() {
       Out::errorMessage("Error: using of unused record!");
     }
   }
-  return access;
 }
 
 void AstBuilder::enterGeneric(shared_ptr<ClassRecordNode> classRecordNode) {

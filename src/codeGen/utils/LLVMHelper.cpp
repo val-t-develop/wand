@@ -311,3 +311,6 @@ string LLVMHelper::getModuleName() {
     return string(TheModule->getName());
 }
 
+ArrayType *LLVMHelper::getArrayType(Type *type, uint64_t n) {
+    return ArrayType::get(type, n);
+}

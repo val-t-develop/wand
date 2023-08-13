@@ -5,9 +5,9 @@
 class ArrayAccessNode : public AssignableNode {
 public:
     shared_ptr<ExpressionNode> array;
-    shared_ptr<ExpressionNode> index;
+    vector<shared_ptr<ExpressionNode>> indexes;
 
-    ArrayAccessNode(shared_ptr<ExpressionNode> _array, shared_ptr<ExpressionNode> _index, shared_ptr<Node> _parent);
+    ArrayAccessNode(shared_ptr<ExpressionNode> _array, vector<shared_ptr<ExpressionNode>> _indexes, shared_ptr<Node> _parent);
     shared_ptr<ClassRecord> getReturnType() override;
 };
 

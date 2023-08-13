@@ -82,6 +82,7 @@ public:
     Type* getDoubleType();
     PointerType* getPointerType(Type* type, int addressSpace=0);
     Type* getVoidType();
+    ArrayType* getArrayType(Type* type, uint64_t n);
 
     bool isFloatValue(Value* val);
     bool isDoubleValue(Value* val);
