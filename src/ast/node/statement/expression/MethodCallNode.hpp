@@ -3,11 +3,14 @@
 #include <ast/node/statement/expression/ExpressionNode.hpp>
 
 class MethodCallNode : public ExpressionNode {
-public:
+  public:
     shared_ptr<MethodRecord> record;
-    vector<shared_ptr<ExpressionNode>> args = vector<shared_ptr<ExpressionNode>>();
+    vector<shared_ptr<ExpressionNode>> args =
+        vector<shared_ptr<ExpressionNode>>();
 
-    MethodCallNode(shared_ptr<MethodRecord> _record, vector<shared_ptr<ExpressionNode>> _args, shared_ptr<Node> _parent);
+    MethodCallNode(shared_ptr<MethodRecord> _record,
+                   vector<shared_ptr<ExpressionNode>> _args,
+                   shared_ptr<Node> _parent);
     shared_ptr<ClassRecord> getReturnType() override;
 
     string getFullName();

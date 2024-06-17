@@ -3,6 +3,6 @@
 #include <ast/node/statement/StatementNode.hpp>
 
 class ContinueNode : public StatementNode {
-public:
+  public:
     ContinueNode(shared_ptr<Node> _parent);
 };

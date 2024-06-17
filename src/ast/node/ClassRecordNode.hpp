@@ -1,10 +1,10 @@
 #pragma once
 #include <Defs.hpp>
-#include <ast/node/statement/expression/ExpressionNode.hpp>
 #include <ast/node/AccessNode.hpp>
+#include <ast/node/statement/expression/ExpressionNode.hpp>
 
 class ClassRecordNode : public ExpressionNode {
-public:
+  public:
     shared_ptr<ClassRecord> record;
     vector<shared_ptr<AccessNode>> typeArgs = vector<shared_ptr<AccessNode>>();
 

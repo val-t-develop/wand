@@ -2,7 +2,7 @@
 #include <Defs.hpp>
 
 class Token {
-public:
+  public:
     enum class Kind {
         PACKAGE,
         IMPORT,

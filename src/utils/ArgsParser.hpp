@@ -3,7 +3,7 @@
 #include <utils/Path.hpp>
 
 class ArgsParser {
-public:
+  public:
     static Path output;
     static vector<Path> src;
 

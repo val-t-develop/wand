@@ -3,7 +3,7 @@
 #include <ast/node/Node.hpp>
 
 class ImportDeclNode : public Node {
-public:
+  public:
     vector<string> name = vector<string>();
 
     ImportDeclNode(vector<string> _name, shared_ptr<Node> _parent);

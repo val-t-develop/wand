@@ -1,13 +1,14 @@
 #pragma once
-#include <Defs.hpp>
 #include "Scope.hpp"
+#include <Defs.hpp>
 
 class SymbolTable {
-public:
+  public:
     shared_ptr<Scope> root;
     vector<shared_ptr<SymbolTable>> imports = vector<shared_ptr<SymbolTable>>();
     shared_ptr<Scope> currentScope;
-    vector<shared_ptr<MethodRecord>> mainMethods = vector<shared_ptr<MethodRecord>>();
+    vector<shared_ptr<MethodRecord>> mainMethods =
+        vector<shared_ptr<MethodRecord>>();
 
     SymbolTable();
 

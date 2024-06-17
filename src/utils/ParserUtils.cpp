@@ -1,39 +1,38 @@
 #include "ParserUtils.hpp"
 
 map<string, int> ParserUtils::operatorsPrecedence = {
-        {"%", 12},         {"*", 12},  {"/", 12},
+    {"%", 12},         {"*", 12},  {"/", 12},
 
-        {"-", 11},         {"+", 11},
+    {"-", 11},         {"+", 11},
 
-        {"<<", 10},        {">>", 10}, {">>>", 10},
+    {"<<", 10},        {">>", 10}, {">>>", 10},
 
-        {"instanceof", 9}, {">=", 9},  {"<=", 9},   {">", 9},  {"<", 9},
+    {"instanceof", 9}, {">=", 9},  {"<=", 9},   {">", 9},  {"<", 9},
 
-        {"==", 8},         {"!=", 8},
+    {"==", 8},         {"!=", 8},
 
-        {"&", 7},
+    {"&", 7},
 
-        {"^", 6},
+    {"^", 6},
 
-        {"|", 5},
+    {"|", 5},
 
-        {"&&", 4},
+    {"&&", 4},
 
-        {"||", 3},
+    {"||", 3},
 
-        {"=", 1},          {"+=", 1},  {"-=", 1},   {"*=", 1}, {"/=", 1},
-        {"&=", 1},         {"%=", 1},  {"^=", 1},   {"|=", 1}, {"<<=", 1},
-        {">>=", 1},        {">>>=", 1}
-    };
+    {"=", 1},          {"+=", 1},  {"-=", 1},   {"*=", 1}, {"/=", 1},
+    {"&=", 1},         {"%=", 1},  {"^=", 1},   {"|=", 1}, {"<<=", 1},
+    {">>=", 1},        {">>>=", 1}};
 
-int ParserUtils::getBinOpPrecedence(Lexer& lexer) {
+int ParserUtils::getBinOpPrecedence(Lexer &lexer) {
     int i = operatorsPrecedence[lexer.getCurrent()->str];
     return i == 0 ? -1 : i;
 }
 
 void ParserUtils::skipSemicolons(Lexer &lexer) {
-    while(true) {
-        if(lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+    while (true) {
+        if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
             lexer.goForward();
         } else {
             break;
@@ -60,7 +59,7 @@ long double ParserUtils::parseDouble(string token) {
     string a = "";
     string b = "";
     bool point = false;
-    for(char ch : token) {
+    for (char ch : token) {
         if (ch == '.') {
             point = true;
             continue;
@@ -78,18 +77,14 @@ long double ParserUtils::parseDouble(string token) {
     }
     int64_t ai = parseLong(a);
     int64_t bi = parseLong(b);
-    return ((long double)bi)/(10*b.length()) + ai;
+    return ((long double)bi) / (10 * b.length()) + ai;
 }
 
-int64_t ParserUtils::parseLong(string token) {
-    return atoi(token.c_str());
-}
-
-
+int64_t ParserUtils::parseLong(string token) { return atoi(token.c_str()); }
 
 ParserUtils::QualifiedName::QualifiedName(Lexer &lexer) {
-    while(true) {
-        if(lexer.getNext()->kind == Token::Kind::DOT) {
+    while (true) {
+        if (lexer.getNext()->kind == Token::Kind::DOT) {
             list.push_back(lexer.getCurrent());
             lexer.goForward();
             lexer.goForward();
@@ -103,18 +98,16 @@ ParserUtils::QualifiedName::QualifiedName(Lexer &lexer) {
 
 string ParserUtils::QualifiedName::getText() {
     string str = "";
-    for(shared_ptr<Token> t : list) {
+    for (shared_ptr<Token> t : list) {
         str.append(t->str).append(".");
     }
-    if(!str.empty()) {
+    if (!str.empty()) {
         str.pop_back();
     }
     return str;
 }
 
-int ParserUtils::QualifiedName::size() {
-    return list.size();
-}
+int ParserUtils::QualifiedName::size() { return list.size(); }
 
 void ParserUtils::QualifiedName::add(shared_ptr<Token> token) {
     list.push_back(token);
@@ -124,9 +117,7 @@ shared_ptr<Token> ParserUtils::QualifiedName::get(int index) {
     return list[index];
 }
 
-vector<shared_ptr<Token>> ParserUtils::QualifiedName::getList() {
-    return list;
-}
+vector<shared_ptr<Token>> ParserUtils::QualifiedName::getList() { return list; }
 
 void ParserUtils::QualifiedName::setList(vector<shared_ptr<Token>> list) {
     this->list = list;
@@ -140,4 +131,3 @@ vector<string> ParserUtils::QualifiedName::getTextList() {
     }
     return vec;
 }
-

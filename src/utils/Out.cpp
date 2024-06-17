@@ -3,7 +3,7 @@
 int Out::messages = 0;
 
 void Out::errorMessage(string msg) {
-    if(messages <= 50) {
+    if (messages <= 50) {
         cerr << "\n" << msg;
         messages++;
     } else {
@@ -12,12 +12,10 @@ void Out::errorMessage(string msg) {
     }
 }
 
-void Out::printMessage(string msg) {
-    cout << "\n" << msg;
-}
+void Out::printMessage(string msg) { cout << "\n" << msg; }
 
 void Out::errorMessage(Lexer &lexer, string msg) {
-    if(messages <= 50) {
+    if (messages <= 50) {
         cerr << "\n" << lexer.path.getName() << ": " << msg;
         messages++;
     } else {

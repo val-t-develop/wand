@@ -3,8 +3,9 @@
 #include <ast/node/statement/expression/ExpressionNode.hpp>
 
 class ReturnNode : public StatementNode {
-public:
+  public:
     shared_ptr<ExpressionNode> expression;
 
-    ReturnNode(shared_ptr<ExpressionNode> _expression, shared_ptr<Node> _parent);
+    ReturnNode(shared_ptr<ExpressionNode> _expression,
+               shared_ptr<Node> _parent);
 };

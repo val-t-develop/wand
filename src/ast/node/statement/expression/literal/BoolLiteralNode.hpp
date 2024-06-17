@@ -3,7 +3,7 @@
 #include <ast/node/statement/expression/ExpressionNode.hpp>
 
 class BoolLiteralNode : public ExpressionNode {
-public:
+  public:
     bool value;
 
     BoolLiteralNode(bool _value, shared_ptr<Node> _parent);

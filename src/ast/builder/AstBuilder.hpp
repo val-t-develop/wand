@@ -12,25 +12,26 @@
 #include <ast/node/statement/IfElseNode.hpp>
 #include <ast/node/statement/ReturnNode.hpp>
 #include <ast/node/statement/WhileNode.hpp>
+#include <ast/node/statement/expression/ArrayAccessNode.hpp>
+#include <ast/node/statement/expression/ArrayCreationNode.hpp>
 #include <ast/node/statement/expression/ArrayInitializerNode.hpp>
 #include <ast/node/statement/expression/BinaryOperatorNode.hpp>
-#include <ast/node/statement/expression/UnaryOperatorNode.hpp>
-#include <ast/node/statement/expression/NewNode.hpp>
-#include <ast/node/statement/expression/ArrayCreationNode.hpp>
 #include <ast/node/statement/expression/MethodCallNode.hpp>
+#include <ast/node/statement/expression/NewNode.hpp>
+#include <ast/node/statement/expression/UnaryOperatorNode.hpp>
 #include <ast/node/statement/expression/VarRecordNode.hpp>
-#include <ast/node/statement/expression/ArrayAccessNode.hpp>
 #include <lexer/Lexer.hpp>
 #include <symbolTable/SymbolTable.hpp>
 #include <utils/Path.hpp>
 
 class AstBuilder {
-public:
+  public:
     shared_ptr<SymbolTable> symbolTable;
     Path filePath;
     Lexer lexer;
 
-    AstBuilder(shared_ptr<SymbolTable> _symbolTable, Path _filePath, Lexer _lexer);
+    AstBuilder(shared_ptr<SymbolTable> _symbolTable, Path _filePath,
+               Lexer _lexer);
 
     shared_ptr<CompilationUnitNode> walk();
     shared_ptr<PackageDeclNode> enterPackage();
@@ -44,9 +45,9 @@ public:
     shared_ptr<Node> enterClassMemberDecl();
     shared_ptr<ConstructorDeclNode> enterConstructorDecl();
     shared_ptr<MethodDeclNode> enterMethodDecl(shared_ptr<TypeNode> type,
-                                                   shared_ptr<MethodRecord> record);
+                                               shared_ptr<MethodRecord> record);
     shared_ptr<VarDeclNode> enterFieldDecl(shared_ptr<TypeNode> type,
-                                                   shared_ptr<VarRecord> record);
+                                           shared_ptr<VarRecord> record);
     vector<shared_ptr<VarDeclNode>> enterMethodArgs();
     shared_ptr<StatementNode> enterStatement();
     shared_ptr<StatementNode> enterNotVarStartement();
@@ -61,13 +62,14 @@ public:
     shared_ptr<ForNode> enterForStatement();
     shared_ptr<ForEachNode> enterForEachStatement();
     shared_ptr<ExpressionNode> enterExpression();
-    shared_ptr<ExpressionNode> enterBinOpRHS(int exprPrec, shared_ptr<ExpressionNode> LHS);
+    shared_ptr<ExpressionNode> enterBinOpRHS(int exprPrec,
+                                             shared_ptr<ExpressionNode> LHS);
     shared_ptr<ExpressionNode> enterUnOpPrimary();
     shared_ptr<ExpressionNode> enterPrimary();
     shared_ptr<ExpressionNode> enterNew();
     shared_ptr<ExpressionNode> enterParenExpression();
-    shared_ptr<AccessNode> enterAccessOrCall(bool arr=false);
-    void  enterAccessWithoutArray(shared_ptr<AccessNode> access);
+    shared_ptr<AccessNode> enterAccessOrCall(bool arr = false);
+    void enterAccessWithoutArray(shared_ptr<AccessNode> access);
     void enterGeneric(shared_ptr<ClassRecordNode> classRecordNode);
     shared_ptr<ExpressionNode> enterLiteral();
     shared_ptr<ArrayInitializerNode> enterArrayInitializer();

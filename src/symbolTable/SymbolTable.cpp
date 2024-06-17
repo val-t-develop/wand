@@ -1,15 +1,15 @@
 #include "SymbolTable.hpp"
 
 SymbolTable::SymbolTable() : root(make_shared<Scope>()), currentScope(root) {
-    put(make_shared<ClassRecord> ("boolean", "primitive"));
-    put(make_shared<ClassRecord> ("int", "primitive"));
-    put(make_shared<ClassRecord> ("byte", "primitive"));
-    put(make_shared<ClassRecord> ("short", "primitive"));
-    put(make_shared<ClassRecord> ("long", "primitive"));
-    put(make_shared<ClassRecord> ("float", "primitive"));
-    put(make_shared<ClassRecord> ("double", "primitive"));
-    put(make_shared<ClassRecord> ("char", "primitive"));
-    put(make_shared<ClassRecord> ("void", "primitive"));
+    put(make_shared<ClassRecord>("boolean", "primitive"));
+    put(make_shared<ClassRecord>("int", "primitive"));
+    put(make_shared<ClassRecord>("byte", "primitive"));
+    put(make_shared<ClassRecord>("short", "primitive"));
+    put(make_shared<ClassRecord>("long", "primitive"));
+    put(make_shared<ClassRecord>("float", "primitive"));
+    put(make_shared<ClassRecord>("double", "primitive"));
+    put(make_shared<ClassRecord>("char", "primitive"));
+    put(make_shared<ClassRecord>("void", "primitive"));
 }
 
 string SymbolTable::getCurrentClassName() {
@@ -37,21 +37,19 @@ void SymbolTable::put(shared_ptr<ClassRecord> classRecord) {
     currentScope->put(classRecord);
 }
 
-void SymbolTable::put(shared_ptr<Record> record) {
-    currentScope->put(record);
-}
+void SymbolTable::put(shared_ptr<Record> record) { currentScope->put(record); }
 
 shared_ptr<VarRecord> SymbolTable::lookupVar(const string &name) {
     shared_ptr<VarRecord> curr = nullptr;
-    if(currentScope != nullptr) {
+    if (currentScope != nullptr) {
         curr = currentScope->lookupVar(name);
     }
-    if(curr != nullptr) {
+    if (curr != nullptr) {
         return curr;
     }
-    for(shared_ptr<SymbolTable> st : imports) {
+    for (shared_ptr<SymbolTable> st : imports) {
         shared_ptr<VarRecord> inImport = st->lookupVar(name);
-        if(inImport != nullptr) {
+        if (inImport != nullptr) {
             return inImport;
         }
     }
@@ -60,15 +58,15 @@ shared_ptr<VarRecord> SymbolTable::lookupVar(const string &name) {
 
 shared_ptr<MethodRecord> SymbolTable::lookupMethod(const string &name) {
     shared_ptr<MethodRecord> curr = nullptr;
-    if(currentScope != nullptr) {
+    if (currentScope != nullptr) {
         curr = currentScope->lookupMethod(name);
     }
-    if(curr != nullptr) {
+    if (curr != nullptr) {
         return curr;
     }
-    for(shared_ptr<SymbolTable> st : imports) {
+    for (shared_ptr<SymbolTable> st : imports) {
         shared_ptr<MethodRecord> inImport = st->lookupMethod(name);
-        if(inImport != nullptr) {
+        if (inImport != nullptr) {
             return inImport;
         }
     }
@@ -77,16 +75,16 @@ shared_ptr<MethodRecord> SymbolTable::lookupMethod(const string &name) {
 
 shared_ptr<ClassRecord> SymbolTable::lookupClass(const string &name) {
     shared_ptr<ClassRecord> curr = nullptr;
-    if(currentScope != nullptr) {
+    if (currentScope != nullptr) {
         curr = currentScope->lookupClass(name);
     }
-    if(curr != nullptr) {
+    if (curr != nullptr) {
         return curr;
     }
-    for(shared_ptr<SymbolTable> st : imports) {
+    for (shared_ptr<SymbolTable> st : imports) {
 
         shared_ptr<ClassRecord> inImport = st->lookupClass(name);
-        if(inImport != nullptr) {
+        if (inImport != nullptr) {
             return inImport;
         }
     }
@@ -95,15 +93,15 @@ shared_ptr<ClassRecord> SymbolTable::lookupClass(const string &name) {
 
 shared_ptr<Record> SymbolTable::lookupRecord(const string &name) {
     shared_ptr<Record> curr = nullptr;
-    if(currentScope != nullptr) {
+    if (currentScope != nullptr) {
         curr = currentScope->lookupRecord(name);
     }
-    if(curr != nullptr) {
+    if (curr != nullptr) {
         return curr;
     }
-    for(shared_ptr<SymbolTable> st : imports) {
+    for (shared_ptr<SymbolTable> st : imports) {
         shared_ptr<Record> inImport = st->lookupRecord(name);
-        if(inImport != nullptr) {
+        if (inImport != nullptr) {
             return inImport;
         }
     }
@@ -115,11 +113,11 @@ shared_ptr<Record> SymbolTable::lookup(const string &name) {
     shared_ptr<MethodRecord> methodRecord = lookupMethod(name);
     shared_ptr<ClassRecord> classRecord = lookupClass(name);
     shared_ptr<Record> record = lookupRecord(name);
-    if(varRecord != nullptr) {
+    if (varRecord != nullptr) {
         return varRecord;
-    } else if(methodRecord != nullptr) {
+    } else if (methodRecord != nullptr) {
         return methodRecord;
-    } else if(classRecord != nullptr) {
+    } else if (classRecord != nullptr) {
         return classRecord;
     } else {
         return record;
@@ -134,14 +132,10 @@ void SymbolTable::addMainMethod(shared_ptr<MethodRecord> record) {
     mainMethods.push_back(record);
 }
 
-void SymbolTable::resetTable() {
-    root->resetScope();
-}
+void SymbolTable::resetTable() { root->resetScope(); }
 
 void SymbolTable::enterScope(shared_ptr<Record> record) {
     currentScope = currentScope->nextChild(record);
 }
 
-void SymbolTable::exitScope() {
-    currentScope = currentScope->parent;
-}
+void SymbolTable::exitScope() { currentScope = currentScope->parent; }

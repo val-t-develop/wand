@@ -2,6 +2,6 @@
 #include <ast/node/Node.hpp>
 
 class StatementNode : public Node {
-public:
+  public:
     StatementNode(shared_ptr<Node> _parent, NodeKind _kind);
 };

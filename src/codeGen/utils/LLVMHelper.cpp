@@ -1,14 +1,14 @@
 #include "LLVMHelper.hpp"
-#include <utils/Out.hpp>
-#include <ast/node/statement/expression/literal/IntLiteralNode.hpp>
 #include <ast/node/statement/expression/literal/BoolLiteralNode.hpp>
 #include <ast/node/statement/expression/literal/CharLiteralNode.hpp>
-#include <ast/node/statement/expression/literal/NullNode.hpp>
 #include <ast/node/statement/expression/literal/FloatLiteralNode.hpp>
+#include <ast/node/statement/expression/literal/IntLiteralNode.hpp>
+#include <ast/node/statement/expression/literal/NullNode.hpp>
 #include <main.hpp>
+#include <utils/Out.hpp>
 
-#include <llvm/Analysis/LoopAnalysisManager.h>
 #include <llvm/Analysis/CGSCCPassManager.h>
+#include <llvm/Analysis/LoopAnalysisManager.h>
 #include <llvm/Passes/PassBuilder.h>
 
 #include "llvm/IR/LegacyPassManager.h"
@@ -26,9 +26,7 @@ LLVMHelper::LLVMHelper(string moduleName) {
     Builder = make_shared<IRBuilder<>>(*TheContext);
 }
 
-Type* LLVMHelper::getVoidType() {
-    return Type::getVoidTy(*TheContext);
-}
+Type *LLVMHelper::getVoidType() { return Type::getVoidTy(*TheContext); }
 
 void LLVMHelper::prepareBuild() {
     InitializeAllTargetInfos();
@@ -53,14 +51,12 @@ void LLVMHelper::prepareBuild() {
     TargetOptions opt;
     auto RM = Optional<Reloc::Model>();
     TheTargetMachine =
-            Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
+        Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
 
     TheModule->setDataLayout(TheTargetMachine->createDataLayout());
 }
 
-void LLVMHelper::printModule() {
-    TheModule->print(errs(), nullptr);
-}
+void LLVMHelper::printModule() { TheModule->print(errs(), nullptr); }
 
 void LLVMHelper::runPasses() {
     // Create the analysis managers.
@@ -74,7 +70,8 @@ void LLVMHelper::runPasses() {
     PB.registerFunctionAnalyses(FAM);
     PB.registerLoopAnalyses(LAM);
     PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
-    ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(OptimizationLevel::O2);
+    ModulePassManager MPM =
+        PB.buildPerModuleDefaultPipeline(OptimizationLevel::O2);
     MPM.run(*TheModule, MAM);
 }
 
@@ -95,10 +92,12 @@ StructType *LLVMHelper::createStructType(string name) {
 }
 
 GlobalVariable *LLVMHelper::createGlobalVar(Type *type, string name) {
-    return new GlobalVariable(*TheModule, type, false, GlobalValue::LinkageTypes::ExternalLinkage, 0, name);
+    return new GlobalVariable(*TheModule, type, false,
+                              GlobalValue::LinkageTypes::ExternalLinkage, 0,
+                              name);
 }
 
-ConstantPointerNull *LLVMHelper::getNullptr(PointerType* type) {
+ConstantPointerNull *LLVMHelper::getNullptr(PointerType *type) {
     return ConstantPointerNull::get(type);
 }
 
@@ -106,11 +105,13 @@ Function *LLVMHelper::getFunction(string name) {
     return TheModule->getFunction(name);
 }
 
-Function *LLVMHelper::createFunctionPrototype(string name, Type *ret, vector<Type *> args) {
-    Function* f = getFunction(name);
+Function *LLVMHelper::createFunctionPrototype(string name, Type *ret,
+                                              vector<Type *> args) {
+    Function *f = getFunction(name);
     if (!f) {
-        FunctionType* ft = FunctionType::get(ret, args, false);
-        return Function::Create(ft, Function::ExternalLinkage, name, *TheModule);
+        FunctionType *ft = FunctionType::get(ret, args, false);
+        return Function::Create(ft, Function::ExternalLinkage, name,
+                                *TheModule);
     }
     return f;
 }
@@ -120,9 +121,7 @@ BasicBlock *LLVMHelper::createBBinFunc(string name, Function *func) {
     return BB;
 }
 
-void LLVMHelper::activateBB(BasicBlock *BB) {
-    Builder->SetInsertPoint(BB);
-}
+void LLVMHelper::activateBB(BasicBlock *BB) { Builder->SetInsertPoint(BB); }
 
 Value *LLVMHelper::createAlloca(Type *type, Value *arrSize, string name) {
     return Builder->CreateAlloca(type, arrSize, name);
@@ -132,20 +131,17 @@ void LLVMHelper::createStore(Value *val, Value *ptr) {
     Builder->CreateStore(val, ptr);
 }
 
-void LLVMHelper::createBr(BasicBlock *BB) {
-    Builder->CreateBr(BB);
-}
+void LLVMHelper::createBr(BasicBlock *BB) { Builder->CreateBr(BB); }
 
-void LLVMHelper::createRet(Value *val) {
-    Builder->CreateRet(val);
-}
+void LLVMHelper::createRet(Value *val) { Builder->CreateRet(val); }
 
-Value *LLVMHelper::createCall(Function *func, vector<Value *> args, string name) {
+Value *LLVMHelper::createCall(Function *func, vector<Value *> args,
+                              string name) {
     return Builder->CreateCall(func, args, name);
 }
 
 Value *LLVMHelper::createCall(string func, vector<Value *> args, string name) {
-    Function* f = getFunction(func);
+    Function *f = getFunction(func);
     if (!f)
         Out::errorMessage("Can not create call instruction for " + func);
     return Builder->CreateCall(f, args, name);
@@ -155,17 +151,14 @@ Value *LLVMHelper::createLoad(Type *type, Value *ptr, string name) {
     return Builder->CreateLoad(type, ptr, name);
 }
 
-void LLVMHelper::createIfElse(Value *cond, BasicBlock *thenBB, BasicBlock *elseBB) {
+void LLVMHelper::createIfElse(Value *cond, BasicBlock *thenBB,
+                              BasicBlock *elseBB) {
     Builder->CreateCondBr(cond, thenBB, elseBB);
 }
 
-BasicBlock *LLVMHelper::getActiveBB() {
-    return Builder->GetInsertBlock();
-}
+BasicBlock *LLVMHelper::getActiveBB() { return Builder->GetInsertBlock(); }
 
-Function *LLVMHelper::getCurrFunction() {
-    return getActiveBB()->getParent();
-}
+Function *LLVMHelper::getCurrFunction() { return getActiveBB()->getParent(); }
 
 IntegerType *LLVMHelper::getIntType(int size) {
     return IntegerType::get(*TheContext, size);
@@ -175,20 +168,17 @@ ConstantInt *LLVMHelper::getConstInt(int size, uint64_t val) {
     return ConstantInt::get(getIntType(size), val, true);
 }
 
-Type *LLVMHelper::getFloatType() {
-    return Type::getFloatTy(*TheContext);
-}
+Type *LLVMHelper::getFloatType() { return Type::getFloatTy(*TheContext); }
 
-Type *LLVMHelper::getDoubleType() {
-    return Type::getDoubleTy(*TheContext);
-}
+Type *LLVMHelper::getDoubleType() { return Type::getDoubleTy(*TheContext); }
 
 Constant *LLVMHelper::getConstFloat(double val) {
     return ConstantFP::get(getFloatType(), val);
 }
 
 Constant *LLVMHelper::getConstDouble(double val) {
-    return ConstantFP::get(getDoubleType(), val);;
+    return ConstantFP::get(getDoubleType(), val);
+    ;
 }
 
 PointerType *LLVMHelper::getPointerType(Type *type, int addressSpace) {
@@ -199,7 +189,8 @@ Value *LLVMHelper::createPtrToInt(Value *ptr, Type *intType, string name) {
     return Builder->CreatePtrToInt(ptr, intType, name);
 }
 
-Value *LLVMHelper::createGetElementPtr(Type *type, Value *ptr, vector<Value *> indexes, string name) {
+Value *LLVMHelper::createGetElementPtr(Type *type, Value *ptr,
+                                       vector<Value *> indexes, string name) {
     return GetElementPtrInst::Create(type, ptr, indexes, name, getActiveBB());
 }
 
@@ -307,9 +298,7 @@ Value *LLVMHelper::castToFloat(Value *val, string name) {
     return Builder->CreateFPCast(val, getFloatType(), name);
 }
 
-string LLVMHelper::getModuleName() {
-    return string(TheModule->getName());
-}
+string LLVMHelper::getModuleName() { return string(TheModule->getName()); }
 
 ArrayType *LLVMHelper::getArrayType(Type *type, uint64_t n) {
     return ArrayType::get(type, n);

@@ -14,11 +14,11 @@ SymbolListener::SymbolListener(shared_ptr<SymbolTable> symbolTable,
 void SymbolListener::processImport(vector<string> importName) {
     vector<Path> importFiles = vector<Path>();
     Path path = srcDir;
-    for(size_t i = 0; i < importName.size(); i++) {
+    for (size_t i = 0; i < importName.size(); i++) {
         string lastPackage = importName[i];
-        if(path.isDir()) {
-            for(Path file : path.getDirContent()) {
-                if(file.getFilename() == lastPackage) {
+        if (path.isDir()) {
+            for (Path file : path.getDirContent()) {
+                if (file.getFilename() == lastPackage) {
                     path = file;
                     break;
                 }
@@ -27,18 +27,18 @@ void SymbolListener::processImport(vector<string> importName) {
             Out::errorMessage(lexer, path.getName() + " is not directory");
         }
     }
-    if(path.isDir()) {
-        for(Path file : path.getDirContent()) {
-            if(file.isFile()) {
-                if(file.getName().ends_with(".spl")) {
+    if (path.isDir()) {
+        for (Path file : path.getDirContent()) {
+            if (file.isFile()) {
+                if (file.getName().ends_with(".spl")) {
                     importFiles.push_back(file);
                     Main::processFileToState(file, CU::State::ST);
                     symbolTable->addImport(Main::CUs[file]->st);
                 }
             }
         }
-    } else if(path.isFile()) {
-        if(path.getName().ends_with(".spl")) {
+    } else if (path.isFile()) {
+        if (path.getName().ends_with(".spl")) {
             importFiles.push_back(path);
             Main::processFileToState(path, CU::State::ST);
             symbolTable->addImport(Main::CUs[path]->st);
@@ -52,33 +52,33 @@ void SymbolListener::processImport(vector<string> importName) {
 void SymbolListener::walk() {
     symbolTable->setCurrentScopeNameAndType("__program", "__program");
     ParserUtils::skipSemicolons(lexer);
-    if(lexer.getCurrent()->kind == Token::Kind::PACKAGE) {
+    if (lexer.getCurrent()->kind == Token::Kind::PACKAGE) {
         enterPackage();
     }
-    while(true) {
+    while (true) {
         ParserUtils::skipSemicolons(lexer);
-        if(lexer.getCurrent()->kind == Token::Kind::IMPORT) {
+        if (lexer.getCurrent()->kind == Token::Kind::IMPORT) {
             enterImport();
         } else {
             break;
         }
     }
 
-    while(lexer.getCurrent()->kind != Token::Kind::END_OF_FILE) {
+    while (lexer.getCurrent()->kind != Token::Kind::END_OF_FILE) {
         ParserUtils::skipSemicolons(lexer);
         enterTypeDecl();
     }
 }
 
 void SymbolListener::enterPackage() {
-    if(lexer.getCurrent()->kind == Token::Kind::PACKAGE) {
+    if (lexer.getCurrent()->kind == Token::Kind::PACKAGE) {
         lexer.goForward();
         ParserUtils::QualifiedName qualifiedName(lexer);
 
         Path path = filePath.getParent();
-        for(int i = qualifiedName.size() - 1; i >= 0; i--) {
+        for (int i = qualifiedName.size() - 1; i >= 0; i--) {
             string name = qualifiedName.get(i)->str;
-            if(path.getName().ends_with(name)) {
+            if (path.getName().ends_with(name)) {
                 path = path.getParent();
             } else {
                 Out::errorMessage(lexer, "Irregular package name");
@@ -86,7 +86,7 @@ void SymbolListener::enterPackage() {
         }
         srcDir = path;
 
-        if(qualifiedName.getText() != "spl.core") {
+        if (qualifiedName.getText() != "spl.core") {
             vector<string> importName = {"spl", "core"};
             processImport(importName);
         } else {
@@ -96,14 +96,14 @@ void SymbolListener::enterPackage() {
 }
 
 void SymbolListener::enterImport() {
-    if(lexer.getCurrent()->kind == Token::Kind::IMPORT) {
+    if (lexer.getCurrent()->kind == Token::Kind::IMPORT) {
         lexer.goForward();
         ParserUtils::QualifiedName qualifiedName(lexer);
 
         vector<string> importName;
         std::stringstream streamData(qualifiedName.getText());
         std::string val;
-        while(std::getline(streamData, val, '.')) {
+        while (std::getline(streamData, val, '.')) {
             importName.push_back(val);
         }
 
@@ -113,19 +113,20 @@ void SymbolListener::enterImport() {
 
 void SymbolListener::enterTypeDecl() {
     enterModifiers();
-    if(lexer.getCurrent()->kind == Token::Kind::CLASS) {
+    if (lexer.getCurrent()->kind == Token::Kind::CLASS) {
 
         enterClassDecl();
-    } else if(lexer.getCurrent()->kind == Token::Kind::INTERFACE) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::INTERFACE) {
         enterInterfaceDecl();
-    } else if(lexer.getCurrent()->kind == Token::Kind::ENUM) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::ENUM) {
         enterEnumDecl();
     } else {
-        Out::errorMessage(lexer, "Expected type declaration kind specifier (class, "
+        Out::errorMessage(lexer,
+                          "Expected type declaration kind specifier (class, "
                           "interface, enum or @interface), but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+                              lexer.getCurrent()->str + "\tin " +
+                              std::to_string(lexer.getCurrent()->line) + ":" +
+                              std::to_string(lexer.getCurrent()->pos));
     }
 }
 
@@ -133,25 +134,26 @@ void SymbolListener::enterClassDecl() {
     string type = "", id = "";
 
     lexer.goForward();
-    if(lexer.getCurrent()->kind == Token::Kind::IDENTIFIER) {
+    if (lexer.getCurrent()->kind == Token::Kind::IDENTIFIER) {
         id = lexer.getCurrent()->str;
         lexer.goForward();
 
-        if(symbolTable->lookupClass(id) != nullptr) {
-            Out::errorMessage(lexer, "Duplicated class name [ " + id + " ] in " +
-                              std::to_string(lexer.getCurrent()->line) +
-                              ":" +
-                              std::to_string(lexer.getCurrent()->pos));
+        if (symbolTable->lookupClass(id) != nullptr) {
+            Out::errorMessage(
+                lexer, "Duplicated class name [ " + id + " ] in " +
+                           std::to_string(lexer.getCurrent()->line) + ":" +
+                           std::to_string(lexer.getCurrent()->pos));
         }
     } else {
         Out::errorMessage(lexer, "Expected identifier, but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+                                     lexer.getCurrent()->str + "\tin " +
+                                     std::to_string(lexer.getCurrent()->line) +
+                                     ":" +
+                                     std::to_string(lexer.getCurrent()->pos));
     }
 
-    shared_ptr<ClassRecord> newClass = make_shared<ClassRecord> (id, type);
-    if(currentClass != nullptr) {
+    shared_ptr<ClassRecord> newClass = make_shared<ClassRecord>(id, type);
+    if (currentClass != nullptr) {
         currentClass->addInnerClass(newClass);
     }
     currentClass = newClass;
@@ -164,7 +166,7 @@ void SymbolListener::enterClassDecl() {
     symbolTable->setCurrentScopeClass(newClass);
     classes.push(currentClass);
 
-    if(lexer.ifCurrTokenStartsWithLT()) {
+    if (lexer.ifCurrTokenStartsWithLT()) {
         type = enterGenericDecl();
         currentClass->type = type;
     }
@@ -172,51 +174,47 @@ void SymbolListener::enterClassDecl() {
     vector<string> superClasses = enterExtending();
     newClass->superClass = superClasses.size() >= 1 ? superClasses[0] : "";
 
-    if(lexer.getCurrent()->kind == Token::Kind::LBRACE) {
+    if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
         lexer.goForward();
-        while(true) {
+        while (true) {
             ParserUtils::skipSemicolons(lexer);
-            if(lexer.getCurrent()->kind == Token::Kind::RBRACE) {
+            if (lexer.getCurrent()->kind == Token::Kind::RBRACE) {
                 lexer.goForward();
                 break;
             }
             enterClassMemberDecl();
         }
     } else {
-        Out::errorMessage(lexer, "Expected '{', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected '{', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
     symbolTable->exitScope();
     classes.pop();
-    if(!classes.empty()) {
+    if (!classes.empty()) {
         currentClass = classes.top();
     } else {
         currentClass = nullptr;
     }
 }
 
-void SymbolListener::enterInterfaceDecl() {
-    enterClassDecl();
-}
+void SymbolListener::enterInterfaceDecl() { enterClassDecl(); }
 
-void SymbolListener::enterEnumDecl() {
-    enterClassDecl();
-}
+void SymbolListener::enterEnumDecl() { enterClassDecl(); }
 
 string SymbolListener::enterGenericDecl() {
     string str = "<";
     lexer.removeFirstCharOfCurrShift();
 
-    while(true) {
-        if(lexer.ifCurrTokenStartsWithGT()) {
+    while (true) {
+        if (lexer.ifCurrTokenStartsWithGT()) {
             str.append(">");
             lexer.removeFirstCharOfCurrShift();
             break;
         }
         str.append(enterGenericTypeDecl());
-        if(lexer.getCurrent()->kind == Token::Kind::COMMA) {
+        if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
             str.append(lexer.getCurrent()->str);
             lexer.goForward();
         }
@@ -226,82 +224,86 @@ string SymbolListener::enterGenericDecl() {
 
 string SymbolListener::enterGenericTypeDecl() {
     string str = "";
-    if(lexer.getCurrent()->kind == Token::Kind::IDENTIFIER) {
+    if (lexer.getCurrent()->kind == Token::Kind::IDENTIFIER) {
         string id = lexer.getCurrent()->str;
         str.append(id);
         lexer.goForward();
         // TODO <T extends A>
 
-        shared_ptr<ClassRecord> newClass = make_shared<ClassRecord> (id, "");
-        if(currentClass != nullptr) {
+        shared_ptr<ClassRecord> newClass = make_shared<ClassRecord>(id, "");
+        if (currentClass != nullptr) {
             currentClass->addInnerClass(newClass);
         }
         symbolTable->put(newClass);
     } else {
         Out::errorMessage(lexer, "Expected identifier, but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+                                     lexer.getCurrent()->str + "\tin " +
+                                     std::to_string(lexer.getCurrent()->line) +
+                                     ":" +
+                                     std::to_string(lexer.getCurrent()->pos));
     }
     return str;
 }
 
 void SymbolListener::enterClassMemberDecl() {
     vector<ModifiersNode::ModifierKind> mods = enterModifiers();
-    if(lexer.getCurrent()->kind == Token::Kind::CLASS) {
+    if (lexer.getCurrent()->kind == Token::Kind::CLASS) {
         enterClassDecl();
-    } else if(lexer.getCurrent()->kind == Token::Kind::INTERFACE) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::INTERFACE) {
         enterInterfaceDecl();
-    } else if(lexer.getCurrent()->kind == Token::Kind::ENUM) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::ENUM) {
         enterEnumDecl();
     } else {
-        if(lexer.getNext()->kind == Token::Kind::LPAREN) {
+        if (lexer.getNext()->kind == Token::Kind::LPAREN) {
             enterConstructorDecl(mods);
         } else {
             string type, id = "";
-            if(lexer.getCurrent()->kind == Token::Kind::VOID) {
+            if (lexer.getCurrent()->kind == Token::Kind::VOID) {
                 type = "void";
                 lexer.goForward();
             } else {
                 type = enterType(true);
             }
 
-            if(lexer.getCurrent()->kind == Token::Kind::IDENTIFIER) {
+            if (lexer.getCurrent()->kind == Token::Kind::IDENTIFIER) {
                 id = lexer.getCurrent()->str;
                 lexer.goForward();
-                if(lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+                if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
                     enterMethodDecl(type, id, mods);
                 } else {
-                    if(type == "void") {
+                    if (type == "void") {
                         Out::errorMessage(
-                            lexer, "Field type can not be void in " +
-                            std::to_string(lexer.getPrevious()->line) + ":" +
-                            std::to_string(lexer.getPrevious()->pos));
+                            lexer,
+                            "Field type can not be void in " +
+                                std::to_string(lexer.getPrevious()->line) +
+                                ":" + std::to_string(lexer.getPrevious()->pos));
                     } else {
                         enterField(type, id, mods);
                     }
                 }
             } else {
-                Out::errorMessage(lexer, "Expected identifier, but found:\n\t" +
-                                  lexer.getCurrent()->str + "\tin " +
-                                  std::to_string(lexer.getCurrent()->line) +
-                                  ":" +
-                                  std::to_string(lexer.getCurrent()->pos));
+                Out::errorMessage(
+                    lexer, "Expected identifier, but found:\n\t" +
+                               lexer.getCurrent()->str + "\tin " +
+                               std::to_string(lexer.getCurrent()->line) + ":" +
+                               std::to_string(lexer.getCurrent()->pos));
             }
         }
     }
 }
 
-void SymbolListener::enterConstructorDecl(vector<ModifiersNode::ModifierKind> mods) {
-    if(lexer.getCurrent()->str != currentClass->id) {
+void SymbolListener::enterConstructorDecl(
+    vector<ModifiersNode::ModifierKind> mods) {
+    if (lexer.getCurrent()->str != currentClass->id) {
         Out::errorMessage(lexer, "Constructor has not same name as class [ " +
-                          currentClass->id + " ] in " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+                                     currentClass->id + " ] in " +
+                                     std::to_string(lexer.getCurrent()->line) +
+                                     ":" +
+                                     std::to_string(lexer.getCurrent()->pos));
     }
     string type = "__constructor", id = lexer.getCurrent()->str;
 
-    currentMethod = make_shared<MethodRecord> (id, type);
+    currentMethod = make_shared<MethodRecord>(id, type);
     currentMethod->isConstructor = true;
     currentMethod->mods = mods;
     symbolTable->put(currentMethod);
@@ -318,32 +320,33 @@ void SymbolListener::enterConstructorDecl(vector<ModifiersNode::ModifierKind> mo
     lexer.goForward();
     enterMethodArgs();
 
-    if(lexer.getCurrent()->kind == Token::Kind::LBRACE) {
+    if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
         enterBlockStatement(false);
     } else {
-        Out::errorMessage(lexer, "Expected '{', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected '{', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 
     uint8_t similarities = 0;
-    for(shared_ptr<MethodRecord> method : currentClass->methods) {
-        if(method->id == currentMethod->id) {
-            if(method->vars == currentMethod->vars) {
+    for (shared_ptr<MethodRecord> method : currentClass->methods) {
+        if (method->id == currentMethod->id) {
+            if (method->vars == currentMethod->vars) {
                 similarities++;
             }
         }
     }
-    if(similarities >= 2) {
+    if (similarities >= 2) {
         Out::errorMessage(lexer, "Constructor duplicated on class [ " +
-                          currentClass->id + " ]");
+                                     currentClass->id + " ]");
     }
     symbolTable->exitScope();
 }
 
-void SymbolListener::enterMethodDecl(string type, string id, vector<ModifiersNode::ModifierKind> mods) {
-    currentMethod = make_shared<MethodRecord> (id, type);
+void SymbolListener::enterMethodDecl(string type, string id,
+                                     vector<ModifiersNode::ModifierKind> mods) {
+    currentMethod = make_shared<MethodRecord>(id, type);
     currentMethod->mods = mods;
     symbolTable->put(currentMethod);
 
@@ -358,56 +361,59 @@ void SymbolListener::enterMethodDecl(string type, string id, vector<ModifiersNod
 
     enterMethodArgs();
 
-    if(lexer.getCurrent()->kind == Token::Kind::LBRACE) {
+    if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
         enterBlockStatement(false);
-    } else if(lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected '{', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected '{', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 
     uint8_t similarities = 0;
-    for(shared_ptr<MethodRecord> method : currentClass->methods) {
-        if(method->equals(currentMethod)) {
+    for (shared_ptr<MethodRecord> method : currentClass->methods) {
+        if (method->equals(currentMethod)) {
             similarities++;
         }
     }
-    if(similarities >= 2) {
+    if (similarities >= 2) {
         Out::errorMessage(lexer, "Method [ " + currentMethod->id +
-                          " ] duplicated on class [ " +
-                          currentClass->id + " ]");
+                                     " ] duplicated on class [ " +
+                                     currentClass->id + " ]");
     }
     symbolTable->exitScope();
 }
 
-void SymbolListener::enterField(string type, string id, vector<ModifiersNode::ModifierKind> mods) {
+void SymbolListener::enterField(string type, string id,
+                                vector<ModifiersNode::ModifierKind> mods) {
     int dims = 0;
 
-    while(true) {
-        if(lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
+    while (true) {
+        if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
             lexer.goForward();
             dims++;
-            if(lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
+            if (lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
                 lexer.goForward();
             } else {
                 Out::errorMessage(
-                    lexer, "Expected ']', but found:\n\t" + lexer.getCurrent()->str +
-                    "\tin " + std::to_string(lexer.getCurrent()->line) +
-                    ":" + std::to_string(lexer.getCurrent()->pos));
+                    lexer, "Expected ']', but found:\n\t" +
+                               lexer.getCurrent()->str + "\tin " +
+                               std::to_string(lexer.getCurrent()->line) + ":" +
+                               std::to_string(lexer.getCurrent()->pos));
             }
         } else {
             break;
         }
     }
 
-    for(int i = 0; i < dims; ++i) {
+    for (int i = 0; i < dims; ++i) {
         type += "[]";
     }
 
-    shared_ptr<VarRecord> newField = make_shared<VarRecord>(id, type, Record::RecordKind::FIELD_RECORD);
+    shared_ptr<VarRecord> newField =
+        make_shared<VarRecord>(id, type, Record::RecordKind::FIELD_RECORD);
     newField->mods = mods;
     newField->next = currentClass;
     // insert record into scope
@@ -416,7 +422,7 @@ void SymbolListener::enterField(string type, string id, vector<ModifiersNode::Mo
     // insert record into scope
     symbolTable->put(newField);
 
-    if(lexer.getCurrent()->kind == Token::Kind::ASSIGN) {
+    if (lexer.getCurrent()->kind == Token::Kind::ASSIGN) {
         lexer.goForward();
         enterExpression();
     }
@@ -424,22 +430,22 @@ void SymbolListener::enterField(string type, string id, vector<ModifiersNode::Mo
 
 void SymbolListener::enterStatement() {
     vector<ModifiersNode::ModifierKind> mods = enterModifiers();
-    if(lexer.getCurrent()->kind == Token::Kind::IDENTIFIER ||
-            lexer.getCurrent()->kind == Token::Kind::BOOLEAN ||
-            lexer.getCurrent()->kind == Token::Kind::CHAR ||
-            lexer.getCurrent()->kind == Token::Kind::BYTE ||
-            lexer.getCurrent()->kind == Token::Kind::SHORT ||
-            lexer.getCurrent()->kind == Token::Kind::INT ||
-            lexer.getCurrent()->kind == Token::Kind::LONG ||
-            lexer.getCurrent()->kind == Token::Kind::FLOAT ||
-            lexer.getCurrent()->kind == Token::Kind::DOUBLE) {
+    if (lexer.getCurrent()->kind == Token::Kind::IDENTIFIER ||
+        lexer.getCurrent()->kind == Token::Kind::BOOLEAN ||
+        lexer.getCurrent()->kind == Token::Kind::CHAR ||
+        lexer.getCurrent()->kind == Token::Kind::BYTE ||
+        lexer.getCurrent()->kind == Token::Kind::SHORT ||
+        lexer.getCurrent()->kind == Token::Kind::INT ||
+        lexer.getCurrent()->kind == Token::Kind::LONG ||
+        lexer.getCurrent()->kind == Token::Kind::FLOAT ||
+        lexer.getCurrent()->kind == Token::Kind::DOUBLE) {
         int i = 1;
-        while(true) {
-            if(lexer.getWithOffset(i)->kind == Token::Kind::IDENTIFIER) {
+        while (true) {
+            if (lexer.getWithOffset(i)->kind == Token::Kind::IDENTIFIER) {
                 enterLocalVar(mods);
                 break;
-            } else if(lexer.getWithOffset(i)->kind == Token::Kind::LBRACKET ||
-                      lexer.getWithOffset(i)->kind == Token::Kind::RBRACKET) {
+            } else if (lexer.getWithOffset(i)->kind == Token::Kind::LBRACKET ||
+                       lexer.getWithOffset(i)->kind == Token::Kind::RBRACKET) {
                 i++;
             } else {
                 enterNotVarStatement();
@@ -452,23 +458,23 @@ void SymbolListener::enterStatement() {
 }
 
 void SymbolListener::enterNotVarStatement() {
-    if(lexer.getCurrent()->kind == Token::Kind::LBRACE) {
+    if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
         enterBlockStatement(true);
-    } else if(lexer.getCurrent()->kind == Token::Kind::ASSERT) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::ASSERT) {
         enterAssertStatement();
-    } else if(lexer.getCurrent()->kind == Token::Kind::BREAK) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::BREAK) {
         enterBreakStatement();
-    } else if(lexer.getCurrent()->kind == Token::Kind::CONTINUE) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::CONTINUE) {
         enterContinueStatement();
-    } else if(lexer.getCurrent()->kind == Token::Kind::RETURN) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::RETURN) {
         enterReturnStatement();
-    } else if(lexer.getCurrent()->kind == Token::Kind::IF) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::IF) {
         enterIfStatement();
-    } else if(lexer.getCurrent()->kind == Token::Kind::WHILE) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::WHILE) {
         enterWhileStatement();
-    } else if(lexer.getCurrent()->kind == Token::Kind::FOR) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::FOR) {
         enterForStatement();
-    } else if(lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
         lexer.goForward();
     } else {
         enterExpression();
@@ -478,109 +484,113 @@ void SymbolListener::enterNotVarStatement() {
 void SymbolListener::enterLocalVar(vector<ModifiersNode::ModifierKind> mods) {
     string type = enterType(true), id = "";
 
-    while(true) {
-        if(lexer.getCurrent()->kind == Token::Kind::IDENTIFIER) {
+    while (true) {
+        if (lexer.getCurrent()->kind == Token::Kind::IDENTIFIER) {
             id = lexer.getCurrent()->str;
             lexer.goForward();
 
             int dims = 0;
 
-            while(true) {
-                if(lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
+            while (true) {
+                if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
                     lexer.goForward();
                     dims++;
-                    if(lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
+                    if (lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
                         lexer.goForward();
                     } else {
                         Out::errorMessage(
-                            lexer, "Expected ']', but found:\n\t" +
-                            lexer.getCurrent()->str + "\tin " +
-                            std::to_string(lexer.getCurrent()->line) + ":" +
-                            std::to_string(lexer.getCurrent()->pos));
+                            lexer,
+                            "Expected ']', but found:\n\t" +
+                                lexer.getCurrent()->str + "\tin " +
+                                std::to_string(lexer.getCurrent()->line) + ":" +
+                                std::to_string(lexer.getCurrent()->pos));
                     }
                 } else {
                     break;
                 }
             }
 
-            for(int i = 0; i < dims; ++i) {
+            for (int i = 0; i < dims; ++i) {
                 type += "[]";
             }
 
-            shared_ptr<VarRecord> newVar = make_shared<VarRecord>(id, type, Record::RecordKind::LOCAL_VAR_RECORD);
+            shared_ptr<VarRecord> newVar = make_shared<VarRecord>(
+                id, type, Record::RecordKind::LOCAL_VAR_RECORD);
             newVar->mods = mods;
             // insert record into scope
             currentMethod->addVar(newVar);
             // insert record into scope
             symbolTable->put(newVar);
 
-            if(lexer.getCurrent()->kind == Token::Kind::ASSIGN) {
+            if (lexer.getCurrent()->kind == Token::Kind::ASSIGN) {
                 lexer.goForward();
                 enterExpression();
             }
 
-            if(lexer.getCurrent()->kind == Token::Kind::COMMA) {
+            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
                 lexer.goForward();
             } else {
                 break;
             }
 
         } else {
-            Out::errorMessage(lexer, "Expected identifier, but found:\n\t" +
-                              lexer.getCurrent()->str + "\tin " +
-                              std::to_string(lexer.getCurrent()->line) +
-                              ":" +
-                              std::to_string(lexer.getCurrent()->pos));
+            Out::errorMessage(
+                lexer, "Expected identifier, but found:\n\t" +
+                           lexer.getCurrent()->str + "\tin " +
+                           std::to_string(lexer.getCurrent()->line) + ":" +
+                           std::to_string(lexer.getCurrent()->pos));
         }
     }
 }
 
 void SymbolListener::enterMethodArgs() {
     lexer.goForward();
-    while(true) {
-        if(lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+    while (true) {
+        if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
             lexer.goForward();
             break;
-        } else if(lexer.getCurrent()->kind == Token::Kind::COMMA) {
+        } else if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
             lexer.goForward();
         }
         string type = enterType(true), id = "";
-        if(lexer.getCurrent()->kind == Token::Kind::IDENTIFIER) {
+        if (lexer.getCurrent()->kind == Token::Kind::IDENTIFIER) {
             id = lexer.getCurrent()->str;
             lexer.goForward();
 
             int dims = 0;
 
-            while(true) {
-                if(lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
+            while (true) {
+                if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
                     lexer.goForward();
                     dims++;
-                    if(lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
+                    if (lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
                         lexer.goForward();
                     } else {
                         Out::errorMessage(
-                            lexer, "Expected ']', but found:\n\t" +
-                            lexer.getCurrent()->str + "\tin " +
-                            std::to_string(lexer.getCurrent()->line) + ":" +
-                            std::to_string(lexer.getCurrent()->pos));
+                            lexer,
+                            "Expected ']', but found:\n\t" +
+                                lexer.getCurrent()->str + "\tin " +
+                                std::to_string(lexer.getCurrent()->line) + ":" +
+                                std::to_string(lexer.getCurrent()->pos));
                     }
                 } else {
                     break;
                 }
             }
 
-            for(int i = 0; i < dims; ++i) {
+            for (int i = 0; i < dims; ++i) {
                 type += "[]";
             }
         } else {
-            Out::errorMessage(lexer, "Expected identifier, but found:\n\t" +
-                              lexer.getCurrent()->str + "\tin " +
-                              std::to_string(lexer.getCurrent()->line) +
-                              ":" +
-                              std::to_string(lexer.getCurrent()->pos));
+            Out::errorMessage(
+                lexer, "Expected identifier, but found:\n\t" +
+                           lexer.getCurrent()->str + "\tin " +
+                           std::to_string(lexer.getCurrent()->line) + ":" +
+                           std::to_string(lexer.getCurrent()->pos));
         }
 
-        shared_ptr<VarRecord> arg = make_shared<VarRecord>(id, type, Record::RecordKind::LOCAL_VAR_RECORD);
+        shared_ptr<VarRecord> arg = make_shared<VarRecord>(
+            id, type, Record::RecordKind::LOCAL_VAR_RECORD);
         // add parameter to method
         currentMethod->addArg(arg);
         // insert record into scope
@@ -591,16 +601,17 @@ void SymbolListener::enterMethodArgs() {
 void SymbolListener::enterBlockStatement(bool newScope) {
     if (newScope) {
         string id = "__jpp__" + std::to_string(getNextUniqueNumber());
-        shared_ptr<Record> record = make_shared<Record>(id, "__jpp__group", Record::RecordKind::UNUSED);
+        shared_ptr<Record> record =
+            make_shared<Record>(id, "__jpp__group", Record::RecordKind::UNUSED);
         symbolTable->put(record);
         symbolTable->enterScope(record);
     }
 
-    if(lexer.getCurrent()->kind == Token::Kind::LBRACE) {
+    if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
         lexer.goForward();
-        while(true) {
+        while (true) {
             ParserUtils::skipSemicolons(lexer);
-            if(lexer.getCurrent()->kind == Token::Kind::RBRACE) {
+            if (lexer.getCurrent()->kind == Token::Kind::RBRACE) {
                 if (newScope) {
                     symbolTable->exitScope();
                 }
@@ -610,98 +621,98 @@ void SymbolListener::enterBlockStatement(bool newScope) {
             enterStatement();
         }
     } else {
-        Out::errorMessage(lexer, "Expected '{', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected '{', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 }
 
 void SymbolListener::enterAssertStatement() {
     lexer.goForward();
     enterExpression();
-    if(lexer.getCurrent()->kind == Token::Kind::COLON) {
+    if (lexer.getCurrent()->kind == Token::Kind::COLON) {
         lexer.goForward();
         enterExpression();
     }
 
-    if(lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+    if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected ';', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected ';', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 }
 
 void SymbolListener::enterBreakStatement() {
     lexer.goForward();
-    if(lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+    if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected ';', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected ';', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 }
 
 void SymbolListener::enterContinueStatement() {
     lexer.goForward();
-    if(lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+    if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected ';', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected ';', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 }
 
 void SymbolListener::enterReturnStatement() {
     lexer.goForward();
 
-    if(lexer.getCurrent()->kind != Token::Kind::SEMICOLON) {
+    if (lexer.getCurrent()->kind != Token::Kind::SEMICOLON) {
         enterExpression();
     }
 
-    if(lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+    if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected ';', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected ';', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 }
 
 void SymbolListener::enterIfStatement() {
     lexer.goForward();
 
-    if(lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+    if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected '(', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 
     enterExpression();
 
-    if(lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+    if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected ')', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected ')', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 
     enterStatement();
 
-    if(lexer.getCurrent()->kind == Token::Kind::ELSE) {
+    if (lexer.getCurrent()->kind == Token::Kind::ELSE) {
         lexer.goForward();
         enterStatement();
     }
@@ -710,24 +721,24 @@ void SymbolListener::enterIfStatement() {
 void SymbolListener::enterWhileStatement() {
     lexer.goForward();
 
-    if(lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+    if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected '(', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 
     enterExpression();
 
-    if(lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+    if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected ')', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected ')', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 
     enterStatement();
@@ -736,45 +747,45 @@ void SymbolListener::enterWhileStatement() {
 void SymbolListener::enterForStatement() {
     lexer.goForward();
 
-    if(lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+    if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected '(', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 
     enterStatement();
-    if(lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+    if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected ';', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected ';', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
     enterExpression();
-    if(lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+    if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected ';', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected ';', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
-    
+
     if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
         enterStatement();
     }
 
-    if(lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+    if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected ')', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected ')', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 
     enterStatement();
@@ -786,21 +797,21 @@ void SymbolListener::enterForEachStatement() {
     if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected '(', but found:\n\t" +
-                                    lexer.getCurrent()->str + "\tin " +
-                                    std::to_string(lexer.getCurrent()->line) +
-                                    ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
-    std::vector<ModifiersNode::ModifierKind>mods = enterModifiers();
+    std::vector<ModifiersNode::ModifierKind> mods = enterModifiers();
     enterLocalVar(mods);
 
     if (lexer.getCurrent()->kind == Token::Kind::COLON) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected ':', but found:\n\t" +
-                                    lexer.getCurrent()->str + "\tin " +
-                                    std::to_string(lexer.getCurrent()->line) +
-                                    ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected ':', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 
     enterExpression();
@@ -808,10 +819,10 @@ void SymbolListener::enterForEachStatement() {
     if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected ')', but found:\n\t" +
-                                    lexer.getCurrent()->str + "\tin " +
-                                    std::to_string(lexer.getCurrent()->line) +
-                                    ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected ')', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 
     enterStatement();
@@ -823,10 +834,10 @@ void SymbolListener::enterExpression() {
 }
 
 void SymbolListener::enterBinOpRHS(int exprPrec) {
-    while(true) {
+    while (true) {
         int tokPrec = ParserUtils::getBinOpPrecedence(lexer);
 
-        if(tokPrec < exprPrec)
+        if (tokPrec < exprPrec)
             return;
 
         string binOp = lexer.getCurrent()->str;
@@ -835,25 +846,25 @@ void SymbolListener::enterBinOpRHS(int exprPrec) {
         enterUnOpPrimary();
 
         int nextPrec = ParserUtils::getBinOpPrecedence(lexer);
-        if(tokPrec < nextPrec) {
+        if (tokPrec < nextPrec) {
             enterBinOpRHS(tokPrec + 1);
         }
     }
 }
 
 void SymbolListener::enterUnOpPrimary() {
-    while(true) {
-        if(lexer.getCurrent()->kind == Token::Kind::INC) {
+    while (true) {
+        if (lexer.getCurrent()->kind == Token::Kind::INC) {
             lexer.goForward();
-        } else if(lexer.getCurrent()->kind == Token::Kind::DEC) {
+        } else if (lexer.getCurrent()->kind == Token::Kind::DEC) {
             lexer.goForward();
-        } else if(lexer.getCurrent()->kind == Token::Kind::BANG) {
+        } else if (lexer.getCurrent()->kind == Token::Kind::BANG) {
             lexer.goForward();
-        } else if(lexer.getCurrent()->kind == Token::Kind::TILDE) {
+        } else if (lexer.getCurrent()->kind == Token::Kind::TILDE) {
             lexer.goForward();
-        } else if(lexer.getCurrent()->kind == Token::Kind::ADD) {
+        } else if (lexer.getCurrent()->kind == Token::Kind::ADD) {
             lexer.goForward();
-        } else if(lexer.getCurrent()->kind == Token::Kind::SUB) {
+        } else if (lexer.getCurrent()->kind == Token::Kind::SUB) {
             lexer.goForward();
         } else {
             break;
@@ -862,10 +873,10 @@ void SymbolListener::enterUnOpPrimary() {
 
     enterPrimary();
 
-    while(true) {
-        if(lexer.getCurrent()->kind == Token::Kind::INC) {
+    while (true) {
+        if (lexer.getCurrent()->kind == Token::Kind::INC) {
             lexer.goForward();
-        } else if(lexer.getCurrent()->kind == Token::Kind::DEC) {
+        } else if (lexer.getCurrent()->kind == Token::Kind::DEC) {
             lexer.goForward();
         } else {
             break;
@@ -874,24 +885,24 @@ void SymbolListener::enterUnOpPrimary() {
 }
 
 void SymbolListener::enterPrimary() {
-    if(lexer.getCurrent()->kind == Token::Kind::BOOLEAN_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::CHAR_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::STRING_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::DEC_FLOAT_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::HEX_FLOAT_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::DEC_DOUBLE_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::HEX_DOUBLE_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::DEC_INT_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::DEC_LONG_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::HEX_LONG_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::NULL_LITERAL) {
+    if (lexer.getCurrent()->kind == Token::Kind::BOOLEAN_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::CHAR_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::STRING_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_FLOAT_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_FLOAT_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_DOUBLE_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_DOUBLE_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_INT_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_LONG_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_LONG_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::NULL_LITERAL) {
         enterLiteral();
-    } else if(lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
         enterParenExpr();
-    } else if(lexer.getCurrent()->kind == Token::Kind::NEW) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::NEW) {
         enterNew();
-    } else if(lexer.getCurrent()->kind == Token::Kind::LBRACE) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
         enterArrayInitializer();
     } else {
         enterAccessOrCall(true);
@@ -907,77 +918,79 @@ void SymbolListener::enterNew() {
 
     enterType(false);
 
-    if(lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+    if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
         lexer.goForward();
 
-        while(true) {
-            if(lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+        while (true) {
+            if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
                 lexer.goForward();
                 break;
             }
 
             enterExpression();
 
-            if(lexer.getCurrent()->kind == Token::Kind::COMMA) {
+            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
                 lexer.goForward();
             } else {
                 Out::errorMessage(
-                    lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
-                    "\tin " + std::to_string(lexer.getCurrent()->line) +
-                    ":" + std::to_string(lexer.getCurrent()->pos));
+                    lexer, "Expected ',', but found:\n\t" +
+                               lexer.getCurrent()->str + "\tin " +
+                               std::to_string(lexer.getCurrent()->line) + ":" +
+                               std::to_string(lexer.getCurrent()->pos));
             }
         }
-    } else if(lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
-        while(true) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
+        while (true) {
             lexer.goForward();
 
-            if(lexer.getCurrent()->kind != Token::Kind::RBRACKET) {
+            if (lexer.getCurrent()->kind != Token::Kind::RBRACKET) {
                 enterExpression();
             }
 
-            if(lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
+            if (lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
                 lexer.goForward();
-                if(lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
+                if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
                     continue;
                 } else {
                     break;
                 }
             } else {
                 Out::errorMessage(
-                    lexer, "Expected ']', but found:\n\t" + lexer.getCurrent()->str +
-                    "\tin " + std::to_string(lexer.getCurrent()->line) +
-                    ":" + std::to_string(lexer.getCurrent()->pos));
+                    lexer, "Expected ']', but found:\n\t" +
+                               lexer.getCurrent()->str + "\tin " +
+                               std::to_string(lexer.getCurrent()->line) + ":" +
+                               std::to_string(lexer.getCurrent()->pos));
             }
         }
     }
 
-    if(lexer.getCurrent()->kind == Token::Kind::LBRACE) {
+    if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
         enterArrayInitializer();
     }
 }
 
 void SymbolListener::enterParenExpr() {
-    if(lexer.getCurrent()->kind != Token::Kind::LPAREN) {
-        Out::errorMessage(lexer, "Expected '(', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+    if (lexer.getCurrent()->kind != Token::Kind::LPAREN) {
+        Out::errorMessage(
+            lexer, "Expected '(', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
     enterExpression();
-    if(lexer.getCurrent()->kind != Token::Kind::RPAREN) {
-        Out::errorMessage(lexer, "Expected ')', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+    if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+        Out::errorMessage(
+            lexer, "Expected ')', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
 }
 
 string SymbolListener::enterAccessOrCall(bool arr) {
     string str = "";
-    while(true) {
+    while (true) {
         str.append(enterAccessItem(arr));
 
-        if(lexer.getCurrent()->kind == Token::Kind::DOT) {
+        if (lexer.getCurrent()->kind == Token::Kind::DOT) {
             str.append(".");
             lexer.goForward();
         } else {
@@ -991,14 +1004,14 @@ string SymbolListener::enterAccessItem(bool arr) {
     string str = lexer.getCurrent()->str;
     lexer.goForward();
 
-    if(lexer.ifCurrTokenStartsWithLT()) {
+    if (lexer.ifCurrTokenStartsWithLT()) {
         str += enterGeneric();
     }
-    if(lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+    if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
         str += lexer.getCurrent()->str;
         lexer.goForward();
-        while(true) {
-            if(lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+        while (true) {
+            if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
                 str += lexer.getCurrent()->str;
                 lexer.goForward();
                 break;
@@ -1006,19 +1019,20 @@ string SymbolListener::enterAccessItem(bool arr) {
 
             enterExpression();
 
-            if(lexer.getCurrent()->kind == Token::Kind::COMMA) {
+            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
                 str += lexer.getCurrent()->str;
                 lexer.goForward();
-            } else if(lexer.getCurrent()->kind != Token::Kind::RPAREN) {
+            } else if (lexer.getCurrent()->kind != Token::Kind::RPAREN) {
                 Out::errorMessage(
-                    lexer, "Expected ',', but found:\n\t" + lexer.getCurrent()->str +
-                    "\tin " + std::to_string(lexer.getCurrent()->line) +
-                    ":" + std::to_string(lexer.getCurrent()->pos));
+                    lexer, "Expected ',', but found:\n\t" +
+                               lexer.getCurrent()->str + "\tin " +
+                               std::to_string(lexer.getCurrent()->line) + ":" +
+                               std::to_string(lexer.getCurrent()->pos));
             }
         }
     }
-    if(arr) {
-        if(lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
+    if (arr) {
+        if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
             enterArrayAccess();
         }
     }
@@ -1028,15 +1042,15 @@ string SymbolListener::enterAccessItem(bool arr) {
 void SymbolListener::enterArrayAccess() {
     lexer.goForward();
     enterExpression();
-    if(lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
+    if (lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
         lexer.goForward();
     } else {
-        Out::errorMessage(lexer, "Expected ']', but found:\n\t" +
-                          lexer.getCurrent()->str + "\tin " +
-                          std::to_string(lexer.getCurrent()->line) +
-                          ":" + std::to_string(lexer.getCurrent()->pos));
+        Out::errorMessage(
+            lexer, "Expected ']', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
     }
-    if(lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
+    if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
         enterArrayAccess();
     }
 }
@@ -1044,8 +1058,8 @@ void SymbolListener::enterArrayAccess() {
 string SymbolListener::enterGeneric() {
     string str = "<";
     lexer.removeFirstCharOfCurrShift();
-    while(true) {
-        if(lexer.ifCurrTokenStartsWithGT()) {
+    while (true) {
+        if (lexer.ifCurrTokenStartsWithGT()) {
             str += ">";
             lexer.removeFirstCharOfCurrShift();
             break;
@@ -1053,15 +1067,16 @@ string SymbolListener::enterGeneric() {
 
         str += enterAccessOrCall(false);
 
-        if(!lexer.ifCurrTokenStartsWithGT()) {
-            if(lexer.getCurrent()->kind == Token::Kind::COMMA) {
+        if (!lexer.ifCurrTokenStartsWithGT()) {
+            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
                 str += ",";
                 lexer.goForward();
             } else {
                 Out::errorMessage(
                     lexer, "Unexpected symbol:\n\t" + lexer.getCurrent()->str +
-                    "\tin " + std::to_string(lexer.getCurrent()->line) +
-                    ":" + std::to_string(lexer.getCurrent()->pos));
+                               "\tin " +
+                               std::to_string(lexer.getCurrent()->line) + ":" +
+                               std::to_string(lexer.getCurrent()->pos));
             }
         }
     }
@@ -1069,69 +1084,69 @@ string SymbolListener::enterGeneric() {
 }
 
 void SymbolListener::enterLiteral() {
-    if(lexer.getCurrent()->kind == Token::Kind::BOOLEAN_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::CHAR_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::STRING_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::DEC_FLOAT_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::HEX_FLOAT_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::DEC_DOUBLE_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::HEX_DOUBLE_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::DEC_INT_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::DEC_LONG_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::HEX_LONG_LITERAL ||
-            lexer.getCurrent()->kind == Token::Kind::NULL_LITERAL) {
+    if (lexer.getCurrent()->kind == Token::Kind::BOOLEAN_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::CHAR_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::STRING_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_FLOAT_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_FLOAT_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_DOUBLE_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_DOUBLE_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_INT_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_LONG_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_LONG_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::NULL_LITERAL) {
         lexer.goForward();
     }
 }
 
 void SymbolListener::enterArrayInitializer() {
     lexer.goForward();
-    while(true) {
-        if(lexer.getCurrent()->kind == Token::Kind::RBRACE) {
+    while (true) {
+        if (lexer.getCurrent()->kind == Token::Kind::RBRACE) {
             lexer.goForward();
             break;
         }
 
         enterExpression();
 
-        if(lexer.getCurrent()->kind == Token::Kind::COMMA) {
+        if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
             lexer.goForward();
-        } else if(lexer.getCurrent()->kind != Token::Kind::RBRACE) {
-            Out::errorMessage(lexer,
-                              "Unexpected symbol:\n\t" + lexer.getCurrent()->str +
-                              "\tin " + std::to_string(lexer.getCurrent()->line) +
-                              ":" + std::to_string(lexer.getCurrent()->pos));
+        } else if (lexer.getCurrent()->kind != Token::Kind::RBRACE) {
+            Out::errorMessage(
+                lexer, "Unexpected symbol:\n\t" + lexer.getCurrent()->str +
+                           "\tin " + std::to_string(lexer.getCurrent()->line) +
+                           ":" + std::to_string(lexer.getCurrent()->pos));
         }
     }
 }
 
 vector<string> SymbolListener::enterExtending() {
-    vector<string> superClasses {};
-    if(lexer.getCurrent()->kind == Token::Kind::EXTENDS) {
+    vector<string> superClasses{};
+    if (lexer.getCurrent()->kind == Token::Kind::EXTENDS) {
         lexer.goForward();
         superClasses.push_back(enterType(true));
-        if(lexer.getCurrent()->kind == Token::Kind::COMMA) {
-            Out::errorMessage(lexer, "Unexpected identifier ',' in " +
-                              std::to_string(lexer.getCurrent()->line) +
-                              ":" +
-                              std::to_string(lexer.getCurrent()->pos));
-        } else if(lexer.getCurrent()->kind == Token::Kind::IMPLEMENTS) {
+        if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+            Out::errorMessage(
+                lexer, "Unexpected identifier ',' in " +
+                           std::to_string(lexer.getCurrent()->line) + ":" +
+                           std::to_string(lexer.getCurrent()->pos));
+        } else if (lexer.getCurrent()->kind == Token::Kind::IMPLEMENTS) {
             lexer.goForward();
-            while(true) {
+            while (true) {
                 superClasses.push_back(enterType(true));
-                if(lexer.getCurrent()->kind == Token::Kind::COMMA) {
+                if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
                     lexer.goForward();
                 } else {
                     break;
                 }
             }
         }
-    } else if(lexer.getCurrent()->kind == Token::Kind::IMPLEMENTS) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::IMPLEMENTS) {
         lexer.goForward();
-        while(true) {
+        while (true) {
             superClasses.push_back(enterType(true));
-            if(lexer.getCurrent()->kind == Token::Kind::COMMA) {
+            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
                 lexer.goForward();
             } else {
                 break;
@@ -1146,18 +1161,20 @@ string SymbolListener::enterType(bool arr) {
 
     int dims = 0;
 
-    if(arr) {
-        while(true) {
-            if(lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
+    if (arr) {
+        while (true) {
+            if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
                 lexer.goForward();
                 dims++;
-                if(lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
+                if (lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
                     lexer.goForward();
                 } else {
                     Out::errorMessage(
-                        lexer, "Expected ']', but found:\n\t" + lexer.getCurrent()->str +
-                        "\tin " + std::to_string(lexer.getCurrent()->line) +
-                        ":" + std::to_string(lexer.getCurrent()->pos));
+                        lexer, "Expected ']', but found:\n\t" +
+                                   lexer.getCurrent()->str + "\tin " +
+                                   std::to_string(lexer.getCurrent()->line) +
+                                   ":" +
+                                   std::to_string(lexer.getCurrent()->pos));
                 }
             } else {
                 break;
@@ -1166,7 +1183,7 @@ string SymbolListener::enterType(bool arr) {
     }
 
     string dims_str = "";
-    for(int i = 0; i < dims; ++i) {
+    for (int i = 0; i < dims; ++i) {
         dims_str.append("[]");
     }
 
@@ -1174,7 +1191,8 @@ string SymbolListener::enterType(bool arr) {
 }
 
 vector<ModifiersNode::ModifierKind> SymbolListener::enterModifiers() {
-    vector<ModifiersNode::ModifierKind> mods = vector<ModifiersNode::ModifierKind>();
+    vector<ModifiersNode::ModifierKind> mods =
+        vector<ModifiersNode::ModifierKind>();
     while (true) {
         if (ParserUtils::isModifier(lexer.getCurrent())) {
             mods.push_back(modKinds.at(lexer.getCurrent()->str));
@@ -1186,13 +1204,13 @@ vector<ModifiersNode::ModifierKind> SymbolListener::enterModifiers() {
     return mods;
 }
 
-map<string, ModifiersNode::ModifierKind> SymbolListener::modKinds = map<string, ModifiersNode::ModifierKind>({
-        {"public", ModifiersNode::ModifierKind::PUBLIC},
-        {"private", ModifiersNode::ModifierKind::PRIVATE},
-        {"protected", ModifiersNode::ModifierKind::PROTECTED},
-        {"static", ModifiersNode::ModifierKind::STATIC},
-        {"final", ModifiersNode::ModifierKind::FINAL},
-        {"synchronized", ModifiersNode::ModifierKind::SYNCHRONIZED},
-        {"abstract", ModifiersNode::ModifierKind::ABSTRACT},
-        {"native", ModifiersNode::ModifierKind::NATIVE}
-});
+map<string, ModifiersNode::ModifierKind> SymbolListener::modKinds =
+    map<string, ModifiersNode::ModifierKind>(
+        {{"public", ModifiersNode::ModifierKind::PUBLIC},
+         {"private", ModifiersNode::ModifierKind::PRIVATE},
+         {"protected", ModifiersNode::ModifierKind::PROTECTED},
+         {"static", ModifiersNode::ModifierKind::STATIC},
+         {"final", ModifiersNode::ModifierKind::FINAL},
+         {"synchronized", ModifiersNode::ModifierKind::SYNCHRONIZED},
+         {"abstract", ModifiersNode::ModifierKind::ABSTRACT},
+         {"native", ModifiersNode::ModifierKind::NATIVE}});

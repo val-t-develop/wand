@@ -2,15 +2,14 @@
 
 #include <utils/Out.hpp>
 
-
 Path ArgsParser::output = Path();
 vector<Path> ArgsParser::src = vector<Path>();
 
 void ArgsParser::parseArgs(int argc, char **argv) {
     vector<string> vec;
-    for(int i = 0; i < argc; ++i) {
+    for (int i = 0; i < argc; ++i) {
         auto curr = split(string(argv[i]), " ");
-        for(auto el : curr) {
+        for (auto el : curr) {
             vec.push_back(el);
         }
     }
@@ -18,9 +17,9 @@ void ArgsParser::parseArgs(int argc, char **argv) {
 }
 
 void ArgsParser::parseArgs(vector<string> args) {
-    for(size_t i = 1; i < args.size(); i++) {
+    for (size_t i = 1; i < args.size(); i++) {
         string arg = args[i];
-        if(arg.ends_with("-o")) {
+        if (arg.ends_with("-o")) {
             i++;
             arg = args[i];
             output = Path(arg);
@@ -28,7 +27,7 @@ void ArgsParser::parseArgs(vector<string> args) {
             src.push_back(Path(arg));
         }
     }
-    if(src.empty()) {
+    if (src.empty()) {
         Out::printMessage("No input files.");
         exit(0);
     }

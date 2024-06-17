@@ -3,7 +3,7 @@
 #include <ast/node/statement/expression/ExpressionNode.hpp>
 
 class IntLiteralNode : public ExpressionNode {
-public:
+  public:
     int64_t value;
     bool longVal;
 

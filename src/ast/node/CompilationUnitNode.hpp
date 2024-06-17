@@ -3,7 +3,7 @@
 #include <ast/node/Node.hpp>
 
 class CompilationUnitNode : public Node {
-public:
+  public:
     vector<shared_ptr<Node>> nodes = vector<shared_ptr<Node>>();
 
     CompilationUnitNode();

@@ -2,16 +2,14 @@
 #include <Defs.hpp>
 
 class Record {
-public:
-
+  public:
     enum class RecordKind {
         UNUSED,
         METHOD_RECORD,
         LOCAL_VAR_RECORD,
-        FIELD_RECORD, 
+        FIELD_RECORD,
         CLASS_RECORD
     };
-
 
     string id;
     string type;

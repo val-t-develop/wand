@@ -2,7 +2,7 @@
 #include <Defs.hpp>
 
 class Node {
-public:
+  public:
     enum class NodeKind {
         ACCESS_NODE,
         CLASS_DECL_NODE,

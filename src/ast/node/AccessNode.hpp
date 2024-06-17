@@ -3,7 +3,7 @@
 #include <ast/node/statement/expression/AssignableNode.hpp>
 
 class AccessNode : public ExpressionNode {
-public:
+  public:
     vector<shared_ptr<Node>> access = vector<shared_ptr<Node>>();
 
     AccessNode(shared_ptr<Node> _parent);

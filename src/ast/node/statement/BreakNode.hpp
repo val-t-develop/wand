@@ -3,6 +3,6 @@
 #include <ast/node/statement/StatementNode.hpp>
 
 class BreakNode : public StatementNode {
-public:
+  public:
     BreakNode(shared_ptr<Node> _parent);
 };

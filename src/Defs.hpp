@@ -1,32 +1,32 @@
 #pragma once
-#include <vector>
-#include <iostream>
-#include <utility>
-#include <memory>
-#include <string>
 #include <cstdint>
+#include <exception>
 #include <filesystem>
 #include <fstream>
-#include <exception>
-#include <stack>
+#include <iostream>
 #include <map>
+#include <memory>
+#include <stack>
+#include <string>
+#include <utility>
+#include <vector>
 
-using std::vector;
-using std::string;
-using std::pair;
-using std::cout;
 using std::cerr;
+using std::cout;
 using std::endl;
-using std::shared_ptr;
-using std::unique_ptr;
-using std::make_unique;
 using std::make_shared;
+using std::make_unique;
+using std::pair;
+using std::shared_ptr;
+using std::string;
+using std::unique_ptr;
+using std::vector;
 namespace fs = std::filesystem;
-using std::ifstream;
-using std::ofstream;
-using std::fstream;
 using std::exception;
-using std::stack;
+using std::fstream;
+using std::ifstream;
 using std::map;
+using std::ofstream;
+using std::stack;
 
 vector<string> split(string s, string delimiter);

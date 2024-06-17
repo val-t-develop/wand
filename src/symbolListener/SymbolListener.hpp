@@ -5,7 +5,7 @@
 #include <utils/Path.hpp>
 
 class SymbolListener {
-public:
+  public:
     shared_ptr<SymbolTable> symbolTable;
     Path filePath;
     Path srcDir;
@@ -30,8 +30,10 @@ public:
     string enterGenericTypeDecl();
     void enterClassMemberDecl();
     void enterConstructorDecl(vector<ModifiersNode::ModifierKind> mods);
-    void enterMethodDecl(string type, string id, vector<ModifiersNode::ModifierKind> mods);
-    void enterField(string type, string id, vector<ModifiersNode::ModifierKind> mods);
+    void enterMethodDecl(string type, string id,
+                         vector<ModifiersNode::ModifierKind> mods);
+    void enterField(string type, string id,
+                    vector<ModifiersNode::ModifierKind> mods);
     void enterStatement();
     void enterNotVarStatement();
     void enterLocalVar(vector<ModifiersNode::ModifierKind> mods);
@@ -57,11 +59,11 @@ public:
     string enterGeneric();
     void enterLiteral();
     void enterArrayInitializer();
-    //vector<string> enterTypeList();
-    //void enterModifiers();
+    // vector<string> enterTypeList();
+    // void enterModifiers();
     vector<string> enterExtending();
     string enterType(bool arr);
     vector<ModifiersNode::ModifierKind> enterModifiers();
-    
+
     static map<string, ModifiersNode::ModifierKind> modKinds;
 };

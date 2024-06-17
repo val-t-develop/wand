@@ -1,7 +1,8 @@
 #include "CodeGenUtils.hpp"
 #include <utils/Out.hpp>
 
-CodeGenUtils::CodeGenUtils(CodeGen* _codeGen) : codeGen(_codeGen), helper(_codeGen->helper) {}
+CodeGenUtils::CodeGenUtils(CodeGen *_codeGen)
+    : codeGen(_codeGen), helper(_codeGen->helper) {}
 
 void CodeGenUtils::setCurrClassName() {
     if (currClass != nullptr) {
@@ -11,7 +12,7 @@ void CodeGenUtils::setCurrClassName() {
     }
 }
 
-Type* CodeGenUtils::getType(shared_ptr<ClassRecord> node) {
+Type *CodeGenUtils::getType(shared_ptr<ClassRecord> node) {
     if (node->type == "primitive") {
         if (node->id == "boolean") {
             return helper->getIntType(1);
@@ -44,7 +45,7 @@ Type* CodeGenUtils::getType(shared_ptr<ClassRecord> node) {
     }
 }
 
-Type* CodeGenUtils::getTypeNoPtr(shared_ptr<ClassRecord> node) {
+Type *CodeGenUtils::getTypeNoPtr(shared_ptr<ClassRecord> node) {
     if (node->type == "primitive") {
         if (node->id == "boolean") {
             return helper->getIntType(1);
@@ -77,7 +78,7 @@ Type* CodeGenUtils::getTypeNoPtr(shared_ptr<ClassRecord> node) {
 }
 
 Type *CodeGenUtils::getType(shared_ptr<TypeNode> node) {
-    Type* recTy = getType(node->type->record);
+    Type *recTy = getType(node->type->record);
     for (int i = 0; i < node->dims; ++i) {
         recTy = helper->getPointerType(recTy);
     }
@@ -85,8 +86,6 @@ Type *CodeGenUtils::getType(shared_ptr<TypeNode> node) {
 }
 
 Type *CodeGenUtils::getTypeNoPtr(shared_ptr<TypeNode> node) {
-    Type* recTy = getTypeNoPtr(node->type->record);
+    Type *recTy = getTypeNoPtr(node->type->record);
     return recTy;
 }
-
-

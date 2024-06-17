@@ -1,13 +1,15 @@
 #pragma once
-#include "Record.hpp"
 #include "MethodRecord.hpp"
+#include "Record.hpp"
 #include "VarRecord.hpp"
 
 class ClassRecord : public Record {
-public:
-    vector<shared_ptr<MethodRecord>> methods = vector<shared_ptr<MethodRecord>>();
+  public:
+    vector<shared_ptr<MethodRecord>> methods =
+        vector<shared_ptr<MethodRecord>>();
     vector<shared_ptr<VarRecord>> fields = vector<shared_ptr<VarRecord>>();
-    vector<shared_ptr<ClassRecord>> innerClasses = vector<shared_ptr<ClassRecord>>();
+    vector<shared_ptr<ClassRecord>> innerClasses =
+        vector<shared_ptr<ClassRecord>>();
     string superClass = "";
 
     ClassRecord(string _id, string _type);

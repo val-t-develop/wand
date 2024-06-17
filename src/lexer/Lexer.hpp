@@ -1,10 +1,10 @@
 #pragma once
+#include "Token.hpp"
 #include <Defs.hpp>
 #include <utils/Path.hpp>
-#include "Token.hpp"
 
 class Lexer {
-public:
+  public:
     Path path;
     string src;
     vector<shared_ptr<Token>> tokens = vector<shared_ptr<Token>>();

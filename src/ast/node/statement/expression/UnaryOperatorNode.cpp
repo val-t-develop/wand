@@ -1,10 +1,9 @@
 #include "UnaryOperatorNode.hpp"
 
+UnaryOperatorNode::UnaryOperatorNode(bool _isPre, string _op,
+                                     shared_ptr<ExpressionNode> _expression,
+                                     shared_ptr<Node> _parent)
+    : ExpressionNode(_parent, NodeKind::UNARY_OPERATOR_NODE), isPre(_isPre),
+      op(_op), expression(_expression) {}
 
-UnaryOperatorNode::UnaryOperatorNode(bool _isPre, string _op, shared_ptr<ExpressionNode> _expression, shared_ptr<Node> _parent)
-    : ExpressionNode(_parent, NodeKind::UNARY_OPERATOR_NODE), isPre(_isPre), op(_op), expression(_expression) {}
-
-
-shared_ptr<ClassRecord> UnaryOperatorNode::getReturnType() {
-    return nullptr;
-}
+shared_ptr<ClassRecord> UnaryOperatorNode::getReturnType() { return nullptr; }

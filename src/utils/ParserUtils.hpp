@@ -2,10 +2,9 @@
 #include <lexer/Lexer.hpp>
 
 class ParserUtils {
-public:
-
+  public:
     static map<string, int> operatorsPrecedence;
-    static int getBinOpPrecedence(Lexer& lexer);
+    static int getBinOpPrecedence(Lexer &lexer);
 
     static void skipSemicolons(Lexer &lexer);
 
@@ -17,7 +16,7 @@ public:
     class QualifiedName {
         vector<shared_ptr<Token>> list = vector<shared_ptr<Token>>();
 
-    public:
+      public:
         QualifiedName(Lexer &lexer);
 
         string getText();
@@ -28,8 +27,8 @@ public:
 
         shared_ptr<Token> get(int index);
 
-        // void add(int index, Token element) { list.insert(std::next(list.begin(),
-        // index), element); }
+        // void add(int index, Token element) {
+        // list.insert(std::next(list.begin(), index), element); }
 
         vector<shared_ptr<Token>> getList();
 

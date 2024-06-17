@@ -5,7 +5,8 @@
 class Path {
     fs::path path;
     string content;
-public:
+
+  public:
     Path();
     Path(string name);
     Path(fs::path &path);
@@ -18,5 +19,5 @@ public:
     vector<Path> getDirContent();
     Path getParent();
     static Path getCurrentDir();
-    auto operator<=>(const Path&) const = default;
+    auto operator<=>(const Path &) const = default;
 };
