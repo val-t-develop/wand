@@ -3,4 +3,5 @@ build/
 res/test/
 res/exe
 .cache
-.vscode
+.vscode/
+compile_commands.json
