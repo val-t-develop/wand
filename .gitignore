@@ -4,4 +4,5 @@ res/test/
 res/exe
 .cache
 .vscode/
+.idea/
 compile_commands.json

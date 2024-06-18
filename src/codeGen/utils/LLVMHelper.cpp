@@ -4,6 +4,7 @@
 #include <ast/node/statement/expression/literal/FloatLiteralNode.hpp>
 #include <ast/node/statement/expression/literal/IntLiteralNode.hpp>
 #include <ast/node/statement/expression/literal/NullNode.hpp>
+#include <llvm/Support/CodeGen.h>
 #include <main.hpp>
 #include <utils/Out.hpp>
 
@@ -14,11 +15,11 @@
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/FileSystem.h"
-#include "llvm/Support/Host.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
+#include "llvm/TargetParser/Host.h"
 
 LLVMHelper::LLVMHelper(string moduleName) {
     TheContext = make_shared<LLVMContext>();
@@ -49,7 +50,7 @@ void LLVMHelper::prepareBuild() {
     auto Features = "";
 
     TargetOptions opt;
-    auto RM = Optional<Reloc::Model>();
+    auto RM = std::optional<Reloc::Model>();
     TheTargetMachine =
         Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
 
@@ -77,7 +78,7 @@ void LLVMHelper::runPasses() {
 
 void LLVMHelper::build(raw_pwrite_stream &dest) {
     legacy::PassManager pass;
-    auto FileType = CGFT_ObjectFile;
+    auto FileType = CodeGenFileType::ObjectFile;
 
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
         errs() << "TheTargetMachine can't emit a file of this type";

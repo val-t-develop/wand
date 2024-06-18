@@ -12,8 +12,8 @@
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/FileSystem.h"
-#include "llvm/Support/Host.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/TargetParser/Host.h"
 
 CodeGen::CodeGen(shared_ptr<CompilationUnitNode> _cu) : cu(_cu) {
     string moduleName = "__unnamedModule";
@@ -413,6 +413,7 @@ Function *CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
 
         return TheFunction;
     }
+    return nullptr;
 }
 
 Function *CodeGen::genDestructorDecl(shared_ptr<ClassDeclNode> node) {
@@ -650,6 +651,7 @@ bool CodeGen::genConstructorBlockStatement(
     currBlockVars.pop();
 
     helper->createRet(heapallocatmp);
+    return false;
 }
 
 void CodeGen::genIfElse(shared_ptr<IfElseNode> node) {
