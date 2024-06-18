@@ -26,6 +26,9 @@ setup_gcc:
 setup_clang:
 	CC=clang CXX=clang++ meson setup builddir && cp builddir/compile_commands.json compile_commands.json
 
+setup:
+	meson setup builddir && cp builddir/compile_commands.json compile_commands.json
+
 clean:
 	rm -dr builddir compile_commands.json
 
