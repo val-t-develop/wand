@@ -27,22 +27,22 @@ int Out::messages = 0;
 
 void Out::errorMessage(string msg) {
     if (messages <= 50) {
-        cerr << "\n" << msg;
+        cerr << msg << "\n";
         messages++;
     } else {
-        cerr << "\n Too many errors! Exit!";
+        cerr << "Too many errors! Exit!\n";
         exit(-1);
     }
 }
 
-void Out::printMessage(string msg) { cout << "\n" << msg; }
+void Out::printMessage(string msg) { cout << msg << "\n"; }
 
 void Out::errorMessage(Lexer &lexer, string msg) {
     if (messages <= 50) {
-        cerr << "\n" << lexer.path.getName() << ": " << msg;
+        cerr << lexer.path.getName() << ": " << msg << "\n";
         messages++;
     } else {
-        cerr << "\n Too many errors! Exit!";
+        cerr << "Too many errors! Exit!\n";
         exit(-1);
     }
 }
