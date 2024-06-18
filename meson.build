@@ -26,7 +26,7 @@ llvm_dep = dependency('llvm', version : '>18.0.0')
 
 incdir = include_directories('src')
 
-src_files = ['src/main.cpp', 'src/main.hpp', 
+src_files = ['src/main.cpp', 'src/main.hpp', 'src/License.hpp',
     'src/Defs.hpp', 'src/Defs.cpp', 'src/utils/ArgsParser.cpp', 'src/utils/ArgsParser.hpp',
     'src/utils/Out.cpp', 'src/utils/Out.hpp', 'src/utils/Path.cpp', 'src/utils/Path.hpp',
     'src/symbolTable/records/Record.hpp', 'src/symbolTable/records/Record.cpp',

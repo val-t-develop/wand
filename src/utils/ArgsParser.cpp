@@ -22,6 +22,7 @@
  */
 
 #include "ArgsParser.hpp"
+#include "License.hpp"
 
 #include <utils/Out.hpp>
 
@@ -42,10 +43,16 @@ void ArgsParser::parseArgs(int argc, char **argv) {
 void ArgsParser::parseArgs(vector<string> args) {
     for (size_t i = 1; i < args.size(); i++) {
         string arg = args[i];
-        if (arg.ends_with("-o")) {
+        if (arg=="-o") {
             i++;
             arg = args[i];
             output = Path(arg);
+        } else if (arg=="show") {
+            i++;
+            arg = args[i];
+            if (arg=="c" || arg=="w") {
+                Out::printMessage(LICENSE);
+            }
         } else {
             src.push_back(Path(arg));
         }
