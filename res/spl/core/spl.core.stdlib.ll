@@ -1,7 +1,27 @@
+;  SPL - Simple Programming Language compiler
+;  Copyright (C) 2022  Valentyn Tymchyshyn
+;
+;  This program is free software: you can redistribute it and/or modify
+;  it under the terms of the GNU General Public License as published by
+;  the Free Software Foundation, either version 3 of the License, or any
+;  later version.
+;
+;  This program is distributed in the hope that it will be useful,
+;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;  GNU General Public License for more details.
+;
+;  You should have received a copy of the GNU General Public License
+;  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;  Valentyn Tymchyshyn (val.t.develop) (val.t.develo@gmail.com)
+;
+;  Generated lib.c llvm ir representation.
+
 ; ModuleID = 'lib.c'
 source_filename = "lib.c"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-redhat-linux-gnu"
 
 %struct.__spl__gcmap = type { i32, i32, ptr }
 %struct.__spl__gcmap__entry = type { ptr, i32 }
@@ -24,7 +44,7 @@ define dso_local void @__spl__init__gcmap() #0 {
 }
 
 ; Function Attrs: nounwind allocsize(0)
-declare noalias ptr @malloc(i64 noundef) #1
+declare dso_local noalias ptr @malloc(i64 noundef) #1
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @__spl__destroy__gcmap() #0 {
@@ -34,7 +54,7 @@ define dso_local void @__spl__destroy__gcmap() #0 {
 }
 
 ; Function Attrs: nounwind
-declare void @free(ptr noundef) #2
+declare dso_local void @free(ptr noundef) #2
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @__spl__add__to__gc(ptr noundef %0, i32 noundef %1) #0 {
@@ -102,7 +122,7 @@ define dso_local void @__spl__add__to__gc(ptr noundef %0, i32 noundef %1) #0 {
 }
 
 ; Function Attrs: nounwind allocsize(1)
-declare ptr @realloc(ptr noundef, i64 noundef) #3
+declare dso_local ptr @realloc(ptr noundef, i64 noundef) #3
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local i32 @__spl__get__refs(ptr noundef %0) #0 {
@@ -147,7 +167,7 @@ define dso_local i32 @__spl__get__refs(ptr noundef %0) #0 {
   %27 = load i32, ptr %4, align 4
   %28 = add nsw i32 %27, 1
   store i32 %28, ptr %4, align 4
-  br label %5, !llvm.loop !6
+  br label %5, !llvm.loop !4
 
 29:                                               ; preds = %5
   store i32 -1, ptr %2, align 4
@@ -202,7 +222,7 @@ define dso_local void @__spl__set__refs(ptr noundef %0, i32 noundef %1) #0 {
   %28 = load i32, ptr %5, align 4
   %29 = add nsw i32 %28, 1
   store i32 %29, ptr %5, align 4
-  br label %6, !llvm.loop !8
+  br label %6, !llvm.loop !6
 
 30:                                               ; preds = %6
   %31 = load ptr, ptr %3, align 8
@@ -254,7 +274,7 @@ define dso_local void @__spl__dec__refs(ptr noundef %0) #0 {
   %27 = load i32, ptr %3, align 4
   %28 = add nsw i32 %27, 1
   store i32 %28, ptr %3, align 4
-  br label %4, !llvm.loop !9
+  br label %4, !llvm.loop !7
 
 29:                                               ; preds = %4
   ret void
@@ -303,7 +323,7 @@ define dso_local void @__spl__inc__refs(ptr noundef %0) #0 {
   %27 = load i32, ptr %3, align 4
   %28 = add nsw i32 %27, 1
   store i32 %28, ptr %3, align 4
-  br label %4, !llvm.loop !10
+  br label %4, !llvm.loop !8
 
 29:                                               ; preds = %4
   ret void
@@ -426,7 +446,7 @@ define dso_local void @System.out.println__spl__void__int(i32 noundef %0) #0 {
   ret void
 }
 
-declare i32 @printf(ptr noundef, ...) #4
+declare dso_local i32 @printf(ptr noundef, ...) #4
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @System.out.println__spl__void__float(float noundef %0) #0 {
@@ -447,26 +467,24 @@ define dso_local void @System.out.println__spl__void__double(double noundef %0) 
   ret void
 }
 
-attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #1 = { nounwind allocsize(0) "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #2 = { nounwind "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #3 = { nounwind allocsize(1) "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #4 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #1 = { nounwind allocsize(0) "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #2 = { nounwind "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #3 = { nounwind allocsize(1) "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #4 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #5 = { nounwind allocsize(0) }
 attributes #6 = { nounwind }
 attributes #7 = { nounwind allocsize(1) }
 
-!llvm.module.flags = !{!0, !1, !2, !3, !4}
-!llvm.ident = !{!5}
+!llvm.module.flags = !{!0, !1, !2}
+!llvm.ident = !{!3}
 
 !0 = !{i32 1, !"wchar_size", i32 4}
-!1 = !{i32 7, !"PIC Level", i32 2}
-!2 = !{i32 7, !"PIE Level", i32 2}
-!3 = !{i32 7, !"uwtable", i32 2}
-!4 = !{i32 7, !"frame-pointer", i32 2}
-!5 = !{!"Debian clang version 15.0.6"}
-!6 = distinct !{!6, !7}
-!7 = !{!"llvm.loop.mustprogress"}
-!8 = distinct !{!8, !7}
-!9 = distinct !{!9, !7}
-!10 = distinct !{!10, !7}
+!1 = !{i32 7, !"uwtable", i32 2}
+!2 = !{i32 7, !"frame-pointer", i32 2}
+!3 = !{!"clang version 18.1.6 (Fedora 18.1.6-3.fc40)"}
+!4 = distinct !{!4, !5}
+!5 = !{!"llvm.loop.mustprogress"}
+!6 = distinct !{!6, !5}
+!7 = distinct !{!7, !5}
+!8 = distinct !{!8, !5}
