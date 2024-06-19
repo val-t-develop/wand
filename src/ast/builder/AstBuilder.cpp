@@ -1509,34 +1509,31 @@ shared_ptr<ArrayInitializerNode> AstBuilder::enterArrayInitializer() {
 shared_ptr<TypeNode> AstBuilder::enterType(bool arr) {
     shared_ptr<AccessNode> type = enterAccessOrCall();
 
-    if (!type->isExpression()) {
-        int dims = 0;
+    int dims = 0;
 
-        if (arr) {
-            while (true) {
-                if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
+    if (arr) {
+        while (true) {
+            if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
+                lexer.goForward();
+                dims++;
+                if (lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
                     lexer.goForward();
-                    dims++;
-                    if (lexer.getCurrent()->kind == Token::Kind::RBRACKET) {
-                        lexer.goForward();
-                    } else {
-                        Out::errorMessage(
-                            lexer,
-                            "Expected ']', but found:\n\t" +
-                                lexer.getCurrent()->str + "\tin " +
-                                std::to_string(lexer.getCurrent()->line) + ":" +
-                                std::to_string(lexer.getCurrent()->pos));
-                    }
                 } else {
-                    break;
+                    Out::errorMessage(
+                        lexer,
+                        "Expected ']', but found:\n\t" +
+                            lexer.getCurrent()->str + "\tin " +
+                            std::to_string(lexer.getCurrent()->line) + ":" +
+                            std::to_string(lexer.getCurrent()->pos));
                 }
+            } else {
+                break;
             }
         }
-        return make_shared<TypeNode>(
-            static_pointer_cast<ClassRecordNode>(type->access[0]), dims,
-            nullptr);
     }
-    return nullptr;
+    return make_shared<TypeNode>(
+        static_pointer_cast<ClassRecordNode>(type->access[0]), dims,
+        nullptr);
 }
 
 vector<shared_ptr<TypeNode>> AstBuilder::enterTypeList() {

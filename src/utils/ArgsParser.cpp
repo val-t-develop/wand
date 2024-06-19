@@ -23,6 +23,7 @@
 
 #include "ArgsParser.hpp"
 #include "License.hpp"
+#include "main.hpp"
 
 #include <utils/Out.hpp>
 

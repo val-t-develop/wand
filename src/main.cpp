@@ -25,12 +25,18 @@
 #include <ast/builder/AstBuilder.hpp>
 #include <codeGen/CodeGen.hpp>
 
+vector<Path> Main::importDirs = vector<Path>();
 vector<string> Main::obj_files = vector<string>();
 stack<CU *> Main::currCUsStack = stack<CU *>();
 map<Path, shared_ptr<CU>> Main::CUs = map<Path, shared_ptr<CU>>();
 
 void Main::main(int argc, char **argv) {
     ArgsParser::parseArgs(argc, argv);
+    for (Path file :ArgsParser::src) {
+        if (file.isDir()) {
+            importDirs.push_back(file);
+        }
+    }
     for (Path file : ArgsParser::src) {
         if (file.isFile()) {
             processFile(file);

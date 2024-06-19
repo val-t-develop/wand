@@ -40,15 +40,17 @@
 
 CodeGen::CodeGen(shared_ptr<CompilationUnitNode> _cu) : cu(_cu) {
     string moduleName = "__unnamedModule";
-    if (cu->nodes[0]->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
-        moduleName = "";
-        for (string str :
-             static_pointer_cast<PackageDeclNode>(cu->nodes[0])->name) {
-            if (str != "") {
-                moduleName += str + ".";
+    if (!cu->nodes.empty()) {
+        if (cu->nodes[0]->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
+            moduleName = "";
+            for (string str :
+                 static_pointer_cast<PackageDeclNode>(cu->nodes[0])->name) {
+                if (str != "") {
+                    moduleName += str + ".";
+                }
             }
+            moduleName.pop_back();
         }
-        moduleName.pop_back();
     }
 
     helper = make_shared<LLVMHelper>(moduleName);

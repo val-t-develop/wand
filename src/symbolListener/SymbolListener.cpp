@@ -36,40 +36,71 @@ SymbolListener::SymbolListener(shared_ptr<SymbolTable> symbolTable,
 
 void SymbolListener::processImport(vector<string> importName) {
     vector<Path> importFiles = vector<Path>();
-    Path path = srcDir;
-    for (size_t i = 0; i < importName.size(); i++) {
-        string lastPackage = importName[i];
-        if (path.isDir()) {
-            for (Path file : path.getDirContent()) {
-                if (file.getFilename() == lastPackage) {
-                    path = file;
-                    break;
+    shared_ptr<Path> importPath = nullptr;
+    for (Path path : Main::importDirs) {
+        bool found = false;
+        for (size_t i = 0; i < importName.size(); i++) {
+            found = false;
+            string lastPackage = importName[i];
+            if (path.isDir()) {
+                for (Path file : path.getDirContent()) {
+                    if (file.getFilename() == lastPackage) {
+                        found = true;
+                        path = file;
+                        break;
+                    } else {
+                        found = false;
+                    }
                 }
+            } else {
+                Out::errorMessage(lexer, path.getName() + " is not directory");
+            }
+            if (!found) {
+                break;
+            }
+        }
+        if (found) {
+            if (importPath == nullptr) {
+                importPath=make_shared<Path>(path);
+            } else {
+                string s;
+                for (auto el : importName) {
+                    s += el + ".";
+                }
+                s.pop_back();
+                Out::errorMessage(lexer, "Few import paths are possible for "+s+": "+importPath->getName()+" and "+path.getName());
+            }
+        }
+    }
+    if (importPath!=nullptr) {
+        if (importPath->isDir()) {
+            for (Path file : importPath->getDirContent()) {
+                if (file.isFile()) {
+                    if (file.getName().ends_with(".spl")) {
+                        importFiles.push_back(file);
+                        Main::processFileToState(file, CU::State::ST);
+                        symbolTable->addImport(Main::CUs[file]->st);
+                    }
+                }
+            }
+        } else if (importPath->isFile()) {
+            if (importPath->getName().ends_with(".spl")) {
+                importFiles.push_back(*importPath);
+                Main::processFileToState(*importPath, CU::State::ST);
+                symbolTable->addImport(Main::CUs[*importPath]->st);
             }
         } else {
-            Out::errorMessage(lexer, path.getName() + " is not directory");
+            Out::errorMessage(lexer, importPath->getName() + " is not a file or directory");
         }
-    }
-    if (path.isDir()) {
-        for (Path file : path.getDirContent()) {
-            if (file.isFile()) {
-                if (file.getName().ends_with(".spl")) {
-                    importFiles.push_back(file);
-                    Main::processFileToState(file, CU::State::ST);
-                    symbolTable->addImport(Main::CUs[file]->st);
-                }
-            }
-        }
-    } else if (path.isFile()) {
-        if (path.getName().ends_with(".spl")) {
-            importFiles.push_back(path);
-            Main::processFileToState(path, CU::State::ST);
-            symbolTable->addImport(Main::CUs[path]->st);
-        }
+        Main::currCUsStack.top()->importFiles[importName] = importFiles;
     } else {
-        Out::errorMessage(lexer, path.getName() + " is not directory");
+        string s;
+        for (auto el : importName) {
+            s += el + ".";
+        }
+        s.pop_back();
+        Out::errorMessage(lexer, "Import not found "+s);
     }
-    Main::currCUsStack.top()->importFiles[importName] = importFiles;
 }
 
 void SymbolListener::walk() {
