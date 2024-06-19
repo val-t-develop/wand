@@ -60,7 +60,10 @@ void Main::main(int argc, char **argv) {
         }
     }
 
-    string ld = "clang -o " + ArgsParser::output.getName();
+    if (ArgsParser::output==nullptr) {
+        ArgsParser::output=make_shared<Path>(Path::getCurrentDir().getName()+"/a.out");
+    }
+    string ld = "clang -o " + ArgsParser::output->getName();
     for (string obj : obj_files) {
         ld += " " + obj;
     }

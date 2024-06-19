@@ -30,7 +30,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 
-Path ArgsParser::output = Path();
+shared_ptr<Path> ArgsParser::output = nullptr;
 vector<Path> ArgsParser::src = vector<Path>();
 
 void ArgsParser::parseArgs(int argc, char **argv) {
@@ -57,7 +57,7 @@ void ArgsParser::parseArgs(vector<string> args) {
         if (arg=="-o") {
             i++;
             arg = args[i];
-            output = Path(arg);
+            output = make_shared<Path>(arg);
         } else if (arg=="show") {
             i++;
             arg = args[i];
