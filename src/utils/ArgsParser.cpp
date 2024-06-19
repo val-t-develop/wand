@@ -26,15 +26,25 @@
 #include "main.hpp"
 
 #include <utils/Out.hpp>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 Path ArgsParser::output = Path();
 vector<Path> ArgsParser::src = vector<Path>();
 
 void ArgsParser::parseArgs(int argc, char **argv) {
+    string home = getenv("HOME");
+    if (home.size() != 1 && (home.ends_with('/') || home.ends_with('\\'))) {
+        home.pop_back();
+    }
     vector<string> vec;
     for (int i = 0; i < argc; ++i) {
         auto curr = split(string(argv[i]), " ");
         for (auto el : curr) {
+            if (el.find("~") != string::npos) {
+                el.replace(el.find("~"), string("~").length(), home);
+            }
             vec.push_back(el);
         }
     }
