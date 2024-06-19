@@ -37,6 +37,7 @@ void Main::main(int argc, char **argv) {
             importDirs.push_back(file);
         }
     }
+    importDirs.push_back(Path("/usr/include/spl"));
     for (Path file : ArgsParser::src) {
         if (file.isFile()) {
             processFile(file);
@@ -70,6 +71,7 @@ void Main::main(int argc, char **argv) {
         rm += " " + obj;
     }
     system(rm.c_str());
+    system("rm -rd .spl_compilation");
 }
 
 void Main::processDir(Path &dir) {
@@ -128,7 +130,7 @@ void CU::completeToState(State state) {
             st->resetTable();
             currState = State::AST;
         } else if (currState == State::AST) {
-            codeGen = make_shared<CodeGen>(cu);
+            codeGen = make_shared<CodeGen>(cu, file);
             codeGen->codeGen();
             codeGen->build();
             currState = State::CODE_GEN;

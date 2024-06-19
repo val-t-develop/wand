@@ -38,7 +38,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/TargetParser/Host.h"
 
-CodeGen::CodeGen(shared_ptr<CompilationUnitNode> _cu) : cu(_cu) {
+CodeGen::CodeGen(shared_ptr<CompilationUnitNode> _cu, Path& _file) : cu(_cu), file(_file) {
     string moduleName = "__unnamedModule";
     if (!cu->nodes.empty()) {
         if (cu->nodes[0]->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
@@ -121,8 +121,8 @@ void CodeGen::build() {
     helper->printModule();
     helper->prepareBuild();
     helper->runPasses();
-
-    string Filename = helper->getModuleName() + ".o";
+    system(string("mkdir -p .spl_compilation"+file.getParent().getName()).c_str());
+    string Filename = ".spl_compilation"+file.getName()+".o";
     std::error_code EC;
     raw_fd_ostream dest(Filename, EC, sys::fs::OF_None);
 
@@ -145,8 +145,9 @@ void CodeGen::genImport(shared_ptr<ImportDeclNode> node) {
                         if (dir.getParent().getFilename() == "spl") {
                             auto ll_file =
                                 Path(dir.getName() + "/spl.core.stdlib.ll");
+                            system(string("mkdir -p .spl_compilation"+dir.getName()).c_str());
                             string o_file =
-                                dir.getName() + "/spl.core.stdlib.o";
+                                ".spl_compilation" + dir.getName() + "/spl.core.stdlib.o";
                             Main::currCUsStack.top()->linkingObj.push_back(
                                 o_file);
                             system(string("clang " + ll_file.getName() +

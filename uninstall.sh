@@ -1,2 +1,2 @@
 #!/bin/bash
-rm /bin/spl
+rm -rd /usr/bin/spl /usr/include/spl

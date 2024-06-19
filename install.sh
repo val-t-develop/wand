@@ -1,5 +1,7 @@
 #!/bin/bash
 make setup
 make build
-cp ./builddir/spl /bin/spl
+cp ./builddir/spl /usr/bin/spl
 make clean
+mkdir /usr/include/spl
+cp -r res/spl /usr/include/spl/spl

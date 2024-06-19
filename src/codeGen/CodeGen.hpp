@@ -59,8 +59,9 @@ class CodeGen {
         stack<shared_ptr<ClassDeclNode>>();
     stack<vector<pair<Value *, string>>> currBlockVars =
         stack<vector<pair<Value *, string>>>();
+    Path file;
 
-    CodeGen(shared_ptr<CompilationUnitNode> _cu);
+    CodeGen(shared_ptr<CompilationUnitNode> _cu, Path& _file);
 
     void codeGen();
 
