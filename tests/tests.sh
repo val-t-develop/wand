@@ -19,5 +19,6 @@
 #  Bash script for automated testing.
 
 #!/bin/bash
+sh clean_tests.sh
 c++ -std=c++20 tests.cpp -o tests.exe
 ./tests.exe

@@ -19,4 +19,4 @@
 #  Bash script for cleaning tests output files.
 
 #!/bin/bash
-rm -rd tests.exe ./*/log ./*/spl ./*/exe ./*/test.exe ./*/test.result
+rm -rd tests.exe ./*/log ./*/exe ./*/test.exe ./*/test.result
