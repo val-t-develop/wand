@@ -19,6 +19,9 @@
 #  Bash script for automated testing.
 
 #!/bin/bash
-cd tests
-sh tests.sh
-cd ..
+mkdir log
+spl . -o ./exe &> log/build.log
+c++ -std=c++20 test.cpp -o test.exe > log/test.build.log
+./exe>log/exe.log
+echo $?>log/exe.code.log
+./test.exe

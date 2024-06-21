@@ -99,7 +99,7 @@ class Path {
 int main (int argc, char **argv) {
     string output = Path("log/exe.log").readFile();
     string exitCode = Path("log/exe.code.log").readFile();
-    if (exitCode.starts_with("15") && output.starts_with("")) {
+    if (exitCode.starts_with("0") && output.starts_with("15")) {
         system("echo OK > test.result");
     } else {
         system("echo FAIL > test.result");
