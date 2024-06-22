@@ -52,6 +52,7 @@ class CodeGen {
     map<shared_ptr<VarRecord>, Type *> varTypes;
     BasicBlock *retBB{};
     stack<Value *> thisV;
+    shared_ptr<VarRecord> thisRecord;
 
     shared_ptr<CompilationUnitNode> cu;
 

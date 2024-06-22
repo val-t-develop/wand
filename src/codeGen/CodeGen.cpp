@@ -300,7 +300,16 @@ void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
 
 Function *CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {
     vector<Type *> args_types = vector<Type *>();
-    // TODO STATIC
+    bool isStatic = false;
+    for (auto mod : node->modifiers->modifiers) {
+        if (mod == ModifiersNode::ModifierKind::STATIC) {
+            isStatic = true;
+            break;
+        }
+    }
+    if (!isStatic) {
+        args_types.push_back(utils->getType(utils->currClass->record));
+    }
     for (shared_ptr<VarDeclNode> arg : node->args) {
         args_types.push_back(utils->getType(arg->type->type->record));
     }
@@ -367,14 +376,38 @@ Function *CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
             NamedValues[node->getFullName() + "__spl__ret"] = ret_ptr;
             helper->createStore(genDefaultValue(node->returnType), ret_ptr);
         }
-
-        for (int i = 0; i < node->args.size(); ++i) {
+        int iterations = node->args.size();
+        if (!isStatic) {
+            iterations++;
+        }
+        for (int i = 0; i < iterations; ++i) {
             auto Arg = TheFunction->getArg(i);
-            string argName = node->args[i]->getFullName();
-            Value *ptr = helper->createAlloca(Arg->getType(), nullptr, argName);
-            helper->createStore(Arg, ptr);
-            NamedValues[argName] = ptr;
-            varTypes[node->args[i]->record] = Arg->getType();
+            if (isStatic) {
+                string argName = node->args[i]->getFullName();
+                Value *ptr = helper->createAlloca(Arg->getType(), nullptr, argName);
+                helper->createStore(Arg, ptr);
+                NamedValues[argName] = ptr;
+                varTypes[node->args[i]->record] = Arg->getType();
+            } else {
+                if (i == 0) {
+                    string argName = "this";
+                    Value *ptr = helper->createAlloca(Arg->getType(), nullptr, argName);
+                    helper->createStore(Arg, ptr);
+                    NamedValues[argName] = ptr;
+
+                    thisRecord = make_shared<VarRecord>("this", utils->currClassName, Record::RecordKind::LOCAL_VAR_RECORD);
+                    thisRecord->ir_name = "this";
+                    thisRecord->typeRec=classesStack.top()->record;
+                    varTypes[thisRecord] = Arg->getType();
+                } else {
+                    string argName = node->args[i-1]->getFullName();
+                    Value *ptr = helper->createAlloca(Arg->getType(), nullptr, argName);
+                    helper->createStore(Arg, ptr);
+                    NamedValues[argName] = ptr;
+                    varTypes[node->args[i-1]->record] = Arg->getType();
+                }
+
+            }
         }
 
         bool br = genBlockStatement(node->body);
@@ -1075,6 +1108,14 @@ Value *CodeGen::genVarValue(shared_ptr<VarRecordNode> node) {
     if (ptr == nullptr) {
         ptr = GlobalNamedValues[node->getFullName()];
     }
+    if (ptr == nullptr) {
+        if (NamedValues["this"] != nullptr) {
+            auto access = make_shared<AccessNode>(nullptr);
+            access->access.push_back(make_shared<VarRecordNode>(thisRecord ,nullptr));
+            access->access.push_back(node);
+            return genExpression(access);
+        }
+    }
     Type *type = varTypes[node->record];
     Value *val = helper->createLoad(type, ptr);
     return val;
@@ -1121,6 +1162,13 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                 ptr = NamedValues[var->getFullName()];
                 if (ptr == nullptr) {
                     ptr = GlobalNamedValues[var->getFullName()];
+                }
+                if (ptr == nullptr) {
+                    if (NamedValues["this"] != nullptr) {
+                        auto newAccess = make_shared<AccessNode>(nullptr);
+                        access->access.emplace(access->access.begin(), make_shared<VarRecordNode>(thisRecord ,nullptr));
+                        return genExpression(make_shared<BinaryOperatorNode>(access, node->right, node->op, node->parent));
+                    }
                 }
                 Type *type = varTypes[var->record];
                 val = helper->createLoad(type, ptr);
