@@ -902,7 +902,8 @@ Value *CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
                     helper->createLoad(utils->getType(val_type), getelementptr);
             } else if (access->access[i]->kind ==
                        Node::NodeKind::METHOD_CALL_NODE) {
-                // TODO
+                val = genMethodCall(static_pointer_cast<MethodCallNode>(access->access[i]), val);
+                val_type = static_pointer_cast<MethodCallNode>(access->access[i])->getReturnType();
             }
         }
         return val;
