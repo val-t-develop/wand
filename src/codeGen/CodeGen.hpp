@@ -50,7 +50,7 @@ class CodeGen {
     map<string, Value *> GlobalNamedValues;
     map<Value *, shared_ptr<ExpressionNode>> StaticGlobalsInit;
     map<shared_ptr<VarRecord>, Type *> varTypes;
-    BasicBlock *retBB;
+    BasicBlock *retBB{};
     stack<Value *> thisV;
 
     shared_ptr<CompilationUnitNode> cu;

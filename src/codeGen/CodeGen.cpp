@@ -38,7 +38,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/TargetParser/Host.h"
 
-CodeGen::CodeGen(shared_ptr<CompilationUnitNode> _cu, Path& _file) : cu(_cu), file(_file) {
+CodeGen::CodeGen(shared_ptr<CompilationUnitNode> _cu, Path& _file) : cu(_cu), file(_file), retBB(nullptr) {
     string moduleName = "__unnamedModule";
     if (!cu->nodes.empty()) {
         if (cu->nodes[0]->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
@@ -934,6 +934,8 @@ Value *CodeGen::genLiteral(shared_ptr<ExpressionNode> node) {
                 static_pointer_cast<FloatLiteralNode>(node)->value);
         }
     }
+    Out::errorMessage("BUG! Can not return value of literal");
+    return nullptr;
 }
 
 Value *CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
@@ -1010,6 +1012,8 @@ Value *CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
                           "Undefined reference: " +
                           node->record->id);
     }
+    Out::errorMessage("BUG! Can not return value of method call");
+    return nullptr;
 }
 
 Value *CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
@@ -1025,6 +1029,7 @@ Value *CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
     varTypes[node->record] = val->getType();
     currBlockVars.top().push_back(
         pair<Value *, string>(ptr, node->type->getFullName()));
+    return ptr;
 }
 
 Value *CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
@@ -1060,6 +1065,8 @@ Value *CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
         PointerType *structPtrType = helper->getPointerType(structType);
         return helper->getNullptr(structPtrType);
     }
+    Out::errorMessage("BUG! Can not return default value");
+    return nullptr;
 }
 
 Value *CodeGen::genVarValue(shared_ptr<VarRecordNode> node) {
@@ -1156,7 +1163,7 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
             }
             helper->createCall("__spl__write", vector<Value *>{ptr, R});
             helper->createStore(R, ptr);
-
+            return R;
         } else {
             Out::errorMessage("Can not create assign.");
         }
@@ -1260,6 +1267,8 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::MOD) {
     }
+    Out::errorMessage("BUG! Can not return value for binary operation");
+    return nullptr;
 }
 
 Value *CodeGen::genNewNode(shared_ptr<NewNode> node) {
