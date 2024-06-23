@@ -112,3 +112,11 @@ Type *CodeGenUtils::getTypeNoPtr(shared_ptr<TypeNode> node) {
     Type *recTy = getTypeNoPtr(node->type->record);
     return recTy;
 }
+void CodeGenUtils::destructAfterStatement() {
+    for(auto v : codeGen->destructAfterStatement) {
+         helper->createCall(
+         "__spl__destroyvar",
+         vector<Value *>{v.first, helper->getFunction("__spl__destructor__" +v.second)});
+    }
+    codeGen->destructAfterStatement.clear();
+}

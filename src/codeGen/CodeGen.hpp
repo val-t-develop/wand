@@ -53,6 +53,7 @@ class CodeGen {
     BasicBlock *retBB{};
     stack<Value *> thisV;
     shared_ptr<VarRecord> thisRecord;
+    vector<pair<Value*, string>> destructAfterStatement = vector<pair<Value*, string>>();
 
     shared_ptr<CompilationUnitNode> cu;
 

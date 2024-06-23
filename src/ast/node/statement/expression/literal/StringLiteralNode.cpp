@@ -23,7 +23,7 @@
 
 #include "StringLiteralNode.hpp"
 
-StringLiteralNode::StringLiteralNode(string _str, shared_ptr<Node> _parent)
-    : ExpressionNode(_parent, NodeKind::STRING_LITERAL_NODE), str(_str) {}
+StringLiteralNode::StringLiteralNode(string _str, shared_ptr<ClassRecord> _typeRec, shared_ptr<Node> _parent)
+    : ExpressionNode(_parent, NodeKind::STRING_LITERAL_NODE), str(_str), typeRec(_typeRec) {}
 
-shared_ptr<ClassRecord> StringLiteralNode::getReturnType() { return nullptr; }
+shared_ptr<ClassRecord> StringLiteralNode::getReturnType() { return typeRec; }

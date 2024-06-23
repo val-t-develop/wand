@@ -23,9 +23,9 @@
 
 #include "IntLiteralNode.hpp"
 
-IntLiteralNode::IntLiteralNode(int64_t _value, bool _longVal,
+IntLiteralNode::IntLiteralNode(int64_t _value, bool _longVal, shared_ptr<ClassRecord> _typeRec,
                                shared_ptr<Node> _parent)
     : ExpressionNode(_parent, NodeKind::INT_LITERAL_NODE), value(_value),
-      longVal(_longVal) {}
+      longVal(_longVal), typeRec(_typeRec) {}
 
-shared_ptr<ClassRecord> IntLiteralNode::getReturnType() { return nullptr; }
+shared_ptr<ClassRecord> IntLiteralNode::getReturnType() { return typeRec; }

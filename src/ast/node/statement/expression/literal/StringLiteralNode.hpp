@@ -28,7 +28,8 @@
 class StringLiteralNode : public ExpressionNode {
   public:
     string str;
+    shared_ptr<ClassRecord> typeRec;
 
-    StringLiteralNode(string _str, shared_ptr<Node> _parent);
+    StringLiteralNode(string _str, shared_ptr<ClassRecord> _typeRec, shared_ptr<Node> _parent);
     shared_ptr<ClassRecord> getReturnType() override;
 };

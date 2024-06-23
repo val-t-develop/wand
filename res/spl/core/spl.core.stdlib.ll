@@ -471,39 +471,49 @@ define dso_local ptr @__spl__constructor__String__String(ptr noundef %0) #0 {
   %11 = getelementptr inbounds %struct.String_t, ptr %10, i32 0, i32 1
   %12 = load i64, ptr %11, align 8
   %13 = icmp ne i64 %12, 0
-  br i1 %13, label %14, label %32
+  br i1 %13, label %14, label %41
 
 14:                                               ; preds = %1
   %15 = load ptr, ptr %3, align 8
   %16 = getelementptr inbounds %struct.String_t, ptr %15, i32 0, i32 1
   %17 = load i64, ptr %16, align 8
-  %18 = mul i64 1, %17
-  %19 = call noalias ptr @malloc(i64 noundef %18) #7
-  %20 = load ptr, ptr %3, align 8
-  %21 = getelementptr inbounds %struct.String_t, ptr %20, i32 0, i32 0
-  store ptr %19, ptr %21, align 8
-  %22 = load ptr, ptr %3, align 8
-  %23 = getelementptr inbounds %struct.String_t, ptr %22, i32 0, i32 0
-  %24 = load ptr, ptr %23, align 8
-  %25 = load ptr, ptr %2, align 8
-  %26 = getelementptr inbounds %struct.String_t, ptr %25, i32 0, i32 0
-  %27 = load ptr, ptr %26, align 8
-  %28 = load ptr, ptr %3, align 8
-  %29 = getelementptr inbounds %struct.String_t, ptr %28, i32 0, i32 1
-  %30 = load i64, ptr %29, align 8
-  %31 = mul i64 %30, 1
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %24, ptr align 1 %27, i64 %31, i1 false)
-  br label %35
-
-32:                                               ; preds = %1
+  %18 = add i64 %17, 1
+  %19 = mul i64 1, %18
+  %20 = call noalias ptr @malloc(i64 noundef %19) #7
+  %21 = load ptr, ptr %3, align 8
+  %22 = getelementptr inbounds %struct.String_t, ptr %21, i32 0, i32 0
+  store ptr %20, ptr %22, align 8
+  %23 = load ptr, ptr %3, align 8
+  %24 = getelementptr inbounds %struct.String_t, ptr %23, i32 0, i32 0
+  %25 = load ptr, ptr %24, align 8
+  %26 = load ptr, ptr %2, align 8
+  %27 = getelementptr inbounds %struct.String_t, ptr %26, i32 0, i32 0
+  %28 = load ptr, ptr %27, align 8
+  %29 = load ptr, ptr %3, align 8
+  %30 = getelementptr inbounds %struct.String_t, ptr %29, i32 0, i32 1
+  %31 = load i64, ptr %30, align 8
+  %32 = mul i64 %31, 1
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %25, ptr align 1 %28, i64 %32, i1 false)
   %33 = load ptr, ptr %3, align 8
   %34 = getelementptr inbounds %struct.String_t, ptr %33, i32 0, i32 0
-  store ptr null, ptr %34, align 8
-  br label %35
-
-35:                                               ; preds = %32, %14
+  %35 = load ptr, ptr %34, align 8
   %36 = load ptr, ptr %3, align 8
-  ret ptr %36
+  %37 = getelementptr inbounds %struct.String_t, ptr %36, i32 0, i32 1
+  %38 = load i64, ptr %37, align 8
+  %39 = mul i64 %38, 1
+  %40 = getelementptr inbounds i8, ptr %35, i64 %39
+  store i8 0, ptr %40, align 1
+  br label %44
+
+41:                                               ; preds = %1
+  %42 = load ptr, ptr %3, align 8
+  %43 = getelementptr inbounds %struct.String_t, ptr %42, i32 0, i32 0
+  store ptr null, ptr %43, align 8
+  br label %44
+
+44:                                               ; preds = %41, %14
+  %45 = load ptr, ptr %3, align 8
+  ret ptr %45
 }
 
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
@@ -525,37 +535,47 @@ define dso_local ptr @__spl__constructor__String____StringLiteral(ptr noundef %0
   %10 = getelementptr inbounds %struct.String_t, ptr %9, i32 0, i32 1
   %11 = load i64, ptr %10, align 8
   %12 = icmp ne i64 %11, 0
-  br i1 %12, label %13, label %29
+  br i1 %12, label %13, label %38
 
 13:                                               ; preds = %1
   %14 = load ptr, ptr %3, align 8
   %15 = getelementptr inbounds %struct.String_t, ptr %14, i32 0, i32 1
   %16 = load i64, ptr %15, align 8
-  %17 = mul i64 1, %16
-  %18 = call noalias ptr @malloc(i64 noundef %17) #7
-  %19 = load ptr, ptr %3, align 8
-  %20 = getelementptr inbounds %struct.String_t, ptr %19, i32 0, i32 0
-  store ptr %18, ptr %20, align 8
-  %21 = load ptr, ptr %3, align 8
-  %22 = getelementptr inbounds %struct.String_t, ptr %21, i32 0, i32 0
-  %23 = load ptr, ptr %22, align 8
-  %24 = load ptr, ptr %2, align 8
-  %25 = load ptr, ptr %3, align 8
-  %26 = getelementptr inbounds %struct.String_t, ptr %25, i32 0, i32 1
-  %27 = load i64, ptr %26, align 8
-  %28 = mul i64 %27, 1
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %23, ptr align 1 %24, i64 %28, i1 false)
-  br label %32
-
-29:                                               ; preds = %1
+  %17 = add i64 %16, 1
+  %18 = mul i64 1, %17
+  %19 = call noalias ptr @malloc(i64 noundef %18) #7
+  %20 = load ptr, ptr %3, align 8
+  %21 = getelementptr inbounds %struct.String_t, ptr %20, i32 0, i32 0
+  store ptr %19, ptr %21, align 8
+  %22 = load ptr, ptr %3, align 8
+  %23 = getelementptr inbounds %struct.String_t, ptr %22, i32 0, i32 0
+  %24 = load ptr, ptr %23, align 8
+  %25 = load ptr, ptr %2, align 8
+  %26 = load ptr, ptr %3, align 8
+  %27 = getelementptr inbounds %struct.String_t, ptr %26, i32 0, i32 1
+  %28 = load i64, ptr %27, align 8
+  %29 = mul i64 %28, 1
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %24, ptr align 1 %25, i64 %29, i1 false)
   %30 = load ptr, ptr %3, align 8
   %31 = getelementptr inbounds %struct.String_t, ptr %30, i32 0, i32 0
-  store ptr null, ptr %31, align 8
-  br label %32
-
-32:                                               ; preds = %29, %13
+  %32 = load ptr, ptr %31, align 8
   %33 = load ptr, ptr %3, align 8
-  ret ptr %33
+  %34 = getelementptr inbounds %struct.String_t, ptr %33, i32 0, i32 1
+  %35 = load i64, ptr %34, align 8
+  %36 = mul i64 %35, 1
+  %37 = getelementptr inbounds i8, ptr %32, i64 %36
+  store i8 0, ptr %37, align 1
+  br label %41
+
+38:                                               ; preds = %1
+  %39 = load ptr, ptr %3, align 8
+  %40 = getelementptr inbounds %struct.String_t, ptr %39, i32 0, i32 0
+  store ptr null, ptr %40, align 8
+  br label %41
+
+41:                                               ; preds = %38, %13
+  %42 = load ptr, ptr %3, align 8
+  ret ptr %42
 }
 
 ; Function Attrs: nounwind willreturn memory(read)

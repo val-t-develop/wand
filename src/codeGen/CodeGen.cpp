@@ -565,6 +565,7 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
         if (item != nullptr) {
             if (item->kind == Node::NodeKind::BLOCK_NODE) {
                 ret = genBlockStatement(static_pointer_cast<BlockNode>(item));
+                utils->destructAfterStatement();
                 break;
             } else if (item->kind == Node::NodeKind::RETURN_NODE) {
                 if (static_pointer_cast<ReturnNode>(item)->expression !=
@@ -579,22 +580,29 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
                     helper->createStore(val, ptr);
                 }
                 ret = true;
+                utils->destructAfterStatement();
                 break;
             } else if (item->kind == Node::NodeKind::VAR_DECL_NODE) {
                 genVarDecl(static_pointer_cast<VarDeclNode>(item));
+                utils->destructAfterStatement();
             } else if (item->kind == Node::NodeKind::VARS_DECL_NODE) {
                 for (shared_ptr<VarDeclNode> decl :
                      static_pointer_cast<VarsDeclNode>(item)->decls) {
                     genVarDecl(decl);
                 }
+                utils->destructAfterStatement();
             } else if (item->isExpression()) {
                 genExpression(static_pointer_cast<ExpressionNode>(item));
+                utils->destructAfterStatement();
             } else if (item->kind == Node::NodeKind::IF_ELSE_NODE) {
                 genIfElse(static_pointer_cast<IfElseNode>(item));
+                utils->destructAfterStatement();
             } else if (item->kind == Node::NodeKind::WHILE_NODE) {
                 genWhile(static_pointer_cast<WhileNode>(item));
+                utils->destructAfterStatement();
             } else if (item->kind == Node::NodeKind::FOR_NODE) {
                 genFor(static_pointer_cast<ForNode>(item));
+                utils->destructAfterStatement();
             }
         }
     }
@@ -688,12 +696,16 @@ bool CodeGen::genConstructorBlockStatement(
                 }
             } else if (item->isExpression()) {
                 genExpression(static_pointer_cast<ExpressionNode>(item));
+                utils->destructAfterStatement();
             } else if (item->kind == Node::NodeKind::IF_ELSE_NODE) {
                 genIfElse(static_pointer_cast<IfElseNode>(item));
+                utils->destructAfterStatement();
             } else if (item->kind == Node::NodeKind::WHILE_NODE) {
                 genWhile(static_pointer_cast<WhileNode>(item));
+                utils->destructAfterStatement();
             } else if (item->kind == Node::NodeKind::FOR_NODE) {
                 genFor(static_pointer_cast<ForNode>(item));
+                utils->destructAfterStatement();
             }
         }
     }
@@ -974,7 +986,9 @@ Value *CodeGen::genLiteral(shared_ptr<ExpressionNode> node) {
         Constant *c = helper->createConstantVar(helper->getArrayType(helper->getIntType(8),
             literal_node->str.size()+1),"__spl__str__literal",
             helper->getConstNullTerminatedString(literal_node->str));
-        return helper->createCall("__spl__constructor__String____StringLiteral", {c});
+        auto v = helper->createCall("__spl__constructor__String____StringLiteral", {c});
+        destructAfterStatement.push_back(pair<Value*, string>(v, "String"));
+        return v;
     }
     Out::errorMessage("BUG! Can not return value of literal");
     return nullptr;

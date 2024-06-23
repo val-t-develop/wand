@@ -161,8 +161,9 @@ String* __spl__constructor__String__String(String* _str) {
     String* obj = __spl__alloc(sizeof(String));
     obj->size = _str->size;
     if (obj->size != 0) {
-        obj->str = malloc(sizeof(char)*obj->size);
+        obj->str = malloc(sizeof(char)*(obj->size+1));
         memcpy(obj->str, _str->str, obj->size*sizeof(char));
+        obj->str[obj->size*sizeof(char)] = '\0';
     } else {
         obj->str = NULL;
     }
@@ -174,8 +175,9 @@ String* __spl__constructor__String____StringLiteral(char* _str) {
     String* obj = __spl__alloc(sizeof(String));
     obj->size = strlen(_str);
     if (obj->size != 0) {
-        obj->str = malloc(sizeof(char)*obj->size);
+        obj->str = malloc(sizeof(char)*(obj->size+1));
         memcpy(obj->str, _str, obj->size*sizeof(char));
+        obj->str[obj->size*sizeof(char)] = '\0';
     } else {
         obj->str = NULL;
     }

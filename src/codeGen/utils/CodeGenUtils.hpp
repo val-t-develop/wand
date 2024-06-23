@@ -57,4 +57,6 @@ class CodeGenUtils {
     Type *getTypeNoPtr(shared_ptr<ClassRecord> node);
     Type *getType(shared_ptr<TypeNode> node);
     Type *getTypeNoPtr(shared_ptr<TypeNode> node);
+
+    void destructAfterStatement();
 };
