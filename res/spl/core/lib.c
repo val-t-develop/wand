@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 typedef struct __spl__gcmap__entry {
     void* ptr;
@@ -142,6 +143,51 @@ void __spl__destroyvar(void *ptr, void (*destructor)(void*)) {
     }
 }
 
+typedef struct String_t {
+    char* str;
+    uint64_t size;
+} String;
+
+__attribute__((used))
+String* __spl__constructor__String() {
+    String* obj = __spl__alloc(sizeof(String));
+    obj->str = NULL;
+    obj->size=0;
+    return obj;
+}
+
+__attribute__((used))
+String* __spl__constructor__String__String(String* _str) {
+    String* obj = __spl__alloc(sizeof(String));
+    obj->size = _str->size;
+    if (obj->size != 0) {
+        obj->str = malloc(sizeof(char)*obj->size);
+        memcpy(obj->str, _str->str, obj->size*sizeof(char));
+    } else {
+        obj->str = NULL;
+    }
+    return obj;
+}
+
+__attribute__((used))
+String* __spl__constructor__String____StringLiteral(char* _str) {
+    String* obj = __spl__alloc(sizeof(String));
+    obj->size = strlen(_str);
+    if (obj->size != 0) {
+        obj->str = malloc(sizeof(char)*obj->size);
+        memcpy(obj->str, _str, obj->size*sizeof(char));
+    } else {
+        obj->str = NULL;
+    }
+    return obj;
+}
+
+void __spl__destructor__String(String* obj) {
+    if (obj->str != NULL) {
+        free(obj->str);
+    }
+}
+
 __attribute__((used))
 void System___out___println__spl__void__int(int a) {
     printf("%d\n", a);
@@ -155,4 +201,9 @@ void System___out___println__spl__void__float(float a) {
 __attribute__((used))
 void System___out___println__spl__void__double(double a) {
     printf("%f\n", a);
+}
+
+__attribute__((used))
+void System___out___println__spl__void__String(String *str) {
+    printf("%s\n", str->str);
 }

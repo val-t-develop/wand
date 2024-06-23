@@ -20,8 +20,12 @@
 
 package spl.core;
 
+class __StringLiteral{}
+
 class String {
-    
+    public String(){}
+    public String(String a){}
+    public String(__StringLiteral a){}
 }
 
 class System {
@@ -29,5 +33,6 @@ class System {
         public static void println(int a);
         public static void println(float a);
         public static void println(double a);
+        public static void println(String a);
     }
 }

@@ -80,7 +80,7 @@ void Lexer::tokenize() {
 
         if (ch == '\0') {
             break;
-        } else if (isalpha(ch)) {
+        } else if (isalpha(ch) || ch=='_') {
             tokenizeIdentifier();
         } else if (isdigit(ch)) {
             tokenizeDec();
@@ -368,7 +368,7 @@ void Lexer::tokenizeIdentifier() {
 
     while (true) {
         char ch = src.at(currChar);
-        if (!isalpha(ch) && !isdigit(ch)) {
+        if (!isalpha(ch) && !isdigit(ch) && ch!='_') {
             break;
         }
         str.push_back(ch);

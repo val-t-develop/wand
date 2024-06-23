@@ -52,6 +52,7 @@ class LLVMHelper {
 
     StructType *createStructType(string name);
     GlobalVariable *createGlobalVar(Type *type, string name);
+    GlobalVariable *createConstantVar(Type *type, string name, Constant *init);
     Function *createFunctionPrototype(string name, Type *ret,
                                       vector<Type *> args);
     Function *getFunction(string name);
@@ -103,6 +104,8 @@ class LLVMHelper {
     ConstantInt *getConstInt(int size, uint64_t val);
     Constant *getConstFloat(double val);
     Constant *getConstDouble(double val);
+    Constant *getConstString(string val);
+    Constant *getConstNullTerminatedString(string val);
     ConstantPointerNull *getNullptr(PointerType *type);
 
     IntegerType *getIntType(int size);

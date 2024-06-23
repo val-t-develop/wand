@@ -38,6 +38,8 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/TargetParser/Host.h"
 
+#include <ast/node/statement/expression/literal/StringLiteralNode.hpp>
+
 CodeGen::CodeGen(shared_ptr<CompilationUnitNode> _cu, Path& _file) : cu(_cu), file(_file), retBB(nullptr) {
     string moduleName = "__unnamedModule";
     if (!cu->nodes.empty()) {
@@ -967,6 +969,12 @@ Value *CodeGen::genLiteral(shared_ptr<ExpressionNode> node) {
             return helper->getConstFloat(
                 static_pointer_cast<FloatLiteralNode>(node)->value);
         }
+    } else if (node->kind == Node::NodeKind::STRING_LITERAL_NODE) {
+        auto literal_node = std::static_pointer_cast<StringLiteralNode>(node);
+        Constant *c = helper->createConstantVar(helper->getArrayType(helper->getIntType(8),
+            literal_node->str.size()+1),"__spl__str__literal",
+            helper->getConstNullTerminatedString(literal_node->str));
+        return helper->createCall("__spl__constructor__String____StringLiteral", {c});
     }
     Out::errorMessage("BUG! Can not return value of literal");
     return nullptr;

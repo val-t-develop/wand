@@ -19,7 +19,7 @@
 #  Makefile to generate lib.c llvm ir representation.
 
 lib_c:
-	clang -c -S -emit-llvm lib.c -o spl.core.stdlib.ll && sed -i 's/___/./g' spl.core.stdlib.ll && sed -i '1i;  SPL - Simple Programming Language compiler\
+	clang -c -S -emit-llvm lib.c -o spl.core.stdlib.ll && sed -i 's/\([^_]\)___\([^_]\)/\1.\2/g' spl.core.stdlib.ll && sed -i '1i;  SPL - Simple Programming Language compiler\
 ;  Copyright (C) 2022  Valentyn Tymchyshyn\
 ;\
 ;  This program is free software: you can redistribute it and/or modify\

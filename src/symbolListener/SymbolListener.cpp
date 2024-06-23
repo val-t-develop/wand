@@ -985,7 +985,7 @@ void SymbolListener::enterNew() {
 
             if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
                 lexer.goForward();
-            } else {
+            } else if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {}else {
                 Out::errorMessage(
                     lexer, "Expected ',', but found:\n\t" +
                                lexer.getCurrent()->str + "\tin " +

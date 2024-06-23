@@ -25,11 +25,13 @@ target triple = "x86_64-redhat-linux-gnu"
 
 %struct.__spl__gcmap = type { i32, i32, ptr }
 %struct.__spl__gcmap__entry = type { ptr, i32 }
+%struct.String_t = type { ptr, i64 }
 
 @__spl__m = dso_local global %struct.__spl__gcmap zeroinitializer, align 8
 @.str = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
 @.str.1 = private unnamed_addr constant [4 x i8] c"%f\0A\00", align 1
-@llvm.compiler.used = appending global [13 x ptr] [ptr @__spl__init__gcmap, ptr @__spl__destroy__gcmap, ptr @__spl__add__to__gc, ptr @__spl__get__refs, ptr @__spl__set__refs, ptr @__spl__dec__refs, ptr @__spl__inc__refs, ptr @__spl__alloc, ptr @__spl__write, ptr @__spl__destroyvar, ptr @System.out.println__spl__void__int, ptr @System.out.println__spl__void__float, ptr @System.out.println__spl__void__double], section "llvm.metadata"
+@.str.2 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
+@llvm.compiler.used = appending global [17 x ptr] [ptr @__spl__init__gcmap, ptr @__spl__destroy__gcmap, ptr @__spl__add__to__gc, ptr @__spl__get__refs, ptr @__spl__set__refs, ptr @__spl__dec__refs, ptr @__spl__inc__refs, ptr @__spl__alloc, ptr @__spl__write, ptr @__spl__destroyvar, ptr @__spl__constructor__String, ptr @__spl__constructor__String__String, ptr @__spl__constructor__String____StringLiteral, ptr @System.out.println__spl__void__int, ptr @System.out.println__spl__void__float, ptr @System.out.println__spl__void__double, ptr @System.out.println__spl__void__String], section "llvm.metadata"
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @__spl__init__gcmap() #0 {
@@ -38,7 +40,7 @@ define dso_local void @__spl__init__gcmap() #0 {
   %1 = load i32, ptr getelementptr inbounds (%struct.__spl__gcmap, ptr @__spl__m, i32 0, i32 1), align 4
   %2 = sext i32 %1 to i64
   %3 = mul i64 %2, 16
-  %4 = call noalias ptr @malloc(i64 noundef %3) #5
+  %4 = call noalias ptr @malloc(i64 noundef %3) #7
   store ptr %4, ptr getelementptr inbounds (%struct.__spl__gcmap, ptr @__spl__m, i32 0, i32 2), align 8
   ret void
 }
@@ -49,7 +51,7 @@ declare dso_local noalias ptr @malloc(i64 noundef) #1
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @__spl__destroy__gcmap() #0 {
   %1 = load ptr, ptr getelementptr inbounds (%struct.__spl__gcmap, ptr @__spl__m, i32 0, i32 2), align 8
-  call void @free(ptr noundef %1) #6
+  call void @free(ptr noundef %1) #8
   ret void
 }
 
@@ -96,7 +98,7 @@ define dso_local void @__spl__add__to__gc(ptr noundef %0, i32 noundef %1) #0 {
   %28 = load i32, ptr getelementptr inbounds (%struct.__spl__gcmap, ptr @__spl__m, i32 0, i32 1), align 4
   %29 = sext i32 %28 to i64
   %30 = mul i64 %29, 16
-  %31 = call ptr @realloc(ptr noundef %27, i64 noundef %30) #7
+  %31 = call ptr @realloc(ptr noundef %27, i64 noundef %30) #9
   store ptr %31, ptr getelementptr inbounds (%struct.__spl__gcmap, ptr @__spl__m, i32 0, i32 2), align 8
   %32 = load ptr, ptr %3, align 8
   %33 = load ptr, ptr getelementptr inbounds (%struct.__spl__gcmap, ptr @__spl__m, i32 0, i32 2), align 8
@@ -336,7 +338,7 @@ define dso_local ptr @__spl__alloc(i32 noundef %0) #0 {
   store i32 %0, ptr %2, align 4
   %4 = load i32, ptr %2, align 4
   %5 = sext i32 %4 to i64
-  %6 = call noalias ptr @malloc(i64 noundef %5) #5
+  %6 = call noalias ptr @malloc(i64 noundef %5) #7
   store ptr %6, ptr %3, align 8
   %7 = load ptr, ptr %3, align 8
   call void @__spl__add__to__gc(ptr noundef %7, i32 noundef 1)
@@ -384,7 +386,7 @@ define dso_local void @__spl__write(ptr noundef %0, ptr noundef %1) #0 {
   %22 = load ptr, ptr %3, align 8
   call void @__spl__set__refs(ptr noundef %22, i32 noundef -1)
   %23 = load ptr, ptr %3, align 8
-  call void @free(ptr noundef %23) #6
+  call void @free(ptr noundef %23) #8
   br label %24
 
 24:                                               ; preds = %21, %17
@@ -427,13 +429,156 @@ define dso_local void @__spl__destroyvar(ptr noundef %0, ptr noundef %1) #0 {
 
 19:                                               ; preds = %16, %12
   %20 = load ptr, ptr %3, align 8
-  call void @free(ptr noundef %20) #6
+  call void @free(ptr noundef %20) #8
   br label %21
 
 21:                                               ; preds = %19, %7
   br label %22
 
 22:                                               ; preds = %21, %2
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local ptr @__spl__constructor__String() #0 {
+  %1 = alloca ptr, align 8
+  %2 = call ptr @__spl__alloc(i32 noundef 16)
+  store ptr %2, ptr %1, align 8
+  %3 = load ptr, ptr %1, align 8
+  %4 = getelementptr inbounds %struct.String_t, ptr %3, i32 0, i32 0
+  store ptr null, ptr %4, align 8
+  %5 = load ptr, ptr %1, align 8
+  %6 = getelementptr inbounds %struct.String_t, ptr %5, i32 0, i32 1
+  store i64 0, ptr %6, align 8
+  %7 = load ptr, ptr %1, align 8
+  ret ptr %7
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local ptr @__spl__constructor__String__String(ptr noundef %0) #0 {
+  %2 = alloca ptr, align 8
+  %3 = alloca ptr, align 8
+  store ptr %0, ptr %2, align 8
+  %4 = call ptr @__spl__alloc(i32 noundef 16)
+  store ptr %4, ptr %3, align 8
+  %5 = load ptr, ptr %2, align 8
+  %6 = getelementptr inbounds %struct.String_t, ptr %5, i32 0, i32 1
+  %7 = load i64, ptr %6, align 8
+  %8 = load ptr, ptr %3, align 8
+  %9 = getelementptr inbounds %struct.String_t, ptr %8, i32 0, i32 1
+  store i64 %7, ptr %9, align 8
+  %10 = load ptr, ptr %3, align 8
+  %11 = getelementptr inbounds %struct.String_t, ptr %10, i32 0, i32 1
+  %12 = load i64, ptr %11, align 8
+  %13 = icmp ne i64 %12, 0
+  br i1 %13, label %14, label %32
+
+14:                                               ; preds = %1
+  %15 = load ptr, ptr %3, align 8
+  %16 = getelementptr inbounds %struct.String_t, ptr %15, i32 0, i32 1
+  %17 = load i64, ptr %16, align 8
+  %18 = mul i64 1, %17
+  %19 = call noalias ptr @malloc(i64 noundef %18) #7
+  %20 = load ptr, ptr %3, align 8
+  %21 = getelementptr inbounds %struct.String_t, ptr %20, i32 0, i32 0
+  store ptr %19, ptr %21, align 8
+  %22 = load ptr, ptr %3, align 8
+  %23 = getelementptr inbounds %struct.String_t, ptr %22, i32 0, i32 0
+  %24 = load ptr, ptr %23, align 8
+  %25 = load ptr, ptr %2, align 8
+  %26 = getelementptr inbounds %struct.String_t, ptr %25, i32 0, i32 0
+  %27 = load ptr, ptr %26, align 8
+  %28 = load ptr, ptr %3, align 8
+  %29 = getelementptr inbounds %struct.String_t, ptr %28, i32 0, i32 1
+  %30 = load i64, ptr %29, align 8
+  %31 = mul i64 %30, 1
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %24, ptr align 1 %27, i64 %31, i1 false)
+  br label %35
+
+32:                                               ; preds = %1
+  %33 = load ptr, ptr %3, align 8
+  %34 = getelementptr inbounds %struct.String_t, ptr %33, i32 0, i32 0
+  store ptr null, ptr %34, align 8
+  br label %35
+
+35:                                               ; preds = %32, %14
+  %36 = load ptr, ptr %3, align 8
+  ret ptr %36
+}
+
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #4
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local ptr @__spl__constructor__String____StringLiteral(ptr noundef %0) #0 {
+  %2 = alloca ptr, align 8
+  %3 = alloca ptr, align 8
+  store ptr %0, ptr %2, align 8
+  %4 = call ptr @__spl__alloc(i32 noundef 16)
+  store ptr %4, ptr %3, align 8
+  %5 = load ptr, ptr %2, align 8
+  %6 = call i64 @strlen(ptr noundef %5) #10
+  %7 = load ptr, ptr %3, align 8
+  %8 = getelementptr inbounds %struct.String_t, ptr %7, i32 0, i32 1
+  store i64 %6, ptr %8, align 8
+  %9 = load ptr, ptr %3, align 8
+  %10 = getelementptr inbounds %struct.String_t, ptr %9, i32 0, i32 1
+  %11 = load i64, ptr %10, align 8
+  %12 = icmp ne i64 %11, 0
+  br i1 %12, label %13, label %29
+
+13:                                               ; preds = %1
+  %14 = load ptr, ptr %3, align 8
+  %15 = getelementptr inbounds %struct.String_t, ptr %14, i32 0, i32 1
+  %16 = load i64, ptr %15, align 8
+  %17 = mul i64 1, %16
+  %18 = call noalias ptr @malloc(i64 noundef %17) #7
+  %19 = load ptr, ptr %3, align 8
+  %20 = getelementptr inbounds %struct.String_t, ptr %19, i32 0, i32 0
+  store ptr %18, ptr %20, align 8
+  %21 = load ptr, ptr %3, align 8
+  %22 = getelementptr inbounds %struct.String_t, ptr %21, i32 0, i32 0
+  %23 = load ptr, ptr %22, align 8
+  %24 = load ptr, ptr %2, align 8
+  %25 = load ptr, ptr %3, align 8
+  %26 = getelementptr inbounds %struct.String_t, ptr %25, i32 0, i32 1
+  %27 = load i64, ptr %26, align 8
+  %28 = mul i64 %27, 1
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %23, ptr align 1 %24, i64 %28, i1 false)
+  br label %32
+
+29:                                               ; preds = %1
+  %30 = load ptr, ptr %3, align 8
+  %31 = getelementptr inbounds %struct.String_t, ptr %30, i32 0, i32 0
+  store ptr null, ptr %31, align 8
+  br label %32
+
+32:                                               ; preds = %29, %13
+  %33 = load ptr, ptr %3, align 8
+  ret ptr %33
+}
+
+; Function Attrs: nounwind willreturn memory(read)
+declare dso_local i64 @strlen(ptr noundef) #5
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @__spl__destructor__String(ptr noundef %0) #0 {
+  %2 = alloca ptr, align 8
+  store ptr %0, ptr %2, align 8
+  %3 = load ptr, ptr %2, align 8
+  %4 = getelementptr inbounds %struct.String_t, ptr %3, i32 0, i32 0
+  %5 = load ptr, ptr %4, align 8
+  %6 = icmp ne ptr %5, null
+  br i1 %6, label %7, label %11
+
+7:                                                ; preds = %1
+  %8 = load ptr, ptr %2, align 8
+  %9 = getelementptr inbounds %struct.String_t, ptr %8, i32 0, i32 0
+  %10 = load ptr, ptr %9, align 8
+  call void @free(ptr noundef %10) #8
+  br label %11
+
+11:                                               ; preds = %7, %1
   ret void
 }
 
@@ -446,7 +591,7 @@ define dso_local void @System.out.println__spl__void__int(i32 noundef %0) #0 {
   ret void
 }
 
-declare dso_local i32 @printf(ptr noundef, ...) #4
+declare dso_local i32 @printf(ptr noundef, ...) #6
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @System.out.println__spl__void__float(float noundef %0) #0 {
@@ -467,14 +612,28 @@ define dso_local void @System.out.println__spl__void__double(double noundef %0) 
   ret void
 }
 
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @System.out.println__spl__void__String(ptr noundef %0) #0 {
+  %2 = alloca ptr, align 8
+  store ptr %0, ptr %2, align 8
+  %3 = load ptr, ptr %2, align 8
+  %4 = getelementptr inbounds %struct.String_t, ptr %3, i32 0, i32 0
+  %5 = load ptr, ptr %4, align 8
+  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.2, ptr noundef %5)
+  ret void
+}
+
 attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #1 = { nounwind allocsize(0) "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #2 = { nounwind "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #3 = { nounwind allocsize(1) "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #4 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #5 = { nounwind allocsize(0) }
-attributes #6 = { nounwind }
-attributes #7 = { nounwind allocsize(1) }
+attributes #4 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+attributes #5 = { nounwind willreturn memory(read) "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #6 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #7 = { nounwind allocsize(0) }
+attributes #8 = { nounwind }
+attributes #9 = { nounwind allocsize(1) }
+attributes #10 = { nounwind willreturn memory(read) }
 
 !llvm.module.flags = !{!0, !1, !2}
 !llvm.ident = !{!3}

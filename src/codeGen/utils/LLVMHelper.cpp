@@ -121,6 +121,12 @@ GlobalVariable *LLVMHelper::createGlobalVar(Type *type, string name) {
                               name);
 }
 
+GlobalVariable *LLVMHelper::createConstantVar(Type *type, string name, Constant *init) {
+    return new GlobalVariable(*TheModule, type, true,
+                              GlobalValue::LinkageTypes::PrivateLinkage, init,
+                              name);
+}
+
 ConstantPointerNull *LLVMHelper::getNullptr(PointerType *type) {
     return ConstantPointerNull::get(type);
 }
@@ -202,7 +208,14 @@ Constant *LLVMHelper::getConstFloat(double val) {
 
 Constant *LLVMHelper::getConstDouble(double val) {
     return ConstantFP::get(getDoubleType(), val);
-    ;
+}
+
+Constant *LLVMHelper::getConstString(string val) {
+    return ConstantDataArray::getString(*TheContext, val, false);
+}
+
+Constant *LLVMHelper::getConstNullTerminatedString(string val) {
+    return ConstantDataArray::getString(*TheContext, val, true);
 }
 
 PointerType *LLVMHelper::getPointerType(Type *type, int addressSpace) {
