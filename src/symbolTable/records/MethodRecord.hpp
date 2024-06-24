@@ -33,6 +33,7 @@ class MethodRecord : public Record {
     vector<shared_ptr<VarRecord>> vars = vector<shared_ptr<VarRecord>>();
     int argsCount = 0;
     bool isConstructor = false;
+    bool isDestructor = false;
     vector<shared_ptr<MethodRecord>> similar =
         vector<shared_ptr<MethodRecord>>();
     vector<ModifiersNode::ModifierKind> mods =

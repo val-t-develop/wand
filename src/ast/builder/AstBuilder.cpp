@@ -145,6 +145,8 @@ AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
             vector<shared_ptr<ClassDeclNode>>();
         vector<shared_ptr<ConstructorDeclNode>> constructors =
             vector<shared_ptr<ConstructorDeclNode>>();
+        vector<shared_ptr<DestructorDeclNode>> destructors =
+            vector<shared_ptr<DestructorDeclNode>>();
 
         if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
             lexer.goForward();
@@ -168,6 +170,10 @@ AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
                            Node::NodeKind::CONSTRUCTOR_DECL_NODE) {
                     constructors.push_back(
                         static_pointer_cast<ConstructorDeclNode>(n));
+                } else if (n->getKind() ==
+                           Node::NodeKind::DESTRUCTOR_DECL_NODE) {
+                    destructors.push_back(
+                        static_pointer_cast<DestructorDeclNode>(n));
                 }
             }
             symbolTable->exitScope();
@@ -181,7 +187,7 @@ AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
 
         return make_shared<ClassDeclNode>(
             generic, nullptr, kind, record, extended, implemented, fields,
-            methods, constructors, innerClasses, nullptr);
+            methods, constructors, destructors, innerClasses, nullptr);
     } else {
         Out::errorMessage(lexer, "Expected identifier, but found:\n\t" +
                                      lexer.getCurrent()->str + "\tin " +
@@ -248,7 +254,11 @@ shared_ptr<Node> AstBuilder::enterClassMemberDecl() {
         // TODO initializers
         return nullptr;
     } else {
-        if (lexer.getNext()->kind == Token::Kind::LPAREN) {
+        if (lexer.getCurrent()->kind == Token::Kind::TILDE) {
+            shared_ptr<DestructorDeclNode> decl = enterDestructorDecl();
+            decl->modifiers = mods;
+            return decl;
+        } else if (lexer.getNext()->kind == Token::Kind::LPAREN) {
             shared_ptr<ConstructorDeclNode> decl = enterConstructorDecl();
             decl->modifiers = mods;
             return decl;
@@ -260,7 +270,7 @@ shared_ptr<Node> AstBuilder::enterClassMemberDecl() {
                     symbolTable->lookupMethod(lexer.getCurrent()->str);
                 lexer.goForward();
                 shared_ptr<MethodDeclNode> decl =
-                    enterMethodDecl(type, (shared_ptr<MethodRecord>)record);
+                    enterMethodDecl(type, record, mods->modifiers);
                 decl->modifiers = mods;
                 return decl;
             } else {
@@ -306,11 +316,47 @@ shared_ptr<ConstructorDeclNode> AstBuilder::enterConstructorDecl() {
     return nullptr;
 }
 
+shared_ptr<DestructorDeclNode> AstBuilder::enterDestructorDecl() {
+    lexer.goForward();
+    lexer.goForward();
+    symbolTable->enterScope(nullptr);
+    if (lexer.getCurrent()->kind == Token::Kind::LPAREN && lexer.getNext()->kind == Token::Kind::RPAREN) {
+        lexer.goForward();
+        lexer.goForward();
+    }
+    if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
+        shared_ptr<BlockNode> block = enterBlockStatement(false);
+        symbolTable->exitScope();
+        return make_shared<DestructorDeclNode>(
+            make_shared<ModifiersNode>(nullptr), nullptr, block, nullptr);
+    } else if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+        symbolTable->exitScope();
+        return make_shared<DestructorDeclNode>(
+            make_shared<ModifiersNode>(nullptr), nullptr, nullptr, nullptr);
+    } else {
+        Out::errorMessage(
+            lexer, "Expected '{', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
+    }
+    symbolTable->exitScope();
+    return nullptr;
+}
+
 shared_ptr<MethodDeclNode>
 AstBuilder::enterMethodDecl(shared_ptr<TypeNode> type,
-                            shared_ptr<MethodRecord> record) {
+                            shared_ptr<MethodRecord> record, vector<ModifiersNode::ModifierKind> mods) {
     symbolTable->enterScope(nullptr);
     vector<shared_ptr<VarDeclNode>> args = enterMethodArgs();
+    bool staticMod = false;
+    for (auto mod : mods) {
+        if (mod == ModifiersNode::ModifierKind::STATIC) {
+            staticMod = true;
+        }
+    }
+    if (!staticMod) {
+        args.insert(args.begin(),make_shared<VarDeclNode>(nullptr, nullptr, symbolTable->lookupVar("this"), nullptr, nullptr));
+    }
 
     bool found = true;
 

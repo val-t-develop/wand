@@ -31,10 +31,11 @@ ClassDeclNode::ClassDeclNode(
     vector<shared_ptr<VarDeclNode>> _fields,
     vector<shared_ptr<MethodDeclNode>> _methods,
     vector<shared_ptr<ConstructorDeclNode>> _constructors,
+    vector<shared_ptr<DestructorDeclNode>> _destructors,
     vector<shared_ptr<ClassDeclNode>> _innerClasses, shared_ptr<Node> _parent)
     : Node(_parent, NodeKind::CLASS_DECL_NODE), generic(_generic),
       modifiers(_modifiers), kind(_kind), record(_record), extended(_extended),
       implemented(_implemented), fields(_fields), methods(_methods),
-      constructors(_constructors), innerClasses(_innerClasses) {}
+      constructors(_constructors), destructors(_destructors), innerClasses(_innerClasses) {}
 
 string ClassDeclNode::getFullName() { return record->getFullName(); }

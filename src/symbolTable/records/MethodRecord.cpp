@@ -70,19 +70,8 @@ bool MethodRecord::containArg(shared_ptr<VarRecord> var, int n) {
 
 string MethodRecord::getFullName() {
     if (ir_name == "") {
-        string str = "";
-        if (next != nullptr) {
-            str +=
-                static_pointer_cast<ClassRecord>(next)->getFullName() +
-                ".";
-        }
-        str += id;
-
-        str += "__spl__" + retTypeRec->getFullName();
-        for (int i = 0; i < argsCount; ++i) { // TODO this
-            str += "__" + vars[i]->typeRec->getFullName();
-        }
-        ir_name = str;
+        Out::errorMessage(
+            "Internal error detected! Can not get ir_name of method " + id);
     }
     return ir_name;
 }

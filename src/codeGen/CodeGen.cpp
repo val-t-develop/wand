@@ -275,9 +275,8 @@ void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
     }
     structType->setBody(types);
 
-    genDestructorPrototype(node);
-
     for (shared_ptr<MethodDeclNode> item : node->methods) {
+        item->parent=node;
         genMethodPrototype(item);
     }
 
@@ -289,6 +288,8 @@ void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
             nullptr, nullptr, vector<shared_ptr<VarDeclNode>>{}, nullptr,
             nullptr));
     }
+
+    genDestructorPrototype(node);
 
     for (shared_ptr<ClassDeclNode> item : node->innerClasses) {
         genStruct(item);
@@ -309,9 +310,16 @@ Function *CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {
     }
     if (!isStatic) {
         args_types.push_back(utils->getType(utils->currClass->record));
-    }
-    for (shared_ptr<VarDeclNode> arg : node->args) {
-        args_types.push_back(utils->getType(arg->type->type->record));
+
+        for (int i = 1; i < node->args.size(); ++i) {
+            auto arg = node->args[i];
+            args_types.push_back(utils->getType(arg->type->type->record));
+        }
+    } else {
+        for (int i = 0; i < node->args.size(); ++i) {
+            auto arg = node->args[i];
+            args_types.push_back(utils->getType(arg->type->type->record));
+        }
     }
     return helper->createFunctionPrototype(
         node->getFullName(), utils->getType(node->returnType->type->record),
@@ -354,9 +362,15 @@ Function *CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
         }
         if (!isStatic) {
             args_types.push_back(utils->getType(utils->currClass->record));
-        }
-        for (shared_ptr<VarDeclNode> arg : node->args) {
-            args_types.push_back(utils->getType(arg->type->type->record));
+            for (int i = 1; i < node->args.size(); ++i) {
+                auto arg = node->args[i];
+                args_types.push_back(utils->getType(arg->type->type->record));
+            }
+        } else {
+            for (int i = 0; i < node->args.size(); ++i) {
+                auto arg = node->args[i];
+                args_types.push_back(utils->getType(arg->type->type->record));
+            }
         }
 
         if (!TheFunction) {
@@ -376,11 +390,7 @@ Function *CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
             NamedValues[node->getFullName() + "__spl__ret"] = ret_ptr;
             helper->createStore(genDefaultValue(node->returnType), ret_ptr);
         }
-        int iterations = node->args.size();
-        if (!isStatic) {
-            iterations++;
-        }
-        for (int i = 0; i < iterations; ++i) {
+        for (int i = 0; i < node->args.size(); ++i) {
             auto Arg = TheFunction->getArg(i);
             if (isStatic) {
                 string argName = node->args[i]->getFullName();
@@ -395,16 +405,15 @@ Function *CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
                     helper->createStore(Arg, ptr);
                     NamedValues[argName] = ptr;
 
-                    thisRecord = make_shared<VarRecord>("this", utils->currClassName, Record::RecordKind::LOCAL_VAR_RECORD);
-                    thisRecord->ir_name = "this";
-                    thisRecord->typeRec=classesStack.top()->record;
-                    varTypes[thisRecord] = Arg->getType();
+                    node->args[0]->record->typeRec=classesStack.top()->record;
+                    varTypes[node->args[0]->record] = Arg->getType();
+                    thisRecord = node->args[0]->record;
                 } else {
-                    string argName = node->args[i-1]->getFullName();
+                    string argName = node->args[i]->getFullName();
                     Value *ptr = helper->createAlloca(Arg->getType(), nullptr, argName);
                     helper->createStore(Arg, ptr);
                     NamedValues[argName] = ptr;
-                    varTypes[node->args[i-1]->record] = Arg->getType();
+                    varTypes[node->args[i]->record] = Arg->getType();
                 }
 
             }
@@ -476,50 +485,101 @@ Function *CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
 }
 
 Function *CodeGen::genDestructorDecl(shared_ptr<ClassDeclNode> node) {
+    if (!node->destructors.empty()) {
+        if (node->destructors[0]->body!=nullptr) {
+            Function *TheFunction =
+                helper->getFunction("__spl__destructor__" + utils->currClassName);
 
-    Function *TheFunction =
-        helper->getFunction("__spl__destructor__" + utils->currClassName);
+            vector<Type *> args_types = vector<Type *>();
+            args_types.push_back(utils->getType(utils->currClass->record));
 
-    vector<Type *> args_types = vector<Type *>();
-    args_types.push_back(utils->getType(utils->currClass->record));
+            if (!TheFunction) {
+                return nullptr;
+            }
 
-    if (!TheFunction) {
-        return nullptr;
-    }
+            BasicBlock *BB = helper->createBBinFunc("entry", TheFunction);
+            retBB = helper->createBBinFunc("ret", TheFunction);
+            helper->activateBB(BB);
 
-    BasicBlock *BB = helper->createBBinFunc("entry", TheFunction);
-    retBB = helper->createBBinFunc("ret", TheFunction);
-    helper->activateBB(BB);
+            NamedValues.clear();
 
-    NamedValues.clear();
+            genBlockStatement(node->destructors[0]->body);
 
-    Value *val = TheFunction->getArg(0);
-    for (int i = 0; i < node->fields.size(); ++i) {
-        Value *ptr = helper->createGetElementPtr(
-            utils->getTypeNoPtr(node->record), val,
-            vector<Value *>{helper->getConstInt(32, 0),
-                            helper->getConstInt(32, i)});
-        Value *loadptr = helper->createLoad(
-            utils->getType(node->fields[i]->type->getReturnType()), ptr);
-        if (node->fields[i]->type->type->record->type != "primitive") {
-            helper->createCall(
-                "__spl__destroyvar",
-                vector<Value *>{
-                    loadptr,
-                    helper->getFunction("__spl__destructor__" +
-                                        node->fields[i]->type->getFullName())});
+            Value *val = TheFunction->getArg(0);
+            for (int i = 0; i < node->fields.size(); ++i) {
+                Value *ptr = helper->createGetElementPtr(
+                    utils->getTypeNoPtr(node->record), val,
+                    vector<Value *>{helper->getConstInt(32, 0),
+                                    helper->getConstInt(32, i)});
+                Value *loadptr = helper->createLoad(
+                    utils->getType(node->fields[i]->type->getReturnType()), ptr);
+                if (node->fields[i]->type->type->record->type != "primitive") {
+                    helper->createCall(
+                        "__spl__destroyvar",
+                        vector<Value *>{
+                            loadptr,
+                            helper->getFunction("__spl__destructor__" +
+                                                node->fields[i]->type->getFullName())});
+                }
+            }
+
+            helper->createBr(retBB);
+
+            helper->activateBB(retBB);
+
+            helper->createRet(UndefValue::get(helper->getVoidType()));
+
+            verifyFunction(*TheFunction);
+
+            return TheFunction;
         }
+        return nullptr;
+    } else {
+        Function *TheFunction =
+            helper->getFunction("__spl__destructor__" + utils->currClassName);
+
+        vector<Type *> args_types = vector<Type *>();
+        args_types.push_back(utils->getType(utils->currClass->record));
+
+        if (!TheFunction) {
+            return nullptr;
+        }
+
+        BasicBlock *BB = helper->createBBinFunc("entry", TheFunction);
+        retBB = helper->createBBinFunc("ret", TheFunction);
+        helper->activateBB(BB);
+
+        NamedValues.clear();
+
+        Value *val = TheFunction->getArg(0);
+        for (int i = 0; i < node->fields.size(); ++i) {
+            Value *ptr = helper->createGetElementPtr(
+                utils->getTypeNoPtr(node->record), val,
+                vector<Value *>{helper->getConstInt(32, 0),
+                                helper->getConstInt(32, i)});
+            Value *loadptr = helper->createLoad(
+                utils->getType(node->fields[i]->type->getReturnType()), ptr);
+            if (node->fields[i]->type->type->record->type != "primitive") {
+                helper->createCall(
+                    "__spl__destroyvar",
+                    vector<Value *>{
+                        loadptr,
+                        helper->getFunction("__spl__destructor__" +
+                                            node->fields[i]->type->getFullName())});
+            }
+        }
+
+        helper->createBr(retBB);
+
+        helper->activateBB(retBB);
+
+        helper->createRet(UndefValue::get(helper->getVoidType()));
+
+        verifyFunction(*TheFunction);
+
+        return TheFunction;
     }
 
-    helper->createBr(retBB);
-
-    helper->activateBB(retBB);
-
-    helper->createRet(UndefValue::get(helper->getVoidType()));
-
-    verifyFunction(*TheFunction);
-
-    return TheFunction;
 }
 
 Function *CodeGen::genConstructorDecl(shared_ptr<ConstructorDeclNode> node) {

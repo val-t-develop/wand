@@ -293,7 +293,9 @@ void SymbolListener::enterClassMemberDecl() {
     } else if (lexer.getCurrent()->kind == Token::Kind::ENUM) {
         enterEnumDecl();
     } else {
-        if (lexer.getNext()->kind == Token::Kind::LPAREN) {
+        if (lexer.getCurrent()->kind==Token::Kind::TILDE) {
+            enterDestructorDecl(mods);
+        } else if (lexer.getNext()->kind == Token::Kind::LPAREN) {
             enterConstructorDecl(mods);
         } else {
             string type, id = "";
@@ -330,6 +332,63 @@ void SymbolListener::enterClassMemberDecl() {
         }
     }
 }
+
+void SymbolListener::enterDestructorDecl(
+    vector<ModifiersNode::ModifierKind> mods) {
+    lexer.goForward();
+    if (lexer.getCurrent()->str != currentClass->id) {
+        Out::errorMessage(lexer, "Destructor has not same name as class [ " +
+                                     currentClass->id + " ] in " +
+                                     std::to_string(lexer.getCurrent()->line) +
+                                     ":" +
+                                     std::to_string(lexer.getCurrent()->pos));
+    }
+    string type = "__destructor", id = "__spl__destructor__"+lexer.getCurrent()->str;
+
+    currentMethod = make_shared<MethodRecord>(id, type);
+    currentMethod->isDestructor = true;
+    currentMethod->mods = mods;
+    symbolTable->put(currentMethod);
+
+    // enter METHOD SCOPE
+    symbolTable->enterScope(currentMethod);
+    // set scope name
+    symbolTable->setCurrentScopeNameAndType(id, "__destructor");
+    // add method to currentClass
+    currentClass->addMethod(currentMethod);
+    // inherit current class from parent scope
+    symbolTable->setCurrentScopeClass(currentClass);
+
+    lexer.goForward();
+    if (lexer.getCurrent()->kind == Token::Kind::LPAREN && lexer.getNext()->kind == Token::Kind::RPAREN) {
+        lexer.goForward();
+        lexer.goForward();
+    }
+
+    if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
+        enterBlockStatement(false);
+    } else if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+        lexer.goForward();
+    } else {
+        Out::errorMessage(
+            lexer, "Expected '{', but found:\n\t" + lexer.getCurrent()->str +
+                       "\tin " + std::to_string(lexer.getCurrent()->line) +
+                       ":" + std::to_string(lexer.getCurrent()->pos));
+    }
+
+    uint8_t destructors = 0;
+    for (shared_ptr<MethodRecord> method : currentClass->methods) {
+        if (method->isDestructor == true) {
+            destructors++;
+        }
+    }
+    if (destructors >= 2) {
+        Out::errorMessage(lexer, "Destructor duplicated on class [ " +
+                                     currentClass->id + " ]");
+    }
+    symbolTable->exitScope();
+}
+
 
 void SymbolListener::enterConstructorDecl(
     vector<ModifiersNode::ModifierKind> mods) {
@@ -399,8 +458,14 @@ void SymbolListener::enterMethodDecl(string type, string id,
     currentClass->addMethod(currentMethod);
     // inherit current class from parent scope
     symbolTable->setCurrentScopeClass(currentClass);
+    bool staticMod = false;
+    for (auto mod : mods) {
+        if (mod == ModifiersNode::ModifierKind::STATIC) {
+            staticMod = true;
+        }
+    }
 
-    if (find(mods.begin(), mods.end(), ModifiersNode::ModifierKind::STATIC) != mods.end()) {
+    if (!staticMod) {
         shared_ptr<VarRecord> thisVar = make_shared<VarRecord>(
                     "this", currentClass->id, Record::RecordKind::LOCAL_VAR_RECORD);
         // insert record into scope

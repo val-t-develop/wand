@@ -24,6 +24,7 @@
 #pragma once
 #include <Defs.hpp>
 #include <ast/node/ConstructorDeclNode.hpp>
+#include <ast/node/DestructorDeclNode.hpp>
 #include <ast/node/GenericNode.hpp>
 #include <ast/node/MethodDeclNode.hpp>
 #include <ast/node/ModifiersNode.hpp>
@@ -46,6 +47,8 @@ class ClassDeclNode : public Node {
         vector<shared_ptr<MethodDeclNode>>();
     vector<shared_ptr<ConstructorDeclNode>> constructors =
         vector<shared_ptr<ConstructorDeclNode>>();
+    vector<shared_ptr<DestructorDeclNode>> destructors =
+        vector<shared_ptr<DestructorDeclNode>>();
     vector<shared_ptr<ClassDeclNode>> innerClasses =
         vector<shared_ptr<ClassDeclNode>>();
 
@@ -57,6 +60,7 @@ class ClassDeclNode : public Node {
                   vector<shared_ptr<VarDeclNode>> _fields,
                   vector<shared_ptr<MethodDeclNode>> _methods,
                   vector<shared_ptr<ConstructorDeclNode>> _constructors,
+                  vector<shared_ptr<DestructorDeclNode>> _destructors,
                   vector<shared_ptr<ClassDeclNode>> _innerClasses,
                   shared_ptr<Node> _parent);
 

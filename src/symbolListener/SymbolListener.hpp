@@ -55,6 +55,7 @@ class SymbolListener {
     string enterGenericTypeDecl();
     void enterClassMemberDecl();
     void enterConstructorDecl(vector<ModifiersNode::ModifierKind> mods);
+    void enterDestructorDecl(vector<ModifiersNode::ModifierKind> mods);
     void enterMethodDecl(string type, string id,
                          vector<ModifiersNode::ModifierKind> mods);
     void enterField(string type, string id,

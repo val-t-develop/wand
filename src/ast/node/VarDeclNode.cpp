@@ -32,5 +32,17 @@ VarDeclNode::VarDeclNode(shared_ptr<ModifiersNode> _modifiers,
       type(_type), record(_record), init(_init) {}
 
 string VarDeclNode::getFullName() {
+    if (record->ir_name == "") {
+        string str = "";
+        if (record->next != nullptr) {
+            str +=
+                static_pointer_cast<ClassRecord>(record->next)->getFullName() +
+                ".";
+        }
+        str += record->id;
+
+        str += "__spl__" + type->type->record->getFullName();
+        record->ir_name = str;
+    }
     return record->ir_name;
 }

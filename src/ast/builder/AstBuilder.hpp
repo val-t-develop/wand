@@ -67,8 +67,9 @@ class AstBuilder {
     shared_ptr<ClassRecordNode> enterGenericTypeDecl();
     shared_ptr<Node> enterClassMemberDecl();
     shared_ptr<ConstructorDeclNode> enterConstructorDecl();
+    shared_ptr<DestructorDeclNode> enterDestructorDecl();
     shared_ptr<MethodDeclNode> enterMethodDecl(shared_ptr<TypeNode> type,
-                                               shared_ptr<MethodRecord> record);
+                                               shared_ptr<MethodRecord> record, vector<ModifiersNode::ModifierKind> mods);
     shared_ptr<VarDeclNode> enterFieldDecl(shared_ptr<TypeNode> type,
                                            shared_ptr<VarRecord> record);
     vector<shared_ptr<VarDeclNode>> enterMethodArgs();

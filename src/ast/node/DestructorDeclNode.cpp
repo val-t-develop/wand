@@ -18,25 +18,16 @@
 /*
  *  Valentyn Tymchyshyn (val.t.develop) (val.t.develo@gmail.com)
  *
- *  Symbol of variable.
+ *  Node of destructor declaration.
  */
 
-#include "VarRecord.hpp"
-#include <utils/Out.hpp>
+#include "DestructorDeclNode.hpp"
 
-VarRecord::VarRecord(string _id, string _type, RecordKind _kind)
-    : Record(_id, _type, _kind) {}
-
-bool VarRecord::equals(shared_ptr<VarRecord> r) {
-    return id == r->id && type == r->type &&
-           (next == nullptr ? r->next == nullptr : next->equals(r->next));
-}
-
-string VarRecord::getFullName() {
-    if (ir_name == "") {
-        Out::errorMessage(
-            "Internal error detected! Can not get ir_name of var or field " +
-            id);
-    }
-    return ir_name;
+DestructorDeclNode::DestructorDeclNode(shared_ptr<ModifiersNode> _modifiers,
+                                         shared_ptr<MethodRecord> _record,
+                                         shared_ptr<BlockNode> _body,
+                                         shared_ptr<Node> _parent)
+    : Node(_parent, NodeKind::DESTRUCTOR_DECL_NODE), modifiers(_modifiers),
+      record(_record), body(_body) {
+    // TODO
 }
