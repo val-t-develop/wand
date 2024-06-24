@@ -403,8 +403,8 @@ void Lexer::tokenizeIdentifier() {
         kind = Token::Kind::STRICTFP;
     } else if (str == "const") {
         kind = Token::Kind::CONST;
-    } else if (str == "boolean") {
-        kind = Token::Kind::BOOLEAN;
+    } else if (str == "bool") {
+        kind = Token::Kind::BOOL;
     } else if (str == "byte") {
         kind = Token::Kind::BYTE;
     } else if (str == "short") {
@@ -476,7 +476,7 @@ void Lexer::tokenizeIdentifier() {
     } else if (str == "assert") {
         kind = Token::Kind::ASSERT;
     } else if (str == "true" || str == "false") {
-        kind = Token::Kind::BOOLEAN_LITERAL;
+        kind = Token::Kind::BOOL_LITERAL;
     } else if (str == "null") {
         kind = Token::Kind::NULL_LITERAL;
     }
@@ -513,10 +513,13 @@ void Lexer::tokenizeDec() {
 
     if (ch == 'l' || ch == 'L') {
         kind = Token::Kind::DEC_LONG_LITERAL;
+        incCurrChar();
     } else if (ch == 'f' || ch == 'F') {
         kind = Token::Kind::DEC_FLOAT_LITERAL;
+        incCurrChar();
     } else if (ch == 'd' || ch == 'D') {
         kind = Token::Kind::DEC_DOUBLE_LITERAL;
+        incCurrChar();
     }
 
     tokens.push_back(make_shared<Token>(kind, str, line, pos));

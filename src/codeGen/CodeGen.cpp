@@ -609,7 +609,7 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
 
     for (auto v : currBlockVars.top()) {
         Value *val = helper->createLoad(v.first->getType(), v.first);
-        if (v.second != "boolean" && v.second != "int" && v.second != "byte" &&
+        if (v.second != "bool" && v.second != "int" && v.second != "byte" &&
             v.second != "short" && v.second != "long" && v.second != "float" &&
             v.second != "double" && v.second != "char" && v.second != "void") {
 
@@ -711,7 +711,7 @@ bool CodeGen::genConstructorBlockStatement(
     }
     for (auto v : currBlockVars.top()) {
         Value *val = helper->createLoad(v.first->getType(), v.first);
-        if (v.second != "boolean" && v.second != "int" && v.second != "byte" &&
+        if (v.second != "bool" && v.second != "int" && v.second != "byte" &&
             v.second != "short" && v.second != "long" && v.second != "float" &&
             v.second != "double" && v.second != "char" && v.second != "void") {
 
@@ -1091,7 +1091,7 @@ Value *CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
 Value *CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
     auto x = node->type;
     if (x->record->type == "primitive") {
-        if (x->record->id == "boolean") {
+        if (x->record->id == "bool") {
             return helper->getConstInt(32, 0);
         } else if (x->record->id == "int") {
             return helper->getConstInt(32, 0);

@@ -37,7 +37,7 @@ void CodeGenUtils::setCurrClassName() {
 
 Type *CodeGenUtils::getType(shared_ptr<ClassRecord> node) {
     if (node->type == "primitive") {
-        if (node->id == "boolean") {
+        if (node->id == "bool") {
             return helper->getIntType(1);
         } else if (node->id == "int") {
             return helper->getIntType(32);
@@ -70,7 +70,7 @@ Type *CodeGenUtils::getType(shared_ptr<ClassRecord> node) {
 
 Type *CodeGenUtils::getTypeNoPtr(shared_ptr<ClassRecord> node) {
     if (node->type == "primitive") {
-        if (node->id == "boolean") {
+        if (node->id == "bool") {
             return helper->getIntType(1);
         } else if (node->id == "int") {
             return helper->getIntType(32);

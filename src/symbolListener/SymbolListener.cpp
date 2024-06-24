@@ -485,7 +485,7 @@ void SymbolListener::enterField(string type, string id,
 void SymbolListener::enterStatement() {
     vector<ModifiersNode::ModifierKind> mods = enterModifiers();
     if (lexer.getCurrent()->kind == Token::Kind::IDENTIFIER ||
-        lexer.getCurrent()->kind == Token::Kind::BOOLEAN ||
+        lexer.getCurrent()->kind == Token::Kind::BOOL ||
         lexer.getCurrent()->kind == Token::Kind::CHAR ||
         lexer.getCurrent()->kind == Token::Kind::BYTE ||
         lexer.getCurrent()->kind == Token::Kind::SHORT ||
@@ -939,7 +939,7 @@ void SymbolListener::enterUnOpPrimary() {
 }
 
 void SymbolListener::enterPrimary() {
-    if (lexer.getCurrent()->kind == Token::Kind::BOOLEAN_LITERAL ||
+    if (lexer.getCurrent()->kind == Token::Kind::BOOL_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::CHAR_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::STRING_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::DEC_FLOAT_LITERAL ||
@@ -1138,7 +1138,7 @@ string SymbolListener::enterGeneric() {
 }
 
 void SymbolListener::enterLiteral() {
-    if (lexer.getCurrent()->kind == Token::Kind::BOOLEAN_LITERAL ||
+    if (lexer.getCurrent()->kind == Token::Kind::BOOL_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::CHAR_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::STRING_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::DEC_FLOAT_LITERAL ||

@@ -191,8 +191,46 @@ void __spl__destructor__String(String* obj) {
 }
 
 __attribute__((used))
+void System___out___print__spl__void__char(char a) {
+    printf("%c", a);
+}
+
+__attribute__((used))
+void System___out___println__spl__void__char(char a) {
+    printf("%c\n", a);
+}
+
+__attribute__((used))
+void System___out___print__spl__void__bool(int8_t a) {
+    if (a) {
+        printf("true");
+    } else {
+        printf("false");
+    }
+}
+
+__attribute__((used))
+void System___out___println__spl__void__bool(int8_t a) {
+    if (a) {
+        printf("true\n");
+    } else {
+        printf("false\n");
+    }
+}
+
+__attribute__((used))
+void System___out___print__spl__void__int(int a) {
+    printf("%d", a);
+}
+
+__attribute__((used))
 void System___out___println__spl__void__int(int a) {
     printf("%d\n", a);
+}
+
+__attribute__((used))
+void System___out___print__spl__void__float(float a) {
+    printf("%f", a);
 }
 
 __attribute__((used))
@@ -201,8 +239,18 @@ void System___out___println__spl__void__float(float a) {
 }
 
 __attribute__((used))
+void System___out___print__spl__void__double(double a) {
+    printf("%f", a);
+}
+
+__attribute__((used))
 void System___out___println__spl__void__double(double a) {
     printf("%f\n", a);
+}
+
+__attribute__((used))
+void System___out___print__spl__void__String(String *str) {
+    printf("%s", str->str);
 }
 
 __attribute__((used))

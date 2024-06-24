@@ -28,10 +28,19 @@ target triple = "x86_64-redhat-linux-gnu"
 %struct.String_t = type { ptr, i64 }
 
 @__spl__m = dso_local global %struct.__spl__gcmap zeroinitializer, align 8
-@.str = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
-@.str.1 = private unnamed_addr constant [4 x i8] c"%f\0A\00", align 1
-@.str.2 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
-@llvm.compiler.used = appending global [17 x ptr] [ptr @__spl__init__gcmap, ptr @__spl__destroy__gcmap, ptr @__spl__add__to__gc, ptr @__spl__get__refs, ptr @__spl__set__refs, ptr @__spl__dec__refs, ptr @__spl__inc__refs, ptr @__spl__alloc, ptr @__spl__write, ptr @__spl__destroyvar, ptr @__spl__constructor__String, ptr @__spl__constructor__String__String, ptr @__spl__constructor__String____StringLiteral, ptr @System.out.println__spl__void__int, ptr @System.out.println__spl__void__float, ptr @System.out.println__spl__void__double, ptr @System.out.println__spl__void__String], section "llvm.metadata"
+@.str = private unnamed_addr constant [3 x i8] c"%c\00", align 1
+@.str.1 = private unnamed_addr constant [4 x i8] c"%c\0A\00", align 1
+@.str.2 = private unnamed_addr constant [5 x i8] c"true\00", align 1
+@.str.3 = private unnamed_addr constant [6 x i8] c"false\00", align 1
+@.str.4 = private unnamed_addr constant [6 x i8] c"true\0A\00", align 1
+@.str.5 = private unnamed_addr constant [7 x i8] c"false\0A\00", align 1
+@.str.6 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@.str.7 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
+@.str.8 = private unnamed_addr constant [3 x i8] c"%f\00", align 1
+@.str.9 = private unnamed_addr constant [4 x i8] c"%f\0A\00", align 1
+@.str.10 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@.str.11 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
+@llvm.compiler.used = appending global [25 x ptr] [ptr @__spl__init__gcmap, ptr @__spl__destroy__gcmap, ptr @__spl__add__to__gc, ptr @__spl__get__refs, ptr @__spl__set__refs, ptr @__spl__dec__refs, ptr @__spl__inc__refs, ptr @__spl__alloc, ptr @__spl__write, ptr @__spl__destroyvar, ptr @__spl__constructor__String, ptr @__spl__constructor__String__String, ptr @__spl__constructor__String____StringLiteral, ptr @System.out.print__spl__void__char, ptr @System.out.println__spl__void__char, ptr @System.out.print__spl__void__bool, ptr @System.out.println__spl__void__bool, ptr @System.out.print__spl__void__int, ptr @System.out.println__spl__void__int, ptr @System.out.print__spl__void__float, ptr @System.out.println__spl__void__float, ptr @System.out.print__spl__void__double, ptr @System.out.println__spl__void__double, ptr @System.out.print__spl__void__String, ptr @System.out.println__spl__void__String], section "llvm.metadata"
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @__spl__init__gcmap() #0 {
@@ -603,15 +612,94 @@ define dso_local void @__spl__destructor__String(ptr noundef %0) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.println__spl__void__int(i32 noundef %0) #0 {
-  %2 = alloca i32, align 4
-  store i32 %0, ptr %2, align 4
-  %3 = load i32, ptr %2, align 4
-  %4 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %3)
+define dso_local void @System.out.print__spl__void__char(i8 noundef signext %0) #0 {
+  %2 = alloca i8, align 1
+  store i8 %0, ptr %2, align 1
+  %3 = load i8, ptr %2, align 1
+  %4 = sext i8 %3 to i32
+  %5 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %4)
   ret void
 }
 
 declare dso_local i32 @printf(ptr noundef, ...) #6
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @System.out.println__spl__void__char(i8 noundef signext %0) #0 {
+  %2 = alloca i8, align 1
+  store i8 %0, ptr %2, align 1
+  %3 = load i8, ptr %2, align 1
+  %4 = sext i8 %3 to i32
+  %5 = call i32 (ptr, ...) @printf(ptr noundef @.str.1, i32 noundef %4)
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @System.out.print__spl__void__bool(i8 noundef signext %0) #0 {
+  %2 = alloca i8, align 1
+  store i8 %0, ptr %2, align 1
+  %3 = load i8, ptr %2, align 1
+  %4 = icmp ne i8 %3, 0
+  br i1 %4, label %5, label %7
+
+5:                                                ; preds = %1
+  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.2)
+  br label %9
+
+7:                                                ; preds = %1
+  %8 = call i32 (ptr, ...) @printf(ptr noundef @.str.3)
+  br label %9
+
+9:                                                ; preds = %7, %5
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @System.out.println__spl__void__bool(i8 noundef signext %0) #0 {
+  %2 = alloca i8, align 1
+  store i8 %0, ptr %2, align 1
+  %3 = load i8, ptr %2, align 1
+  %4 = icmp ne i8 %3, 0
+  br i1 %4, label %5, label %7
+
+5:                                                ; preds = %1
+  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.4)
+  br label %9
+
+7:                                                ; preds = %1
+  %8 = call i32 (ptr, ...) @printf(ptr noundef @.str.5)
+  br label %9
+
+9:                                                ; preds = %7, %5
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @System.out.print__spl__void__int(i32 noundef %0) #0 {
+  %2 = alloca i32, align 4
+  store i32 %0, ptr %2, align 4
+  %3 = load i32, ptr %2, align 4
+  %4 = call i32 (ptr, ...) @printf(ptr noundef @.str.6, i32 noundef %3)
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @System.out.println__spl__void__int(i32 noundef %0) #0 {
+  %2 = alloca i32, align 4
+  store i32 %0, ptr %2, align 4
+  %3 = load i32, ptr %2, align 4
+  %4 = call i32 (ptr, ...) @printf(ptr noundef @.str.7, i32 noundef %3)
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @System.out.print__spl__void__float(float noundef %0) #0 {
+  %2 = alloca float, align 4
+  store float %0, ptr %2, align 4
+  %3 = load float, ptr %2, align 4
+  %4 = fpext float %3 to double
+  %5 = call i32 (ptr, ...) @printf(ptr noundef @.str.8, double noundef %4)
+  ret void
+}
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @System.out.println__spl__void__float(float noundef %0) #0 {
@@ -619,7 +707,16 @@ define dso_local void @System.out.println__spl__void__float(float noundef %0) #0
   store float %0, ptr %2, align 4
   %3 = load float, ptr %2, align 4
   %4 = fpext float %3 to double
-  %5 = call i32 (ptr, ...) @printf(ptr noundef @.str.1, double noundef %4)
+  %5 = call i32 (ptr, ...) @printf(ptr noundef @.str.9, double noundef %4)
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @System.out.print__spl__void__double(double noundef %0) #0 {
+  %2 = alloca double, align 8
+  store double %0, ptr %2, align 8
+  %3 = load double, ptr %2, align 8
+  %4 = call i32 (ptr, ...) @printf(ptr noundef @.str.8, double noundef %3)
   ret void
 }
 
@@ -628,7 +725,18 @@ define dso_local void @System.out.println__spl__void__double(double noundef %0) 
   %2 = alloca double, align 8
   store double %0, ptr %2, align 8
   %3 = load double, ptr %2, align 8
-  %4 = call i32 (ptr, ...) @printf(ptr noundef @.str.1, double noundef %3)
+  %4 = call i32 (ptr, ...) @printf(ptr noundef @.str.9, double noundef %3)
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @System.out.print__spl__void__String(ptr noundef %0) #0 {
+  %2 = alloca ptr, align 8
+  store ptr %0, ptr %2, align 8
+  %3 = load ptr, ptr %2, align 8
+  %4 = getelementptr inbounds %struct.String_t, ptr %3, i32 0, i32 0
+  %5 = load ptr, ptr %4, align 8
+  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.10, ptr noundef %5)
   ret void
 }
 
@@ -639,7 +747,7 @@ define dso_local void @System.out.println__spl__void__String(ptr noundef %0) #0 
   %3 = load ptr, ptr %2, align 8
   %4 = getelementptr inbounds %struct.String_t, ptr %3, i32 0, i32 0
   %5 = load ptr, ptr %4, align 8
-  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.2, ptr noundef %5)
+  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.11, ptr noundef %5)
   ret void
 }
 

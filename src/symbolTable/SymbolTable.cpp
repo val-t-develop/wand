@@ -24,7 +24,7 @@
 #include "SymbolTable.hpp"
 
 SymbolTable::SymbolTable() : root(make_shared<Scope>()), currentScope(root) {
-    put(make_shared<ClassRecord>("boolean", "primitive"));
+    put(make_shared<ClassRecord>("bool", "primitive"));
     put(make_shared<ClassRecord>("int", "primitive"));
     put(make_shared<ClassRecord>("byte", "primitive"));
     put(make_shared<ClassRecord>("short", "primitive"));

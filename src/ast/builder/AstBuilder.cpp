@@ -450,7 +450,7 @@ shared_ptr<StatementNode> AstBuilder::enterStatement() {
     if (lexer.getCurrent()->kind == Token::Kind::CLASS) {
         // TODO
     } else if (lexer.getCurrent()->kind == Token::Kind::IDENTIFIER ||
-               lexer.getCurrent()->kind == Token::Kind::BOOLEAN ||
+               lexer.getCurrent()->kind == Token::Kind::BOOL ||
                lexer.getCurrent()->kind == Token::Kind::CHAR ||
                lexer.getCurrent()->kind == Token::Kind::BYTE ||
                lexer.getCurrent()->kind == Token::Kind::SHORT ||
@@ -921,7 +921,7 @@ shared_ptr<ExpressionNode> AstBuilder::enterUnOpPrimary() {
 }
 
 shared_ptr<ExpressionNode> AstBuilder::enterPrimary() {
-    if (lexer.getCurrent()->kind == Token::Kind::BOOLEAN_LITERAL ||
+    if (lexer.getCurrent()->kind == Token::Kind::BOOL_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::CHAR_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::STRING_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::DEC_FLOAT_LITERAL ||
@@ -1441,7 +1441,7 @@ void AstBuilder::enterGeneric(shared_ptr<ClassRecordNode> classRecordNode) {
 }
 
 shared_ptr<ExpressionNode> AstBuilder::enterLiteral() {
-    if (lexer.getCurrent()->kind == Token::Kind::BOOLEAN_LITERAL) {
+    if (lexer.getCurrent()->kind == Token::Kind::BOOL_LITERAL) {
         if (lexer.getCurrent()->str == "true") {
             lexer.goForward();
             return make_shared<BoolLiteralNode>(true, symbolTable->lookupClass("bool"), nullptr);
