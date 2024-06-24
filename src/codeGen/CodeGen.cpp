@@ -1352,11 +1352,7 @@ Value *CodeGen::genNewNode(shared_ptr<NewNode> node) {
         args.push_back(genExpression(arg));
     }
     auto tmp = helper->createCall(str, args);
-    Value *ptr = helper->createAlloca(tmp->getType(), nullptr,
-                                      string(tmp->getName()) + "tmp_var");
-    helper->createStore(tmp, ptr);
-    currBlockVars.top().push_back(
-        pair<Value *, string>(ptr, node->type->getFullName()));
-
+    destructAfterStatement.push_back(
+        pair<Value *, string>(tmp, node->type->getFullName()));
     return tmp;
 }
