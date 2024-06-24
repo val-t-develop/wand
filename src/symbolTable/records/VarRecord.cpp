@@ -34,9 +34,16 @@ bool VarRecord::equals(shared_ptr<VarRecord> r) {
 
 string VarRecord::getFullName() {
     if (ir_name == "") {
-        Out::errorMessage(
-            "Internal error detected! Can not get ir_name of var or field " +
-            id);
+        string str = "";
+        if (next != nullptr) {
+            str +=
+                static_pointer_cast<ClassRecord>(next)->getFullName() +
+                ".";
+        }
+        str += id;
+
+        str += "__spl__" + typeRec->getFullName();
+        ir_name = str;
     }
     return ir_name;
 }

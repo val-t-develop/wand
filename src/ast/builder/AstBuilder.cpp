@@ -1171,45 +1171,7 @@ void AstBuilder::enterAccessWithoutArray(shared_ptr<AccessNode> access) {
                 shared_ptr<MethodRecord> new_methodRecord =
                     static_pointer_cast<MethodRecord>(new_record);
                 // TODO method reference
-                shared_ptr<MethodCallNode> call = make_shared<MethodCallNode>(
-                    new_methodRecord, vector<shared_ptr<ExpressionNode>>(),
-                    nullptr);
-                if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
-                    lexer.goForward();
-                } else {
-                    Out::errorMessage(
-                        lexer, "Expected '(', but found:\n\t" +
-                                   lexer.getCurrent()->str + "\tin " +
-                                   std::to_string(lexer.getCurrent()->line) +
-                                   ":" +
-                                   std::to_string(lexer.getCurrent()->pos));
-                }
-
-                vector<shared_ptr<ExpressionNode>> args =
-                    vector<shared_ptr<ExpressionNode>>();
-                while (true) {
-                    if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
-                        lexer.goForward();
-                        break;
-                    }
-
-                    args.push_back(enterExpression());
-
-                    if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
-                        lexer.goForward();
-                    } else if (lexer.getCurrent()->kind !=
-                               Token::Kind::RPAREN) {
-                        Out::errorMessage(
-                            lexer,
-                            "Expected ',', but found:\n\t" +
-                                lexer.getCurrent()->str + "\tin " +
-                                std::to_string(lexer.getCurrent()->line) + ":" +
-                                std::to_string(lexer.getCurrent()->pos));
-                    }
-                }
-
-                call->args = args;
-
+                auto call = enterMethodCall(new_methodRecord);
                 access->access.push_back(call);
             } else if (new_kind == Record::RecordKind::CLASS_RECORD) {
                 Out::errorMessage("Unexpected access: local variable.class");
@@ -1302,44 +1264,7 @@ void AstBuilder::enterAccessWithoutArray(shared_ptr<AccessNode> access) {
                 shared_ptr<MethodRecord> new_methodRecord =
                     static_pointer_cast<MethodRecord>(new_record);
                 // TODO method reference
-                shared_ptr<MethodCallNode> call = make_shared<MethodCallNode>(
-                    new_methodRecord, vector<shared_ptr<ExpressionNode>>(),
-                    nullptr);
-                if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
-                    lexer.goForward();
-                } else {
-                    Out::errorMessage(
-                        lexer, "Expected '(', but found:\n\t" +
-                                   lexer.getCurrent()->str + "\tin " +
-                                   std::to_string(lexer.getCurrent()->line) +
-                                   ":" +
-                                   std::to_string(lexer.getCurrent()->pos));
-                }
-
-                vector<shared_ptr<ExpressionNode>> args =
-                    vector<shared_ptr<ExpressionNode>>();
-                while (true) {
-                    if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
-                        lexer.goForward();
-                        break;
-                    }
-
-                    args.push_back(enterExpression());
-
-                    if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
-                        lexer.goForward();
-                    } else if (lexer.getCurrent()->kind !=
-                               Token::Kind::RPAREN) {
-                        Out::errorMessage(
-                            lexer,
-                            "Expected ',', but found:\n\t" +
-                                lexer.getCurrent()->str + "\tin " +
-                                std::to_string(lexer.getCurrent()->line) + ":" +
-                                std::to_string(lexer.getCurrent()->pos));
-                    }
-                }
-
-                call->args = args;
+                shared_ptr<MethodCallNode> call = enterMethodCall(new_methodRecord);
 
                 access->access.push_back(call);
             } else if (new_kind == Record::RecordKind::CLASS_RECORD) {
@@ -1367,45 +1292,7 @@ void AstBuilder::enterAccessWithoutArray(shared_ptr<AccessNode> access) {
                 shared_ptr<MethodRecord> new_methodRecord =
                     static_pointer_cast<MethodRecord>(new_record);
                 // TODO method reference
-                shared_ptr<MethodCallNode> call = make_shared<MethodCallNode>(
-                    new_methodRecord, vector<shared_ptr<ExpressionNode>>(),
-                    nullptr);
-                if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
-                    lexer.goForward();
-                } else {
-                    Out::errorMessage(
-                        lexer, "Expected '(', but found:\n\t" +
-                                   lexer.getCurrent()->str + "\tin " +
-                                   std::to_string(lexer.getCurrent()->line) +
-                                   ":" +
-                                   std::to_string(lexer.getCurrent()->pos));
-                }
-
-                vector<shared_ptr<ExpressionNode>> args =
-                    vector<shared_ptr<ExpressionNode>>();
-                while (true) {
-                    if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
-                        lexer.goForward();
-                        break;
-                    }
-
-                    args.push_back(enterExpression());
-
-                    if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
-                        lexer.goForward();
-                    } else if (lexer.getCurrent()->kind !=
-                               Token::Kind::RPAREN) {
-                        Out::errorMessage(
-                            lexer,
-                            "Expected ',', but found:\n\t" +
-                                lexer.getCurrent()->str + "\tin " +
-                                std::to_string(lexer.getCurrent()->line) + ":" +
-                                std::to_string(lexer.getCurrent()->pos));
-                    }
-                }
-
-                call->args = args;
-
+                shared_ptr<MethodCallNode> call = enterMethodCall(new_methodRecord);
                 access->access[access->access.size() - 1] = call;
             } else if (new_kind == Record::RecordKind::CLASS_RECORD) {
                 shared_ptr<ClassRecord> classRec =
@@ -1570,6 +1457,48 @@ shared_ptr<ModifiersNode> AstBuilder::enterModifiers() {
         }
     }
     return mods;
+}
+
+shared_ptr<MethodCallNode> AstBuilder::enterMethodCall(shared_ptr<MethodRecord> methodRecord) {
+    shared_ptr<MethodCallNode> call = make_shared<MethodCallNode>(
+                    methodRecord, vector<shared_ptr<ExpressionNode>>(),
+                    nullptr);
+    if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+        lexer.goForward();
+    } else {
+        Out::errorMessage(
+            lexer, "Expected '(', but found:\n\t" +
+                       lexer.getCurrent()->str + "\tin " +
+                       std::to_string(lexer.getCurrent()->line) +
+                       ":" +
+                       std::to_string(lexer.getCurrent()->pos));
+    }
+
+    vector<shared_ptr<ExpressionNode>> args =
+        vector<shared_ptr<ExpressionNode>>();
+    while (true) {
+        if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+            lexer.goForward();
+            break;
+        }
+
+        args.push_back(enterExpression());
+
+        if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+            lexer.goForward();
+        } else if (lexer.getCurrent()->kind !=
+                   Token::Kind::RPAREN) {
+            Out::errorMessage(
+                lexer,
+                "Expected ',', but found:\n\t" +
+                    lexer.getCurrent()->str + "\tin " +
+                    std::to_string(lexer.getCurrent()->line) + ":" +
+                    std::to_string(lexer.getCurrent()->pos));
+                   }
+    }
+
+    call->args = args;
+    return call;
 }
 
 map<string, ModifiersNode::ModifierKind> AstBuilder::modKinds =

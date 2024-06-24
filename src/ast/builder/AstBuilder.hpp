@@ -99,6 +99,7 @@ class AstBuilder {
     shared_ptr<TypeNode> enterType(bool arr);
     vector<shared_ptr<TypeNode>> enterTypeList();
     shared_ptr<ModifiersNode> enterModifiers();
+    shared_ptr<MethodCallNode> enterMethodCall(shared_ptr<MethodRecord> methodRecord);
 
     static map<string, ModifiersNode::ModifierKind> modKinds;
 };

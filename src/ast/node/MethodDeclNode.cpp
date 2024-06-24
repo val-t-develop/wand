@@ -35,20 +35,5 @@ MethodDeclNode::MethodDeclNode(shared_ptr<ModifiersNode> _modifiers,
 }
 
 string MethodDeclNode::getFullName() {
-    if (record->ir_name == "") {
-        string str = "";
-        if (record->next != nullptr) {
-            str +=
-                static_pointer_cast<ClassRecord>(record->next)->getFullName() +
-                ".";
-        }
-        str += record->id;
-
-        str += "__spl__" + returnType->type->record->getFullName();
-        for (auto arg : args) {
-            str += "__" + arg->type->type->record->getFullName();
-        }
-        record->ir_name = str;
-    }
     return record->ir_name;
 }

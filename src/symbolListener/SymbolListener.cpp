@@ -398,6 +398,16 @@ void SymbolListener::enterMethodDecl(string type, string id,
     // inherit current class from parent scope
     symbolTable->setCurrentScopeClass(currentClass);
 
+    if (find(mods.begin(), mods.end(), ModifiersNode::ModifierKind::STATIC) != mods.end()) {
+        shared_ptr<VarRecord> thisVar = make_shared<VarRecord>(
+                    "this", currentClass->id, Record::RecordKind::LOCAL_VAR_RECORD);
+        // insert record into scope
+        currentMethod->addArg(thisVar);
+        // insert record into scope
+        symbolTable->put(thisVar);
+        thisVar->ir_name="this";
+    }
+
     enterMethodArgs();
 
     if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
