@@ -292,6 +292,10 @@ shared_ptr<ConstructorDeclNode> AstBuilder::enterConstructorDecl() {
         symbolTable->exitScope();
         return make_shared<ConstructorDeclNode>(
             make_shared<ModifiersNode>(nullptr), nullptr, args, block, nullptr);
+    } else if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+        symbolTable->exitScope();
+        return make_shared<ConstructorDeclNode>(
+            make_shared<ModifiersNode>(nullptr), nullptr, args, nullptr, nullptr);
     } else {
         Out::errorMessage(
             lexer, "Expected '{', but found:\n\t" + lexer.getCurrent()->str +

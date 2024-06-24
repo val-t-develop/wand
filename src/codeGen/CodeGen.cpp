@@ -523,37 +523,40 @@ Function *CodeGen::genDestructorDecl(shared_ptr<ClassDeclNode> node) {
 }
 
 Function *CodeGen::genConstructorDecl(shared_ptr<ConstructorDeclNode> node) {
-    string str = "__spl__constructor__" + utils->currClassName;
-    for (auto arg : node->args) {
-        str += "__" + arg->type->getFullName();
+    if (node->body != nullptr) {
+        string str = "__spl__constructor__" + utils->currClassName;
+        for (auto arg : node->args) {
+            str += "__" + arg->type->getFullName();
+        }
+        Function *TheFunction = helper->getFunction(str);
+
+        vector<Type *> args_types = vector<Type *>();
+        for (shared_ptr<VarDeclNode> arg : node->args) {
+            args_types.push_back(utils->getType(arg->type->type->record));
+        }
+        if (!TheFunction) {
+            return nullptr;
+        }
+
+        BasicBlock *BB = helper->createBBinFunc("entry", TheFunction);
+        helper->activateBB(BB);
+
+        NamedValues.clear();
+
+        for (int i = 0; i < node->args.size(); ++i) {
+            auto Arg = TheFunction->getArg(i);
+            string argName = node->args[i]->getFullName();
+            Value *ptr = helper->createAlloca(Arg->getType(), nullptr, argName);
+            helper->createStore(Arg, ptr);
+            NamedValues[argName] = ptr;
+            varTypes[node->args[i]->record] = Arg->getType();
+        }
+        genConstructorBlockStatement(node);
+
+        verifyFunction(*TheFunction);
+        return TheFunction;
     }
-    Function *TheFunction = helper->getFunction(str);
-
-    vector<Type *> args_types = vector<Type *>();
-    for (shared_ptr<VarDeclNode> arg : node->args) {
-        args_types.push_back(utils->getType(arg->type->type->record));
-    }
-    if (!TheFunction) {
-        return nullptr;
-    }
-
-    BasicBlock *BB = helper->createBBinFunc("entry", TheFunction);
-    helper->activateBB(BB);
-
-    NamedValues.clear();
-
-    for (int i = 0; i < node->args.size(); ++i) {
-        auto Arg = TheFunction->getArg(i);
-        string argName = node->args[i]->getFullName();
-        Value *ptr = helper->createAlloca(Arg->getType(), nullptr, argName);
-        helper->createStore(Arg, ptr);
-        NamedValues[argName] = ptr;
-        varTypes[node->args[i]->record] = Arg->getType();
-    }
-    genConstructorBlockStatement(node);
-
-    verifyFunction(*TheFunction);
-    return TheFunction;
+    return nullptr;
 }
 
 bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {

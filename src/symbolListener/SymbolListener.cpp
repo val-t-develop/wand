@@ -361,6 +361,8 @@ void SymbolListener::enterConstructorDecl(
 
     if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
         enterBlockStatement(false);
+    } else if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+        lexer.goForward();
     } else {
         Out::errorMessage(
             lexer, "Expected '{', but found:\n\t" + lexer.getCurrent()->str +
