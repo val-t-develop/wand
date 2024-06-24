@@ -21,11 +21,18 @@
 package spl.core;
 
 class __StringLiteral{}
+class __String {
+    public static void concat(String _this, String _a, String _b);
+}
 
 class String {
     public String(){}
     public String(String a){}
     public String(__StringLiteral a){}
+
+    public String concat(String a) {
+        return __String.concat(new String(), this, a);
+    }
 }
 
 class System {

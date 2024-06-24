@@ -209,21 +209,6 @@ void CodeGen::createClassType(shared_ptr<ClassDeclNode> node) {
         createClassType(item);
     }
 
-    genDestructorPrototype(node);
-
-    for (shared_ptr<MethodDeclNode> item : node->methods) {
-        genMethodPrototype(item);
-    }
-
-    for (shared_ptr<ConstructorDeclNode> item : node->constructors) {
-        genConstructorPrototype(item);
-    }
-    if (node->constructors.empty()) {
-        genConstructorPrototype(make_shared<ConstructorDeclNode>(
-            nullptr, nullptr, vector<shared_ptr<VarDeclNode>>{}, nullptr,
-            nullptr));
-    }
-
     classesStack.pop();
     utils->currClass = classesStack.empty() ? nullptr : classesStack.top();
     utils->setCurrClassName();
@@ -260,6 +245,10 @@ void CodeGen::genClassDecl(shared_ptr<ClassDeclNode> node, bool genMethod) {
 }
 
 void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
+    utils->currClass = node;
+    classesStack.push(node);
+    utils->setCurrClassName();
+
     vector<Type *> types = vector<Type *>();
 
     for (shared_ptr<VarDeclNode> var : node->fields) {
@@ -298,6 +287,28 @@ void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
         Out::errorMessage("Can not get " + fullName);
     }
     structType->setBody(types);
+
+    genDestructorPrototype(node);
+
+    for (shared_ptr<MethodDeclNode> item : node->methods) {
+        genMethodPrototype(item);
+    }
+
+    for (shared_ptr<ConstructorDeclNode> item : node->constructors) {
+        genConstructorPrototype(item);
+    }
+    if (node->constructors.empty()) {
+        genConstructorPrototype(make_shared<ConstructorDeclNode>(
+            nullptr, nullptr, vector<shared_ptr<VarDeclNode>>{}, nullptr,
+            nullptr));
+    }
+
+    for (shared_ptr<ClassDeclNode> item : node->innerClasses) {
+        genStruct(item);
+    }
+    classesStack.pop();
+    utils->currClass = classesStack.empty() ? nullptr : classesStack.top();
+    utils->setCurrClassName();
 }
 
 Function *CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {

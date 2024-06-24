@@ -40,7 +40,7 @@ target triple = "x86_64-redhat-linux-gnu"
 @.str.9 = private unnamed_addr constant [4 x i8] c"%f\0A\00", align 1
 @.str.10 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
 @.str.11 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
-@llvm.compiler.used = appending global [25 x ptr] [ptr @__spl__init__gcmap, ptr @__spl__destroy__gcmap, ptr @__spl__add__to__gc, ptr @__spl__get__refs, ptr @__spl__set__refs, ptr @__spl__dec__refs, ptr @__spl__inc__refs, ptr @__spl__alloc, ptr @__spl__write, ptr @__spl__destroyvar, ptr @__spl__constructor__String, ptr @__spl__constructor__String__String, ptr @__spl__constructor__String____StringLiteral, ptr @System.out.print__spl__void__char, ptr @System.out.println__spl__void__char, ptr @System.out.print__spl__void__bool, ptr @System.out.println__spl__void__bool, ptr @System.out.print__spl__void__int, ptr @System.out.println__spl__void__int, ptr @System.out.print__spl__void__float, ptr @System.out.println__spl__void__float, ptr @System.out.print__spl__void__double, ptr @System.out.println__spl__void__double, ptr @System.out.print__spl__void__String, ptr @System.out.println__spl__void__String], section "llvm.metadata"
+@llvm.compiler.used = appending global [27 x ptr] [ptr @__spl__init__gcmap, ptr @__spl__destroy__gcmap, ptr @__spl__add__to__gc, ptr @__spl__get__refs, ptr @__spl__set__refs, ptr @__spl__dec__refs, ptr @__spl__inc__refs, ptr @__spl__alloc, ptr @__spl__write, ptr @__spl__destroyvar, ptr @__spl__constructor__String, ptr @__spl__constructor__String__String, ptr @__spl__constructor__String____StringLiteral, ptr @__spl__destructor__String, ptr @__String.concat__spl__void__String__String__String, ptr @System.out.print__spl__void__char, ptr @System.out.println__spl__void__char, ptr @System.out.print__spl__void__bool, ptr @System.out.println__spl__void__bool, ptr @System.out.print__spl__void__int, ptr @System.out.println__spl__void__int, ptr @System.out.print__spl__void__float, ptr @System.out.println__spl__void__float, ptr @System.out.print__spl__void__double, ptr @System.out.println__spl__void__double, ptr @System.out.print__spl__void__String, ptr @System.out.println__spl__void__String], section "llvm.metadata"
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @__spl__init__gcmap() #0 {
@@ -608,6 +608,88 @@ define dso_local void @__spl__destructor__String(ptr noundef %0) #0 {
   br label %11
 
 11:                                               ; preds = %7, %1
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @__String.concat__spl__void__String__String__String(ptr noundef %0, ptr noundef %1, ptr noundef %2) #0 {
+  %4 = alloca ptr, align 8
+  %5 = alloca ptr, align 8
+  %6 = alloca ptr, align 8
+  store ptr %0, ptr %4, align 8
+  store ptr %1, ptr %5, align 8
+  store ptr %2, ptr %6, align 8
+  %7 = load ptr, ptr %5, align 8
+  %8 = getelementptr inbounds %struct.String_t, ptr %7, i32 0, i32 1
+  %9 = load i64, ptr %8, align 8
+  %10 = load ptr, ptr %6, align 8
+  %11 = getelementptr inbounds %struct.String_t, ptr %10, i32 0, i32 1
+  %12 = load i64, ptr %11, align 8
+  %13 = add i64 %9, %12
+  %14 = load ptr, ptr %4, align 8
+  %15 = getelementptr inbounds %struct.String_t, ptr %14, i32 0, i32 1
+  store i64 %13, ptr %15, align 8
+  %16 = load ptr, ptr %4, align 8
+  %17 = getelementptr inbounds %struct.String_t, ptr %16, i32 0, i32 1
+  %18 = load i64, ptr %17, align 8
+  %19 = icmp ne i64 %18, 0
+  br i1 %19, label %20, label %62
+
+20:                                               ; preds = %3
+  %21 = load ptr, ptr %4, align 8
+  %22 = getelementptr inbounds %struct.String_t, ptr %21, i32 0, i32 1
+  %23 = load i64, ptr %22, align 8
+  %24 = add i64 %23, 1
+  %25 = mul i64 1, %24
+  %26 = call noalias ptr @malloc(i64 noundef %25) #7
+  %27 = load ptr, ptr %4, align 8
+  %28 = getelementptr inbounds %struct.String_t, ptr %27, i32 0, i32 0
+  store ptr %26, ptr %28, align 8
+  %29 = load ptr, ptr %4, align 8
+  %30 = getelementptr inbounds %struct.String_t, ptr %29, i32 0, i32 0
+  %31 = load ptr, ptr %30, align 8
+  %32 = load ptr, ptr %5, align 8
+  %33 = getelementptr inbounds %struct.String_t, ptr %32, i32 0, i32 0
+  %34 = load ptr, ptr %33, align 8
+  %35 = load ptr, ptr %5, align 8
+  %36 = getelementptr inbounds %struct.String_t, ptr %35, i32 0, i32 1
+  %37 = load i64, ptr %36, align 8
+  %38 = mul i64 %37, 1
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %31, ptr align 1 %34, i64 %38, i1 false)
+  %39 = load ptr, ptr %4, align 8
+  %40 = getelementptr inbounds %struct.String_t, ptr %39, i32 0, i32 0
+  %41 = load ptr, ptr %40, align 8
+  %42 = load ptr, ptr %5, align 8
+  %43 = getelementptr inbounds %struct.String_t, ptr %42, i32 0, i32 1
+  %44 = load i64, ptr %43, align 8
+  %45 = mul i64 %44, 1
+  %46 = getelementptr inbounds i8, ptr %41, i64 %45
+  %47 = load ptr, ptr %6, align 8
+  %48 = getelementptr inbounds %struct.String_t, ptr %47, i32 0, i32 0
+  %49 = load ptr, ptr %48, align 8
+  %50 = load ptr, ptr %6, align 8
+  %51 = getelementptr inbounds %struct.String_t, ptr %50, i32 0, i32 1
+  %52 = load i64, ptr %51, align 8
+  %53 = mul i64 %52, 1
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %46, ptr align 1 %49, i64 %53, i1 false)
+  %54 = load ptr, ptr %4, align 8
+  %55 = getelementptr inbounds %struct.String_t, ptr %54, i32 0, i32 0
+  %56 = load ptr, ptr %55, align 8
+  %57 = load ptr, ptr %4, align 8
+  %58 = getelementptr inbounds %struct.String_t, ptr %57, i32 0, i32 1
+  %59 = load i64, ptr %58, align 8
+  %60 = mul i64 %59, 1
+  %61 = getelementptr inbounds i8, ptr %56, i64 %60
+  store i8 0, ptr %61, align 1
+  br label %65
+
+62:                                               ; preds = %3
+  %63 = load ptr, ptr %4, align 8
+  %64 = getelementptr inbounds %struct.String_t, ptr %63, i32 0, i32 0
+  store ptr null, ptr %64, align 8
+  br label %65
+
+65:                                               ; preds = %62, %20
   ret void
 }
 

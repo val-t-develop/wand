@@ -184,9 +184,23 @@ String* __spl__constructor__String____StringLiteral(char* _str) {
     return obj;
 }
 
+__attribute__((used))
 void __spl__destructor__String(String* obj) {
     if (obj->str != NULL) {
         free(obj->str);
+    }
+}
+
+__attribute__((used))
+void __String___concat__spl__void__String__String__String(String* _this, String *_a, String *_b) {
+    _this->size = _a->size+_b->size;
+    if (_this->size != 0) {
+        _this->str = malloc(sizeof(char)*(_this->size+1));
+        memcpy(_this->str, _a->str, _a->size*sizeof(char));
+        memcpy(_this->str+_a->size*sizeof(char), _b->str, _b->size*sizeof(char));
+        _this->str[_this->size*sizeof(char)] = '\0';
+    } else {
+        _this->str = NULL;
     }
 }
 

@@ -441,6 +441,16 @@ vector<shared_ptr<VarDeclNode>> AstBuilder::enterMethodArgs() {
                            std::to_string(lexer.getCurrent()->line) + ":" +
                            std::to_string(lexer.getCurrent()->pos));
         }
+        if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+            lexer.goForward();
+        } else {
+            if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+                lexer.goForward();
+                break;
+            } else {
+                Out::errorMessage(lexer, "Expected ')'");
+            }
+        }
     }
     return args;
 }
