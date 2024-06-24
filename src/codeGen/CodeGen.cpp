@@ -141,25 +141,12 @@ void CodeGen::genImport(shared_ptr<ImportDeclNode> node) {
     if (node->name[0] == "spl" && node->name[1] == "core") {
         for (auto importFile : importFiles) {
             auto dir = importFile.getParent();
-            if (dir.isDir()) {
-                if (dir.getFilename() == "core") {
-                    if (dir.getParent().isDir()) {
-                        if (dir.getParent().getFilename() == "spl") {
-                            auto ll_file =
-                                Path(dir.getName() + "/spl.core.stdlib.ll");
-                            system(string("mkdir -p .spl_compilation"+dir.getName()).c_str());
-                            string o_file =
-                                ".spl_compilation" + dir.getName() + "/spl.core.stdlib.o";
-                            Main::currCUsStack.top()->linkingObj.push_back(
-                                o_file);
-                            system(string("clang " + ll_file.getName() +
-                                          " -c -o " + o_file)
-                                       .c_str());
-                            break;
-                        }
-                    }
-                }
-            }
+            auto ll_file = Path(dir.getName() + "/spl.core.stdlib.ll");
+            system(string("mkdir -p .spl_compilation"+dir.getName()).c_str());
+            string o_file = ".spl_compilation" + dir.getName() + "/spl.core.stdlib.o";
+            Main::currCUsStack.top()->linkingObj.push_back(o_file);
+            system(string("clang " + ll_file.getName() + " -c -o " + o_file).c_str());
+            break;
         }
     }
     for (auto p : importFiles) {

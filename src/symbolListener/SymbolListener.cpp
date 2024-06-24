@@ -35,71 +35,56 @@ SymbolListener::SymbolListener(shared_ptr<SymbolTable> symbolTable,
 }
 
 void SymbolListener::processImport(vector<string> importName) {
-    vector<Path> importFiles = vector<Path>();
-    shared_ptr<Path> importPath = nullptr;
-    for (Path path : Main::importDirs) {
-        bool found = false;
-        for (size_t i = 0; i < importName.size(); i++) {
-            found = false;
-            string lastPackage = importName[i];
-            if (path.isDir()) {
-                for (Path file : path.getDirContent()) {
-                    if (file.getFilename() == lastPackage) {
-                        found = true;
-                        path = file;
-                        break;
-                    } else {
-                        found = false;
-                    }
-                }
-            } else {
-                Out::errorMessage(lexer, path.getName() + " is not directory");
-            }
-            if (!found) {
-                break;
-            }
-        }
-        if (found) {
-            if (importPath == nullptr) {
-                importPath=make_shared<Path>(path);
-            } else {
-                string s;
-                for (auto el : importName) {
-                    s += el + ".";
-                }
-                s.pop_back();
-                Out::errorMessage(lexer, "Few import paths are possible for "+s+": "+importPath->getName()+" and "+path.getName());
-            }
+    shared_ptr<vector<Path>> toImport = make_shared<vector<Path>>();
+    for (auto src : ArgsParser::src) {
+        if (src.isFile()) {
+            processImportFile(src, toImport, importName);
+        } else if (src.isDir()) {
+            processImportDir(src, toImport, importName);
         }
     }
-    if (importPath!=nullptr) {
-        if (importPath->isDir()) {
-            for (Path file : importPath->getDirContent()) {
-                if (file.isFile()) {
-                    if (file.getName().ends_with(".spl")) {
-                        importFiles.push_back(file);
-                        Main::processFileToState(file, CU::State::ST);
-                        symbolTable->addImport(Main::CUs[file]->st);
-                    }
-                }
+    vector<string> paths{};
+    for (auto el : *toImport) {
+        string s = el.getName();
+        if (!paths.empty()) {
+            if (find(paths.begin(), paths.end(), s) != paths.end()) {
+                continue;
             }
-        } else if (importPath->isFile()) {
-            if (importPath->getName().ends_with(".spl")) {
-                importFiles.push_back(*importPath);
-                Main::processFileToState(*importPath, CU::State::ST);
-                symbolTable->addImport(Main::CUs[*importPath]->st);
-            }
-        } else {
-            Out::errorMessage(lexer, importPath->getName() + " is not a file or directory");
         }
-        Main::currCUsStack.top()->importFiles[importName] = importFiles;
+        paths.push_back(s);
+    }
+
+    if (paths.empty()) {
+        Out::errorMessage(lexer, "Can not find import");
+    } else if (paths.size() != 1) {
+        Out::errorMessage(lexer, "Few imoprt variants are possible");
     } else {
-        string s;
-        for (auto el : importName) {
-            s += el + ".";
+        Path p = Path(paths[0]);
+        Main::processFileToState(p, CU::State::ST);
+        symbolTable->addImport(Main::CUs[p]->st);
+        Main::currCUsStack.top()->importFiles[importName] = {p}; // TODO
+    }
+}
+
+void SymbolListener::processImportFile(Path& src, shared_ptr<vector<Path>> toImport, vector<string> importName) {
+    vector<string> vec = split(src.getParent().getName(), "/");
+    for (int i = 0; i < importName.size(); ++i) {
+        if (importName[importName.size()-1-i]!=vec[vec.size()-1-i]) {
+            return;
         }
-        s.pop_back();
-        Out::errorMessage(lexer, "Import not found "+s);
+    }
+    if (src.getFilename().ends_with(".spl")) {
+        toImport->push_back(src);
+    }
+}
+
+void SymbolListener::processImportDir(Path& dir, shared_ptr<vector<Path>> toImport, vector<string> importName) {
+    for (auto src : dir.getDirContent()) {
+        if (src.isFile()) {
+            processImportFile(src, toImport, importName);
+        } else if (src.isDir()) {
+            processImportDir(src, toImport, importName);
+        }
     }
 }
 

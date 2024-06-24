@@ -57,7 +57,6 @@ class CU {
 
 class Main {
   public:
-    static vector<Path> importDirs;
     static vector<string> obj_files;
     static stack<CU *> currCUsStack;
     static map<Path, shared_ptr<CU>> CUs;
