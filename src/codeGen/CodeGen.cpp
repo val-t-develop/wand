@@ -1366,12 +1366,41 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                BinaryOperatorNode::BinaryOperatorKind::RIGHT_SHIFT) {
 
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ADD) {
+        StructType *StringType = nullptr;
+        if (utils->classesTypes.contains("String")) {
+            StringType = utils->classesTypes.at("String");
+        } else {
+            Out::errorMessage("Can not get String type");
+        }
+        PointerType *StringPtrType = helper->getPointerType(StringType);
         if (helper->isFloatingPointValue(L) ||
             helper->isFloatingPointValue(R)) {
             return helper->createFPAdd(helper->castToDouble(L),
                                        helper->castToDouble(R));
-        } else {
+        } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
             return helper->createAdd(L, R);
+        } else if (L->getType() == StringPtrType || R->getType() == StringPtrType) {
+            if (L->getType() == StringPtrType) {
+                if (R->getType() == StringPtrType) {
+                    auto tmp = helper->createCall("String.concat__spl__String__String__String", {L, R});
+                    if (tmp->getType() != helper->getVoidType()) {
+                        helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+                    }
+                    return tmp;
+                } else if (!R->getType()->isStructTy()) {
+                    Out::errorMessage("Can not concat primitive types yet");
+                    return nullptr;
+                } else {
+                    Out::errorMessage("Can not concat class to string");
+                }
+            } else {
+                if (!L->getType()->isStructTy()) {
+                    Out::errorMessage("Can not concat primitive types yet");
+                    return nullptr;
+                } else {
+                    Out::errorMessage("Can not concat class to string");
+                }
+            }
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::SUB) {
         if (helper->isFloatingPointValue(L) ||

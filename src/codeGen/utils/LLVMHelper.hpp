@@ -118,6 +118,7 @@ class LLVMHelper {
     bool isFloatValue(Value *val);
     bool isDoubleValue(Value *val);
     bool isFloatingPointValue(Value *val);
+    bool isIntValue(Value *val);
 
     Value *createSizeof(Type *type);
 

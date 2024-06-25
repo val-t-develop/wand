@@ -327,6 +327,10 @@ bool LLVMHelper::isFloatingPointValue(Value *val) {
     return isFloatValue(val) || isDoubleValue(val);
 }
 
+bool LLVMHelper::isIntValue(Value *val) {
+    return val->getType()->isIntegerTy();
+}
+
 Value *LLVMHelper::castToDouble(Value *val, string name) {
     return Builder->CreateFPCast(val, getDoubleType(), name);
 }
