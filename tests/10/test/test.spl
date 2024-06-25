@@ -23,8 +23,14 @@ package test;
 class Main {
     public static int main (String[] args) {
         String a = "abc";
-        String b = a.concat("def");
-        System.out.println(b);
+        a=a.concat("def");
+        a=a.concat('g');
+        a=a.concat(true);
+        a=a.concat(false);
+        a=a.concat(12345);
+        a=a.concat(12.3f);
+        a=a.concat(12.3d);
+        System.out.println(a);
         return 0;
     }
 }

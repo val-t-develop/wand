@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 
 typedef struct __spl__gcmap__entry {
     void* ptr;
@@ -163,7 +164,7 @@ String* __spl__constructor__String__String(String* _str) {
     if (obj->size != 0) {
         obj->str = malloc(sizeof(char)*(obj->size+1));
         memcpy(obj->str, _str->str, obj->size*sizeof(char));
-        obj->str[obj->size*sizeof(char)] = '\0';
+        obj->str[obj->size] = '\0';
     } else {
         obj->str = NULL;
     }
@@ -177,7 +178,7 @@ String* __spl__constructor__String____StringLiteral(char* _str) {
     if (obj->size != 0) {
         obj->str = malloc(sizeof(char)*(obj->size+1));
         memcpy(obj->str, _str, obj->size*sizeof(char));
-        obj->str[obj->size*sizeof(char)] = '\0';
+        obj->str[obj->size] = '\0';
     } else {
         obj->str = NULL;
     }
@@ -198,7 +199,94 @@ void __String___concat__spl__void__String__String__String(String* _this, String 
         _this->str = malloc(sizeof(char)*(_this->size+1));
         memcpy(_this->str, _a->str, _a->size*sizeof(char));
         memcpy(_this->str+_a->size*sizeof(char), _b->str, _b->size*sizeof(char));
-        _this->str[_this->size*sizeof(char)] = '\0';
+        _this->str[_this->size] = '\0';
+    } else {
+        _this->str = NULL;
+    }
+}
+
+__attribute__((used))
+void __String___concat__spl__void__String__String__char(String* _this, String *_a, char _b) {
+    _this->size = _a->size+1;
+    if (_this->size != 0) {
+        _this->str = malloc(sizeof(char)*(_this->size+1));
+        memcpy(_this->str, _a->str, _a->size*sizeof(char));
+        _this->str[_a->size] = _b;
+        _this->str[_this->size] = '\0';
+    } else {
+        _this->str = NULL;
+    }
+}
+
+__attribute__((used))
+void __String___concat__spl__void__String__String__bool(String* _this, String *_a, int8_t _b) {
+    if (_b) {
+        _this->size = _a->size+4;
+        if (_this->size != 0) {
+            _this->str = malloc(sizeof(char)*(_this->size+1));
+            memcpy(_this->str, _a->str, _a->size*sizeof(char));
+            memcpy(_this->str+_a->size*sizeof(char), "true", 4*sizeof(char));
+            _this->str[_this->size] = '\0';
+        } else {
+            _this->str = NULL;
+        }
+    } else {
+        _this->size = _a->size+5;
+        if (_this->size != 0) {
+            _this->str = malloc(sizeof(char)*(_this->size+1));
+            memcpy(_this->str, _a->str, _a->size*sizeof(char));
+            memcpy(_this->str+_a->size*sizeof(char), "false", 5*sizeof(char));
+            _this->str[_this->size] = '\0';
+        } else {
+            _this->str = NULL;
+        }
+    }
+
+}
+
+__attribute__((used))
+void __String___concat__spl__void__String__String__int(String* _this, String *_a, int32_t _b) {
+    int32_t l = snprintf(NULL, 0,"%d", _b);
+    char* str = malloc(l+1);
+    sprintf(str, "%d", _b);
+    _this->size = _a->size+l;
+    if (_this->size != 0) {
+        _this->str = malloc(sizeof(char)*(_this->size+1));
+        memcpy(_this->str, _a->str, _a->size*sizeof(char));
+        memcpy(_this->str+_a->size*sizeof(char), str, l*sizeof(char));
+        _this->str[_this->size] = '\0';
+    } else {
+        _this->str = NULL;
+    }
+}
+
+__attribute__((used))
+void __String___concat__spl__void__String__String__float(String* _this, String *_a, float _b) {
+    int32_t l = snprintf(NULL, 0,"%f", _b);
+    char* str = malloc(l+1);
+    sprintf(str, "%f", _b);
+    _this->size = _a->size+l;
+    if (_this->size != 0) {
+        _this->str = malloc(sizeof(char)*(_this->size+1));
+        memcpy(_this->str, _a->str, _a->size*sizeof(char));
+        memcpy(_this->str+_a->size*sizeof(char), str, l*sizeof(char));
+        _this->str[_this->size] = '\0';
+    } else {
+        _this->str = NULL;
+    }
+}
+
+__attribute__((used))
+void __String___concat__spl__void__String__String__double(String* _this, String *_a, double _b) {
+    int32_t l = snprintf(NULL, 0,"%f", _b);
+    char* str = malloc(l+1);
+    sprintf(str, "%f", _b);
+    _this->size = _a->size+l;
+    if (_this->size != 0) {
+        _this->str = malloc(sizeof(char)*(_this->size+1));
+        memcpy(_this->str, _a->str, _a->size*sizeof(char));
+        memcpy(_this->str+_a->size*sizeof(char), str, l*sizeof(char));
+        _this->str[_this->size] = '\0';
     } else {
         _this->str = NULL;
     }

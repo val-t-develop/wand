@@ -23,6 +23,11 @@ package spl.core;
 class __StringLiteral{}
 class __String {
     public static void concat(String _this, String _a, String _b);
+    public static void concat(String _this, String _a, char _b);
+    public static void concat(String _this, String _a, bool _b);
+    public static void concat(String _this, String _a, int _b);
+    public static void concat(String _this, String _a, float _b);
+    public static void concat(String _this, String _a, double _b);
 }
 
 class String {
@@ -36,6 +41,32 @@ class String {
         __String.concat(ret, this, a);
         return ret;
     }
+    public String concat(char a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
+    public String concat(bool a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
+    public String concat(int a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
+    public String concat(float a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
+    public String concat(double a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
+
 }
 
 class System {
