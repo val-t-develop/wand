@@ -34,6 +34,11 @@ class String {
     public ~String();
     public String();
     public String(String a);
+    public String(char a);
+    public String(bool a);
+    public String(int a);
+    public String(float a);
+    public String(double a);
     public String(__StringLiteral a);
 
     public String concat(String a) {

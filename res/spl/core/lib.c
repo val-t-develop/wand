@@ -172,6 +172,58 @@ String* __spl__constructor__String__String(String* _str) {
 }
 
 __attribute__((used))
+String* __spl__constructor__String__char(char _a) {
+    String* obj = __spl__alloc(sizeof(String));
+    obj->size = 1;
+    obj->str = malloc(sizeof(char)*2);
+    obj->str[0] = _a;
+    obj->str[1] = '\0';
+    return obj;
+}
+
+__attribute__((used))
+String* __spl__constructor__String__bool(int8_t _a) {
+    String* obj = __spl__alloc(sizeof(String));
+    if (_a) {
+        obj->size = 4;
+        obj->str = malloc(sizeof(char)*4);
+        obj->str = "true\0";
+    } else {
+        obj->size = 5;
+        obj->str = malloc(sizeof(char)*5);
+        obj->str = "false\0";
+    }
+    return obj;
+}
+
+__attribute__((used))
+String* __spl__constructor__String__int(int32_t _a) {
+    String* obj = __spl__alloc(sizeof(String));
+    obj->size = snprintf(NULL, 0,"%d", _a);
+    obj->str = malloc(sizeof(char)*(obj->size+1));
+    sprintf(obj->str, "%d", _a);
+    return obj;
+}
+
+__attribute__((used))
+String* __spl__constructor__String__float(float _a) {
+    String* obj = __spl__alloc(sizeof(String));
+    obj->size = snprintf(NULL, 0,"%f", _a);
+    obj->str = malloc(sizeof(char)*(obj->size+1));
+    sprintf(obj->str, "%f", _a);
+    return obj;
+}
+
+__attribute__((used))
+String* __spl__constructor__String__double(double _a) {
+    String* obj = __spl__alloc(sizeof(String));
+    obj->size = snprintf(NULL, 0,"%f", _a);
+    obj->str = malloc(sizeof(char)*(obj->size+1));
+    sprintf(obj->str, "%f", _a);
+    return obj;
+}
+
+__attribute__((used))
 String* __spl__constructor__String____StringLiteral(char* _str) {
     String* obj = __spl__alloc(sizeof(String));
     obj->size = strlen(_str);

@@ -28,19 +28,21 @@ target triple = "x86_64-redhat-linux-gnu"
 %struct.String_t = type { ptr, i64 }
 
 @__spl__m = dso_local global %struct.__spl__gcmap zeroinitializer, align 8
-@.str = private unnamed_addr constant [5 x i8] c"true\00", align 1
-@.str.1 = private unnamed_addr constant [6 x i8] c"false\00", align 1
+@.str = private unnamed_addr constant [6 x i8] c"true\00\00", align 1
+@.str.1 = private unnamed_addr constant [7 x i8] c"false\00\00", align 1
 @.str.2 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
 @.str.3 = private unnamed_addr constant [3 x i8] c"%f\00", align 1
-@.str.4 = private unnamed_addr constant [3 x i8] c"%c\00", align 1
-@.str.5 = private unnamed_addr constant [4 x i8] c"%c\0A\00", align 1
-@.str.6 = private unnamed_addr constant [6 x i8] c"true\0A\00", align 1
-@.str.7 = private unnamed_addr constant [7 x i8] c"false\0A\00", align 1
-@.str.8 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
-@.str.9 = private unnamed_addr constant [4 x i8] c"%f\0A\00", align 1
-@.str.10 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@.str.11 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
-@llvm.compiler.used = appending global [32 x ptr] [ptr @__spl__init__gcmap, ptr @__spl__destroy__gcmap, ptr @__spl__add__to__gc, ptr @__spl__get__refs, ptr @__spl__set__refs, ptr @__spl__dec__refs, ptr @__spl__inc__refs, ptr @__spl__alloc, ptr @__spl__write, ptr @__spl__destroyvar, ptr @__spl__constructor__String, ptr @__spl__constructor__String__String, ptr @__spl__constructor__String____StringLiteral, ptr @__spl__destructor__String, ptr @__String.concat__spl__void__String__String__String, ptr @__String.concat__spl__void__String__String__char, ptr @__String.concat__spl__void__String__String__bool, ptr @__String.concat__spl__void__String__String__int, ptr @__String.concat__spl__void__String__String__float, ptr @__String.concat__spl__void__String__String__double, ptr @System.out.print__spl__void__char, ptr @System.out.println__spl__void__char, ptr @System.out.print__spl__void__bool, ptr @System.out.println__spl__void__bool, ptr @System.out.print__spl__void__int, ptr @System.out.println__spl__void__int, ptr @System.out.print__spl__void__float, ptr @System.out.println__spl__void__float, ptr @System.out.print__spl__void__double, ptr @System.out.println__spl__void__double, ptr @System.out.print__spl__void__String, ptr @System.out.println__spl__void__String], section "llvm.metadata"
+@.str.4 = private unnamed_addr constant [5 x i8] c"true\00", align 1
+@.str.5 = private unnamed_addr constant [6 x i8] c"false\00", align 1
+@.str.6 = private unnamed_addr constant [3 x i8] c"%c\00", align 1
+@.str.7 = private unnamed_addr constant [4 x i8] c"%c\0A\00", align 1
+@.str.8 = private unnamed_addr constant [6 x i8] c"true\0A\00", align 1
+@.str.9 = private unnamed_addr constant [7 x i8] c"false\0A\00", align 1
+@.str.10 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
+@.str.11 = private unnamed_addr constant [4 x i8] c"%f\0A\00", align 1
+@.str.12 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@.str.13 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
+@llvm.compiler.used = appending global [37 x ptr] [ptr @__spl__init__gcmap, ptr @__spl__destroy__gcmap, ptr @__spl__add__to__gc, ptr @__spl__get__refs, ptr @__spl__set__refs, ptr @__spl__dec__refs, ptr @__spl__inc__refs, ptr @__spl__alloc, ptr @__spl__write, ptr @__spl__destroyvar, ptr @__spl__constructor__String, ptr @__spl__constructor__String__String, ptr @__spl__constructor__String__char, ptr @__spl__constructor__String__bool, ptr @__spl__constructor__String__int, ptr @__spl__constructor__String__float, ptr @__spl__constructor__String__double, ptr @__spl__constructor__String____StringLiteral, ptr @__spl__destructor__String, ptr @__String.concat__spl__void__String__String__String, ptr @__String.concat__spl__void__String__String__char, ptr @__String.concat__spl__void__String__String__bool, ptr @__String.concat__spl__void__String__String__int, ptr @__String.concat__spl__void__String__String__float, ptr @__String.concat__spl__void__String__String__double, ptr @System.out.print__spl__void__char, ptr @System.out.println__spl__void__char, ptr @System.out.print__spl__void__bool, ptr @System.out.println__spl__void__bool, ptr @System.out.print__spl__void__int, ptr @System.out.println__spl__void__int, ptr @System.out.print__spl__void__float, ptr @System.out.println__spl__void__float, ptr @System.out.print__spl__void__double, ptr @System.out.println__spl__void__double, ptr @System.out.print__spl__void__String, ptr @System.out.println__spl__void__String], section "llvm.metadata"
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @__spl__init__gcmap() #0 {
@@ -528,6 +530,178 @@ define dso_local ptr @__spl__constructor__String__String(ptr noundef %0) #0 {
 declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #4
 
 ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local ptr @__spl__constructor__String__char(i8 noundef signext %0) #0 {
+  %2 = alloca i8, align 1
+  %3 = alloca ptr, align 8
+  store i8 %0, ptr %2, align 1
+  %4 = call ptr @__spl__alloc(i32 noundef 16)
+  store ptr %4, ptr %3, align 8
+  %5 = load ptr, ptr %3, align 8
+  %6 = getelementptr inbounds %struct.String_t, ptr %5, i32 0, i32 1
+  store i64 1, ptr %6, align 8
+  %7 = call noalias ptr @malloc(i64 noundef 2) #7
+  %8 = load ptr, ptr %3, align 8
+  %9 = getelementptr inbounds %struct.String_t, ptr %8, i32 0, i32 0
+  store ptr %7, ptr %9, align 8
+  %10 = load i8, ptr %2, align 1
+  %11 = load ptr, ptr %3, align 8
+  %12 = getelementptr inbounds %struct.String_t, ptr %11, i32 0, i32 0
+  %13 = load ptr, ptr %12, align 8
+  %14 = getelementptr inbounds i8, ptr %13, i64 0
+  store i8 %10, ptr %14, align 1
+  %15 = load ptr, ptr %3, align 8
+  %16 = getelementptr inbounds %struct.String_t, ptr %15, i32 0, i32 0
+  %17 = load ptr, ptr %16, align 8
+  %18 = getelementptr inbounds i8, ptr %17, i64 1
+  store i8 0, ptr %18, align 1
+  %19 = load ptr, ptr %3, align 8
+  ret ptr %19
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local ptr @__spl__constructor__String__bool(i8 noundef signext %0) #0 {
+  %2 = alloca i8, align 1
+  %3 = alloca ptr, align 8
+  store i8 %0, ptr %2, align 1
+  %4 = call ptr @__spl__alloc(i32 noundef 16)
+  store ptr %4, ptr %3, align 8
+  %5 = load i8, ptr %2, align 1
+  %6 = icmp ne i8 %5, 0
+  br i1 %6, label %7, label %15
+
+7:                                                ; preds = %1
+  %8 = load ptr, ptr %3, align 8
+  %9 = getelementptr inbounds %struct.String_t, ptr %8, i32 0, i32 1
+  store i64 4, ptr %9, align 8
+  %10 = call noalias ptr @malloc(i64 noundef 4) #7
+  %11 = load ptr, ptr %3, align 8
+  %12 = getelementptr inbounds %struct.String_t, ptr %11, i32 0, i32 0
+  store ptr %10, ptr %12, align 8
+  %13 = load ptr, ptr %3, align 8
+  %14 = getelementptr inbounds %struct.String_t, ptr %13, i32 0, i32 0
+  store ptr @.str, ptr %14, align 8
+  br label %23
+
+15:                                               ; preds = %1
+  %16 = load ptr, ptr %3, align 8
+  %17 = getelementptr inbounds %struct.String_t, ptr %16, i32 0, i32 1
+  store i64 5, ptr %17, align 8
+  %18 = call noalias ptr @malloc(i64 noundef 5) #7
+  %19 = load ptr, ptr %3, align 8
+  %20 = getelementptr inbounds %struct.String_t, ptr %19, i32 0, i32 0
+  store ptr %18, ptr %20, align 8
+  %21 = load ptr, ptr %3, align 8
+  %22 = getelementptr inbounds %struct.String_t, ptr %21, i32 0, i32 0
+  store ptr @.str.1, ptr %22, align 8
+  br label %23
+
+23:                                               ; preds = %15, %7
+  %24 = load ptr, ptr %3, align 8
+  ret ptr %24
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local ptr @__spl__constructor__String__int(i32 noundef %0) #0 {
+  %2 = alloca i32, align 4
+  %3 = alloca ptr, align 8
+  store i32 %0, ptr %2, align 4
+  %4 = call ptr @__spl__alloc(i32 noundef 16)
+  store ptr %4, ptr %3, align 8
+  %5 = load i32, ptr %2, align 4
+  %6 = call i32 (ptr, i64, ptr, ...) @snprintf(ptr noundef null, i64 noundef 0, ptr noundef @.str.2, i32 noundef %5) #8
+  %7 = sext i32 %6 to i64
+  %8 = load ptr, ptr %3, align 8
+  %9 = getelementptr inbounds %struct.String_t, ptr %8, i32 0, i32 1
+  store i64 %7, ptr %9, align 8
+  %10 = load ptr, ptr %3, align 8
+  %11 = getelementptr inbounds %struct.String_t, ptr %10, i32 0, i32 1
+  %12 = load i64, ptr %11, align 8
+  %13 = add i64 %12, 1
+  %14 = mul i64 1, %13
+  %15 = call noalias ptr @malloc(i64 noundef %14) #7
+  %16 = load ptr, ptr %3, align 8
+  %17 = getelementptr inbounds %struct.String_t, ptr %16, i32 0, i32 0
+  store ptr %15, ptr %17, align 8
+  %18 = load ptr, ptr %3, align 8
+  %19 = getelementptr inbounds %struct.String_t, ptr %18, i32 0, i32 0
+  %20 = load ptr, ptr %19, align 8
+  %21 = load i32, ptr %2, align 4
+  %22 = call i32 (ptr, ptr, ...) @sprintf(ptr noundef %20, ptr noundef @.str.2, i32 noundef %21) #8
+  %23 = load ptr, ptr %3, align 8
+  ret ptr %23
+}
+
+; Function Attrs: nounwind
+declare dso_local i32 @snprintf(ptr noundef, i64 noundef, ptr noundef, ...) #2
+
+; Function Attrs: nounwind
+declare dso_local i32 @sprintf(ptr noundef, ptr noundef, ...) #2
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local ptr @__spl__constructor__String__float(float noundef %0) #0 {
+  %2 = alloca float, align 4
+  %3 = alloca ptr, align 8
+  store float %0, ptr %2, align 4
+  %4 = call ptr @__spl__alloc(i32 noundef 16)
+  store ptr %4, ptr %3, align 8
+  %5 = load float, ptr %2, align 4
+  %6 = fpext float %5 to double
+  %7 = call i32 (ptr, i64, ptr, ...) @snprintf(ptr noundef null, i64 noundef 0, ptr noundef @.str.3, double noundef %6) #8
+  %8 = sext i32 %7 to i64
+  %9 = load ptr, ptr %3, align 8
+  %10 = getelementptr inbounds %struct.String_t, ptr %9, i32 0, i32 1
+  store i64 %8, ptr %10, align 8
+  %11 = load ptr, ptr %3, align 8
+  %12 = getelementptr inbounds %struct.String_t, ptr %11, i32 0, i32 1
+  %13 = load i64, ptr %12, align 8
+  %14 = add i64 %13, 1
+  %15 = mul i64 1, %14
+  %16 = call noalias ptr @malloc(i64 noundef %15) #7
+  %17 = load ptr, ptr %3, align 8
+  %18 = getelementptr inbounds %struct.String_t, ptr %17, i32 0, i32 0
+  store ptr %16, ptr %18, align 8
+  %19 = load ptr, ptr %3, align 8
+  %20 = getelementptr inbounds %struct.String_t, ptr %19, i32 0, i32 0
+  %21 = load ptr, ptr %20, align 8
+  %22 = load float, ptr %2, align 4
+  %23 = fpext float %22 to double
+  %24 = call i32 (ptr, ptr, ...) @sprintf(ptr noundef %21, ptr noundef @.str.3, double noundef %23) #8
+  %25 = load ptr, ptr %3, align 8
+  ret ptr %25
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local ptr @__spl__constructor__String__double(double noundef %0) #0 {
+  %2 = alloca double, align 8
+  %3 = alloca ptr, align 8
+  store double %0, ptr %2, align 8
+  %4 = call ptr @__spl__alloc(i32 noundef 16)
+  store ptr %4, ptr %3, align 8
+  %5 = load double, ptr %2, align 8
+  %6 = call i32 (ptr, i64, ptr, ...) @snprintf(ptr noundef null, i64 noundef 0, ptr noundef @.str.3, double noundef %5) #8
+  %7 = sext i32 %6 to i64
+  %8 = load ptr, ptr %3, align 8
+  %9 = getelementptr inbounds %struct.String_t, ptr %8, i32 0, i32 1
+  store i64 %7, ptr %9, align 8
+  %10 = load ptr, ptr %3, align 8
+  %11 = getelementptr inbounds %struct.String_t, ptr %10, i32 0, i32 1
+  %12 = load i64, ptr %11, align 8
+  %13 = add i64 %12, 1
+  %14 = mul i64 1, %13
+  %15 = call noalias ptr @malloc(i64 noundef %14) #7
+  %16 = load ptr, ptr %3, align 8
+  %17 = getelementptr inbounds %struct.String_t, ptr %16, i32 0, i32 0
+  store ptr %15, ptr %17, align 8
+  %18 = load ptr, ptr %3, align 8
+  %19 = getelementptr inbounds %struct.String_t, ptr %18, i32 0, i32 0
+  %20 = load ptr, ptr %19, align 8
+  %21 = load double, ptr %2, align 8
+  %22 = call i32 (ptr, ptr, ...) @sprintf(ptr noundef %20, ptr noundef @.str.3, double noundef %21) #8
+  %23 = load ptr, ptr %3, align 8
+  ret ptr %23
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
 define dso_local ptr @__spl__constructor__String____StringLiteral(ptr noundef %0) #0 {
   %2 = alloca ptr, align 8
   %3 = alloca ptr, align 8
@@ -816,7 +990,7 @@ define dso_local void @__String.concat__spl__void__String__String__bool(ptr noun
   %44 = load i64, ptr %43, align 8
   %45 = mul i64 %44, 1
   %46 = getelementptr inbounds i8, ptr %41, i64 %45
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %46, ptr align 1 @.str, i64 4, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %46, ptr align 1 @.str.4, i64 4, i1 false)
   %47 = load ptr, ptr %4, align 8
   %48 = getelementptr inbounds %struct.String_t, ptr %47, i32 0, i32 0
   %49 = load ptr, ptr %48, align 8
@@ -879,7 +1053,7 @@ define dso_local void @__String.concat__spl__void__String__String__bool(ptr noun
   %93 = load i64, ptr %92, align 8
   %94 = mul i64 %93, 1
   %95 = getelementptr inbounds i8, ptr %90, i64 %94
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %95, ptr align 1 @.str.1, i64 5, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %95, ptr align 1 @.str.5, i64 5, i1 false)
   %96 = load ptr, ptr %4, align 8
   %97 = getelementptr inbounds %struct.String_t, ptr %96, i32 0, i32 0
   %98 = load ptr, ptr %97, align 8
@@ -992,12 +1166,6 @@ define dso_local void @__String.concat__spl__void__String__String__int(ptr nound
 71:                                               ; preds = %68, %30
   ret void
 }
-
-; Function Attrs: nounwind
-declare dso_local i32 @snprintf(ptr noundef, i64 noundef, ptr noundef, ...) #2
-
-; Function Attrs: nounwind
-declare dso_local i32 @sprintf(ptr noundef, ptr noundef, ...) #2
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @__String.concat__spl__void__String__String__float(ptr noundef %0, ptr noundef %1, float noundef %2) #0 {
@@ -1187,7 +1355,7 @@ define dso_local void @System.out.print__spl__void__char(i8 noundef signext %0) 
   store i8 %0, ptr %2, align 1
   %3 = load i8, ptr %2, align 1
   %4 = sext i8 %3 to i32
-  %5 = call i32 (ptr, ...) @printf(ptr noundef @.str.4, i32 noundef %4)
+  %5 = call i32 (ptr, ...) @printf(ptr noundef @.str.6, i32 noundef %4)
   ret void
 }
 
@@ -1199,7 +1367,7 @@ define dso_local void @System.out.println__spl__void__char(i8 noundef signext %0
   store i8 %0, ptr %2, align 1
   %3 = load i8, ptr %2, align 1
   %4 = sext i8 %3 to i32
-  %5 = call i32 (ptr, ...) @printf(ptr noundef @.str.5, i32 noundef %4)
+  %5 = call i32 (ptr, ...) @printf(ptr noundef @.str.7, i32 noundef %4)
   ret void
 }
 
@@ -1212,11 +1380,11 @@ define dso_local void @System.out.print__spl__void__bool(i8 noundef signext %0) 
   br i1 %4, label %5, label %7
 
 5:                                                ; preds = %1
-  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str)
+  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.4)
   br label %9
 
 7:                                                ; preds = %1
-  %8 = call i32 (ptr, ...) @printf(ptr noundef @.str.1)
+  %8 = call i32 (ptr, ...) @printf(ptr noundef @.str.5)
   br label %9
 
 9:                                                ; preds = %7, %5
@@ -1232,11 +1400,11 @@ define dso_local void @System.out.println__spl__void__bool(i8 noundef signext %0
   br i1 %4, label %5, label %7
 
 5:                                                ; preds = %1
-  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.6)
+  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.8)
   br label %9
 
 7:                                                ; preds = %1
-  %8 = call i32 (ptr, ...) @printf(ptr noundef @.str.7)
+  %8 = call i32 (ptr, ...) @printf(ptr noundef @.str.9)
   br label %9
 
 9:                                                ; preds = %7, %5
@@ -1257,7 +1425,7 @@ define dso_local void @System.out.println__spl__void__int(i32 noundef %0) #0 {
   %2 = alloca i32, align 4
   store i32 %0, ptr %2, align 4
   %3 = load i32, ptr %2, align 4
-  %4 = call i32 (ptr, ...) @printf(ptr noundef @.str.8, i32 noundef %3)
+  %4 = call i32 (ptr, ...) @printf(ptr noundef @.str.10, i32 noundef %3)
   ret void
 }
 
@@ -1277,7 +1445,7 @@ define dso_local void @System.out.println__spl__void__float(float noundef %0) #0
   store float %0, ptr %2, align 4
   %3 = load float, ptr %2, align 4
   %4 = fpext float %3 to double
-  %5 = call i32 (ptr, ...) @printf(ptr noundef @.str.9, double noundef %4)
+  %5 = call i32 (ptr, ...) @printf(ptr noundef @.str.11, double noundef %4)
   ret void
 }
 
@@ -1295,7 +1463,7 @@ define dso_local void @System.out.println__spl__void__double(double noundef %0) 
   %2 = alloca double, align 8
   store double %0, ptr %2, align 8
   %3 = load double, ptr %2, align 8
-  %4 = call i32 (ptr, ...) @printf(ptr noundef @.str.9, double noundef %3)
+  %4 = call i32 (ptr, ...) @printf(ptr noundef @.str.11, double noundef %3)
   ret void
 }
 
@@ -1306,7 +1474,7 @@ define dso_local void @System.out.print__spl__void__String(ptr noundef %0) #0 {
   %3 = load ptr, ptr %2, align 8
   %4 = getelementptr inbounds %struct.String_t, ptr %3, i32 0, i32 0
   %5 = load ptr, ptr %4, align 8
-  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.10, ptr noundef %5)
+  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.12, ptr noundef %5)
   ret void
 }
 
@@ -1317,7 +1485,7 @@ define dso_local void @System.out.println__spl__void__String(ptr noundef %0) #0 
   %3 = load ptr, ptr %2, align 8
   %4 = getelementptr inbounds %struct.String_t, ptr %3, i32 0, i32 0
   %5 = load ptr, ptr %4, align 8
-  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.11, ptr noundef %5)
+  %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.13, ptr noundef %5)
   ret void
 }
 
