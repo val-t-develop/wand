@@ -1366,30 +1366,42 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                BinaryOperatorNode::BinaryOperatorKind::RIGHT_SHIFT) {
 
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ADD) {
-        StructType *StringType = nullptr;
-        if (utils->classesTypes.contains("String")) {
-            StringType = utils->classesTypes.at("String");
-        } else {
-            Out::errorMessage("Can not get String type");
-        }
-        PointerType *StringPtrType = helper->getPointerType(StringType);
-        if (helper->isFloatingPointValue(L) ||
-            helper->isFloatingPointValue(R)) {
-            return helper->createFPAdd(helper->castToDouble(L),
-                                       helper->castToDouble(R));
-        } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
-            return helper->createAdd(L, R);
-        } else if (L->getType() == StringPtrType || R->getType() == StringPtrType) {
+        Type *StringPtrType = utils->getType("String");
+        if (L->getType() == StringPtrType || R->getType() == StringPtrType) {
             if (L->getType() == StringPtrType) {
                 if (R->getType() == StringPtrType) {
                     auto tmp = helper->createCall("String.concat__spl__String__String__String", {L, R});
-                    if (tmp->getType() != helper->getVoidType()) {
-                        helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
-                    }
+                    helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
                     return tmp;
                 } else if (!R->getType()->isStructTy()) {
-                    Out::errorMessage("Can not concat primitive types yet");
-                    return nullptr;
+                    Type *charType = utils->getType("char");
+                    Type *boolType = utils->getType("bool");
+                    Type *intType = utils->getType("int");
+                    Type *floatType = utils->getType("float");
+                    Type *doubleType = utils->getType("double");
+                    if (R->getType()==charType) {
+                        auto tmp = helper->createCall("String.concat__spl__String__String__char", {L, R});
+                        helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+                        return tmp;
+                    } else if (R->getType()==boolType) {
+                        auto tmp = helper->createCall("String.concat__spl__String__String__bool", {L, R});
+                        helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+                        return tmp;
+                    } else if (R->getType()==intType) {
+                        auto tmp = helper->createCall("String.concat__spl__String__String__int", {L, R});
+                        helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+                        return tmp;
+                    } else if (R->getType()==floatType) {
+                        auto tmp = helper->createCall("String.concat__spl__String__String__float", {L, R});
+                        helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+                        return tmp;
+                    } else if (R->getType()==doubleType) {
+                        auto tmp = helper->createCall("String.concat__spl__String__String__double", {L, R});
+                        helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+                        return tmp;
+                    } else {
+                        Out::errorMessage("Can not get primitive type");
+                    }
                 } else {
                     Out::errorMessage("Can not concat class to string");
                 }
@@ -1401,6 +1413,14 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                     Out::errorMessage("Can not concat class to string");
                 }
             }
+        } else if (helper->isFloatingPointValue(L) ||
+            helper->isFloatingPointValue(R)) {
+            return helper->createFPAdd(helper->castToDouble(L),
+                                       helper->castToDouble(R));
+        } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
+            return helper->createAdd(L, R);
+        } else {
+            Out::errorMessage("Can not add values: incorrect types");
         }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::SUB) {
         if (helper->isFloatingPointValue(L) ||

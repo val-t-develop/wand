@@ -35,6 +35,67 @@ void CodeGenUtils::setCurrClassName() {
     }
 }
 
+Type *CodeGenUtils::getType(string id) {
+    if (id == "bool") {
+        return helper->getIntType(1);
+    } else if (id == "int") {
+        return helper->getIntType(32);
+    } else if (id == "byte") {
+        return helper->getIntType(8);
+    } else if (id == "short") {
+        return helper->getIntType(16);
+    } else if (id == "long") {
+        return helper->getIntType(64);
+    } else if (id == "float") {
+        return helper->getFloatType();
+    } else if (id == "double") {
+        return helper->getDoubleType();
+    } else if (id == "char") {
+        return helper->getIntType(8);
+    } else if (id == "void") {
+        return helper->getVoidType();
+    } else {
+        StructType *structType = nullptr;
+        if (classesTypes.contains(id)) {
+            structType = classesTypes.at(id);
+        } else {
+            Out::errorMessage("Can not get " + id);
+        }
+        PointerType *structPtrType = helper->getPointerType(structType);
+        return structPtrType;
+    }
+}
+
+Type *CodeGenUtils::getTypeNoPtr(string id) {
+    if (id == "bool") {
+        return helper->getIntType(1);
+    } else if (id == "int") {
+        return helper->getIntType(32);
+    } else if (id == "byte") {
+        return helper->getIntType(8);
+    } else if (id == "short") {
+        return helper->getIntType(16);
+    } else if (id == "long") {
+        return helper->getIntType(64);
+    } else if (id == "float") {
+        return helper->getFloatType();
+    } else if (id == "double") {
+        return helper->getDoubleType();
+    } else if (id == "char") {
+        return helper->getIntType(8);
+    } else if (id == "void") {
+        return helper->getVoidType();
+    } else {
+        StructType *structType = nullptr;
+        if (classesTypes.contains(id)) {
+            structType = classesTypes.at(id);
+        } else {
+            Out::errorMessage("Can not get " + id);
+        }
+        return structType;
+    }
+}
+
 Type *CodeGenUtils::getType(shared_ptr<ClassRecord> node) {
     if (node->type == "primitive") {
         if (node->id == "bool") {

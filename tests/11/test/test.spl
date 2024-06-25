@@ -23,8 +23,14 @@ package test;
 class Main {
     public static int main (String[] args) {
         String a = "abc";
-        String b = a+"def";
-        System.out.println(b);
+        a=a+"def";
+        a=a+'g';
+        a=a+true;
+        a=a+false;
+        a=a+12345;
+        a=a+12.3f;
+        a=a+12.3d;
+        System.out.println(a);
         return 0;
     }
 }

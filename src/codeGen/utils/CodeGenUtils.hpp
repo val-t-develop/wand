@@ -53,6 +53,8 @@ class CodeGenUtils {
     CodeGenUtils(CodeGen *_codeGen);
 
     void setCurrClassName();
+    Type *getType(string id);
+    Type *getTypeNoPtr(string id);
     Type *getType(shared_ptr<ClassRecord> node);
     Type *getTypeNoPtr(shared_ptr<ClassRecord> node);
     Type *getType(shared_ptr<TypeNode> node);
