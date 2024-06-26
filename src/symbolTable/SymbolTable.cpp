@@ -71,10 +71,21 @@ shared_ptr<VarRecord> SymbolTable::lookupVar(const string &name) {
         return curr;
     }
     for (shared_ptr<SymbolTable> st : imports) {
-        shared_ptr<VarRecord> inImport = st->lookupVar(name);
+        shared_ptr<VarRecord> inImport = st->lookupVarNonRecursive(name);
         if (inImport != nullptr) {
             return inImport;
         }
+    }
+    return nullptr;
+}
+
+shared_ptr<VarRecord> SymbolTable::lookupVarNonRecursive(const string &name) {
+    shared_ptr<VarRecord> curr = nullptr;
+    if (currentScope != nullptr) {
+        curr = currentScope->lookupVar(name);
+    }
+    if (curr != nullptr) {
+        return curr;
     }
     return nullptr;
 }
@@ -88,10 +99,21 @@ shared_ptr<MethodRecord> SymbolTable::lookupMethod(const string &name) {
         return curr;
     }
     for (shared_ptr<SymbolTable> st : imports) {
-        shared_ptr<MethodRecord> inImport = st->lookupMethod(name);
+        shared_ptr<MethodRecord> inImport = st->lookupMethodNonRecursive(name);
         if (inImport != nullptr) {
             return inImport;
         }
+    }
+    return nullptr;
+}
+
+shared_ptr<MethodRecord> SymbolTable::lookupMethodNonRecursive(const string &name) {
+    shared_ptr<MethodRecord> curr = nullptr;
+    if (currentScope != nullptr) {
+        curr = currentScope->lookupMethod(name);
+    }
+    if (curr != nullptr) {
+        return curr;
     }
     return nullptr;
 }
@@ -106,10 +128,21 @@ shared_ptr<ClassRecord> SymbolTable::lookupClass(const string &name) {
     }
     for (shared_ptr<SymbolTable> st : imports) {
 
-        shared_ptr<ClassRecord> inImport = st->lookupClass(name);
+        shared_ptr<ClassRecord> inImport = st->lookupClassNonRecursive(name);
         if (inImport != nullptr) {
             return inImport;
         }
+    }
+    return nullptr;
+}
+
+shared_ptr<ClassRecord> SymbolTable::lookupClassNonRecursive(const string &name) {
+    shared_ptr<ClassRecord> curr = nullptr;
+    if (currentScope != nullptr) {
+        curr = currentScope->lookupClass(name);
+    }
+    if (curr != nullptr) {
+        return curr;
     }
     return nullptr;
 }
@@ -123,10 +156,21 @@ shared_ptr<Record> SymbolTable::lookupRecord(const string &name) {
         return curr;
     }
     for (shared_ptr<SymbolTable> st : imports) {
-        shared_ptr<Record> inImport = st->lookupRecord(name);
+        shared_ptr<Record> inImport = st->lookupRecordNonRecursive(name);
         if (inImport != nullptr) {
             return inImport;
         }
+    }
+    return nullptr;
+}
+
+shared_ptr<Record> SymbolTable::lookupRecordNonRecursive(const string &name) {
+    shared_ptr<Record> curr = nullptr;
+    if (currentScope != nullptr) {
+        curr = currentScope->lookupRecord(name);
+    }
+    if (curr != nullptr) {
+        return curr;
     }
     return nullptr;
 }

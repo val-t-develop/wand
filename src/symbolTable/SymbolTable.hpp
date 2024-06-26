@@ -45,9 +45,13 @@ class SymbolTable {
     void put(shared_ptr<Record> record);
 
     shared_ptr<VarRecord> lookupVar(const string &name);
+    shared_ptr<VarRecord> lookupVarNonRecursive(const string &name);
     shared_ptr<MethodRecord> lookupMethod(const string &name);
+    shared_ptr<MethodRecord> lookupMethodNonRecursive(const string &name);
     shared_ptr<ClassRecord> lookupClass(const string &name);
+    shared_ptr<ClassRecord> lookupClassNonRecursive(const string &name);
     shared_ptr<Record> lookupRecord(const string &name);
+    shared_ptr<Record> lookupRecordNonRecursive(const string &name);
     shared_ptr<Record> lookup(const string &name);
 
     void addImport(shared_ptr<SymbolTable> st);

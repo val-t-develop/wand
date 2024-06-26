@@ -38,7 +38,7 @@ Path::Path(fs::path &path) {
     content = "";
 }
 
-string Path::getName() { return fs::absolute(path).string(); }
+string Path::getName() const { return fs::absolute(path).string(); }
 
 string Path::getFilename() { return path.filename(); }
 
@@ -82,3 +82,9 @@ Path Path::getParent() {
 }
 
 Path Path::getCurrentDir() { return Path(fs::current_path()); }
+
+bool Path::operator<(const Path &other) const { return getName() < other.getName(); }
+
+bool Path::operator>(const Path &other) const { return getName() > other.getName(); }
+
+bool Path::operator==(const Path &other) const { return getName() == other.getName(); }

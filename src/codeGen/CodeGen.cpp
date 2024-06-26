@@ -60,11 +60,7 @@ CodeGen::CodeGen(shared_ptr<CompilationUnitNode> _cu, Path& _file) : cu(_cu), fi
 }
 
 void CodeGen::codeGen() {
-    if (helper->getModuleName() == "__unnamedModule" ||
-        helper->getModuleName() != "spl.core") {
-        genImport(make_shared<ImportDeclNode>(vector<string>({"spl", "core"}),
-                                              nullptr));
-    }
+    genImport(file);
 
     helper->createFunctionPrototype("__spl__init__gcmap", helper->getVoidType(),
                                     vector<Type *>{});
@@ -92,7 +88,6 @@ void CodeGen::codeGen() {
         if (node->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
             continue;
         } else if (node->kind == Node::NodeKind::IMPORT_DECL_NODE) {
-            genImport(static_pointer_cast<ImportDeclNode>(node));
         } else if (node->kind == Node::NodeKind::CLASS_DECL_NODE) {
             createClassType(static_pointer_cast<ClassDeclNode>(node));
         } else {
@@ -100,9 +95,49 @@ void CodeGen::codeGen() {
         }
     }
 
+    for (auto ps : imported) {
+        Path p(ps);
+        auto importCU = Main::CUs[p]->cu;
+
+        for (shared_ptr<Node> n : importCU->nodes) {
+            if (n->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
+                auto name = static_pointer_cast<PackageDeclNode>(n)->name;
+                if (name.size()==2) {
+                    if (name[0]=="spl" && name[1]=="core") {
+                        if (p.getFilename() == "core.spl") {
+                            auto dir = p.getParent();
+                            auto ll_file = Path(dir.getName() + "/spl.core.stdlib.ll");
+                            system(string("mkdir -p .spl_compilation"+dir.getName()).c_str());
+                            string o_file = ".spl_compilation" + dir.getName() + "/spl.core.stdlib.o";
+                            Main::currCUsStack.top()->linkingObj.push_back(o_file);
+                            system(string("clang " + ll_file.getName() + " -c -o " + o_file).c_str());
+                        }
+                    }
+                }
+            } else if (n->kind == Node::NodeKind::IMPORT_DECL_NODE) {
+                genImport(p);
+            } else if (n->kind == Node::NodeKind::CLASS_DECL_NODE) {
+                createClassType(static_pointer_cast<ClassDeclNode>(n));
+            } else {
+                Out::errorMessage("Can not generate this node");
+            }
+        }
+    }
+
     for (shared_ptr<Node> node : cu->nodes) {
         if (node->kind == Node::NodeKind::CLASS_DECL_NODE) {
             genStruct(static_pointer_cast<ClassDeclNode>(node));
+        }
+    }
+
+    for (auto ps : imported) {
+        Path p(ps);
+        auto importCU = Main::CUs[p]->cu;
+
+        for (shared_ptr<Node> n : importCU->nodes) {
+            if (n->kind == Node::NodeKind::CLASS_DECL_NODE) {
+                genStruct(static_pointer_cast<ClassDeclNode>(n));
+            }
         }
     }
 
@@ -115,6 +150,23 @@ void CodeGen::codeGen() {
             genClassDecl(static_pointer_cast<ClassDeclNode>(node), true);
         } else {
             Out::errorMessage("Can not generate this node");
+        }
+    }
+
+    for (auto ps : imported) {
+        Path p(ps);
+        auto importCU = Main::CUs[p]->cu;
+
+        for (shared_ptr<Node> n : importCU->nodes) {
+            if (n->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
+                continue;
+            } else if (n->kind == Node::NodeKind::IMPORT_DECL_NODE) {
+                continue;
+            } else if (n->kind == Node::NodeKind::CLASS_DECL_NODE) {
+                genClassDecl(static_pointer_cast<ClassDeclNode>(n), false);
+            } else {
+                Out::errorMessage("Can not generate this node");
+            }
         }
     }
 }
@@ -136,51 +188,27 @@ void CodeGen::build() {
     Main::obj_files.push_back(Filename);
 }
 
-void CodeGen::genImport(shared_ptr<ImportDeclNode> node) {
-    auto importFiles = Main::currCUsStack.top()->importFiles[node->name];
-    if (node->name[0] == "spl" && node->name[1] == "core") {
-        for (auto importFile : importFiles) {
-            auto dir = importFile.getParent();
-            auto ll_file = Path(dir.getName() + "/spl.core.stdlib.ll");
-            system(string("mkdir -p .spl_compilation"+dir.getName()).c_str());
-            string o_file = ".spl_compilation" + dir.getName() + "/spl.core.stdlib.o";
-            Main::currCUsStack.top()->linkingObj.push_back(o_file);
-            system(string("clang " + ll_file.getName() + " -c -o " + o_file).c_str());
-            break;
+void CodeGen::genImport(Path f) {
+    vector<Path> importFiles{};
+    for (auto imports : Main::CUs[f]->importFiles) {
+        auto paths = imports.second;
+        for (auto path : paths) {
+            importFiles.push_back(path);
         }
     }
+
     for (auto p : importFiles) {
+        bool alreadyImported = false;
+        for (string importedOne : imported) {
+            if (importedOne == p.getName()) {
+                alreadyImported = true;
+            }
+        }
+        if (alreadyImported) {
+            continue;
+        }
+        imported.push_back(p.getName());
         Main::CUs[p]->completeToState(CU::State::AST);
-        auto importCU = Main::CUs[p]->cu;
-        for (shared_ptr<Node> n : importCU->nodes) {
-            if (n->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
-                continue;
-            } else if (n->kind == Node::NodeKind::IMPORT_DECL_NODE) {
-                genImport(static_pointer_cast<ImportDeclNode>(n));
-            } else if (n->kind == Node::NodeKind::CLASS_DECL_NODE) {
-                createClassType(static_pointer_cast<ClassDeclNode>(n));
-            } else {
-                Out::errorMessage("Can not generate this node");
-            }
-        }
-
-        for (shared_ptr<Node> n : importCU->nodes) {
-            if (n->kind == Node::NodeKind::CLASS_DECL_NODE) {
-                genStruct(static_pointer_cast<ClassDeclNode>(n));
-            }
-        }
-
-        for (shared_ptr<Node> n : importCU->nodes) {
-            if (n->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
-                continue;
-            } else if (n->kind == Node::NodeKind::IMPORT_DECL_NODE) {
-                continue;
-            } else if (n->kind == Node::NodeKind::CLASS_DECL_NODE) {
-                genClassDecl(static_pointer_cast<ClassDeclNode>(n), false);
-            } else {
-                Out::errorMessage("Can not generate this node");
-            }
-        }
     }
 }
 

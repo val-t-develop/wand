@@ -46,6 +46,7 @@ class CodeGen {
     shared_ptr<CodeGenUtils> utils;
     shared_ptr<LLVMHelper> helper;
 
+    vector<string> imported = vector<string>();
     map<string, Value *> NamedValues;
     map<string, Value *> GlobalNamedValues;
     map<Value *, shared_ptr<ExpressionNode>> StaticGlobalsInit;
@@ -68,7 +69,7 @@ class CodeGen {
     void codeGen();
 
     void build();
-    void genImport(shared_ptr<ImportDeclNode> node);
+    void genImport(Path f);
     void createClassType(shared_ptr<ClassDeclNode> node);
     void genClassDecl(shared_ptr<ClassDeclNode> node, bool genMethod);
 

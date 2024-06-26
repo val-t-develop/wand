@@ -43,26 +43,15 @@ void SymbolListener::processImport(vector<string> importName) {
             processImportDir(src, toImport, importName);
         }
     }
-    vector<string> paths{};
-    for (auto el : *toImport) {
-        string s = el.getName();
-        if (!paths.empty()) {
-            if (find(paths.begin(), paths.end(), s) != paths.end()) {
-                continue;
-            }
-        }
-        paths.push_back(s);
-    }
 
-    if (paths.empty()) {
+    if (toImport->empty()) {
         Out::errorMessage(lexer, "Can not find import");
-    } else if (paths.size() != 1) {
-        Out::errorMessage(lexer, "Few imoprt variants are possible");
     } else {
-        Path p = Path(paths[0]);
-        Main::processFileToState(p, CU::State::ST);
-        symbolTable->addImport(Main::CUs[p]->st);
-        Main::currCUsStack.top()->importFiles[importName] = {p}; // TODO
+        for (auto p : *toImport) {
+            Main::processFileToState(p, CU::State::ST);
+            symbolTable->addImport(Main::CUs[p]->st);
+        }
+        Main::currCUsStack.top()->importFiles[importName] = *toImport;
     }
 }
 
@@ -74,6 +63,9 @@ void SymbolListener::processImportFile(Path& src, shared_ptr<vector<Path>> toImp
         }
     }
     if (src.getFilename().ends_with(".spl")) {
+        if (src.getName()==filePath.getName()) {
+            return;
+        }
         toImport->push_back(src);
     }
 }
@@ -125,12 +117,8 @@ void SymbolListener::enterPackage() {
         }
         srcDir = path;
 
-        if (qualifiedName.getText() != "spl.core") {
-            vector<string> importName = {"spl", "core"};
-            processImport(importName);
-        } else {
-            core = true;
-        }
+        vector<string> importName = {"spl", "core"};
+        processImport(importName);
     }
 }
 

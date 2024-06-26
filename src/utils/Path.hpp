@@ -34,7 +34,7 @@ class Path {
     Path(string name);
     Path(fs::path &path);
 
-    string getName();
+    string getName() const;
     string getFilename();
     string readFile();
     bool isFile();
@@ -42,5 +42,7 @@ class Path {
     vector<Path> getDirContent();
     Path getParent();
     static Path getCurrentDir();
-    auto operator<=>(const Path &) const = default;
+    bool operator<(const Path &) const;
+    bool operator>(const Path &) const;
+    bool operator==(const Path &) const;
 };

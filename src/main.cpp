@@ -88,7 +88,7 @@ void Main::processFile(Path &file) {
 
 void Main::processFileToState(Path &file, CU::State state) {
     if (CUs.contains(file)) {
-        CUs[file]->completeToState(CU::State::CODE_GEN);
+        CUs[file]->completeToState(state);
     } else {
         string fullName = file.getName();
         if (!validSplFile(fullName)) {
@@ -98,8 +98,8 @@ void Main::processFileToState(Path &file, CU::State state) {
         string name = fullName.substr(0, fullName.find("."));
 
         shared_ptr<CU> cu = make_shared<CU>(fullName, name, file);
-        cu->completeToState(state);
         CUs[file] = cu;
+        cu->completeToState(state);
     }
 }
 
@@ -117,10 +117,10 @@ void CU::completeToState(State state) {
             currState = State::LEXER;
         } else if (currState == State::LEXER) {
             st = make_shared<SymbolTable>();
+            currState = State::ST;
             symbolListener = make_shared<SymbolListener>(st, file, lexer);
             symbolListener->walk();
             st->resetTable();
-            currState = State::ST;
         } else if (currState == State::ST) {
             astBuilder = make_shared<AstBuilder>(st, file, lexer);
             cu = astBuilder->walk();
