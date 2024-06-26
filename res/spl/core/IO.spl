@@ -16,6 +16,23 @@
 
 //  Valentyn Tymchyshyn (val.t.develop) (val.t.develo@gmail.com)
 //
-//  Main file of standard library of spl.
+//  IO realization in standard library of spl.
 
 package spl.core;
+
+class System {
+    class out {
+        public static void print(char a);
+        public static void println(char a);
+        public static void print(bool a);
+        public static void println(bool a);
+        public static void print(int a);
+        public static void println(int a);
+        public static void print(float a);
+        public static void println(float a);
+        public static void print(double a);
+        public static void println(double a);
+        public static void print(String a);
+        public static void println(String a);
+    }
+}

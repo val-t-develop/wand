@@ -1,0 +1,75 @@
+//  SPL - Simple Programming Language compiler
+//  Copyright (C) 2022  Valentyn Tymchyshyn
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or any
+//  later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+//  Valentyn Tymchyshyn (val.t.develop) (val.t.develo@gmail.com)
+//
+//  String realization in standard library of spl.
+
+package spl.core;
+
+class __StringLiteral{}
+class __String {
+    public static void concat(String _this, String _a, String _b);
+    public static void concat(String _this, String _a, char _b);
+    public static void concat(String _this, String _a, bool _b);
+    public static void concat(String _this, String _a, int _b);
+    public static void concat(String _this, String _a, float _b);
+    public static void concat(String _this, String _a, double _b);
+}
+
+class String {
+    public ~String();
+    public String();
+    public String(String a);
+    public String(char a);
+    public String(bool a);
+    public String(int a);
+    public String(float a);
+    public String(double a);
+    public String(__StringLiteral a);
+
+    public String concat(String a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
+    public String concat(char a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
+    public String concat(bool a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
+    public String concat(int a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
+    public String concat(float a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
+    public String concat(double a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
+
+}
