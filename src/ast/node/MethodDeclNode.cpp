@@ -38,6 +38,7 @@ MethodDeclNode::MethodDeclNode(shared_ptr<ModifiersNode> _modifiers,
 
 string MethodDeclNode::getFullName() {
     if (record->ir_name == "") {
+        record->retTypeRec=returnType->getReturnType();
         string str = "";
         if (record->next != nullptr) {
             str +=

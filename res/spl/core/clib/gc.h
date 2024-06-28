@@ -27,122 +27,149 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
-typedef struct __spl__gcmap__entry {
-    void* ptr;
-    int32_t refs;
-} __spl__gcmap__entry_t;
+typedef struct Object {
+    void *obj_ptr;
+    int32_t refs_count;
+} Object_t;
 
-typedef struct __spl__gcmap {
+typedef struct Objects {
+    Object_t *arr;
     int32_t size;
     int32_t capacity;
-    __spl__gcmap__entry_t *entries;
-} __spl__gcmap__t;
+} Objects_t;
 
-__spl__gcmap__t __spl__m;
+typedef struct Ref {
+    void *ref;
+    int32_t ObjID;
+} Ref_t;
+
+typedef struct Refs {
+    Ref_t *arr;
+    int32_t size;
+    int32_t capacity;
+} Refs_t;
+
+Objects_t objects;
+Refs_t refs;
 
 __attribute__((used))
-void __spl__init__gcmap() {
-    __spl__m.size = 0;
-    __spl__m.capacity = 10;
-    __spl__m.entries = malloc(__spl__m.capacity*sizeof(__spl__gcmap__entry_t));
+void __spl__init__gc() {
+    objects.capacity=10;
+    objects.size=0;
+    objects.arr=(Object_t*)malloc(10*sizeof(Object_t));
+    memset(objects.arr, 0, 10*sizeof(Object_t));
+    refs.capacity=10;
+    refs.size=0;
+    refs.arr=(Ref_t*)malloc(10*sizeof(Ref_t));
+    memset(refs.arr, 0, 10*sizeof(Ref_t));
 }
 
 __attribute__((used))
-void __spl__destroy__gcmap() {
-    free(__spl__m.entries);
-}
-
-__attribute__((used))
-void __spl__add__to__gc(void *ptr, int32_t refs) {
-    if (__spl__m.size+1 < __spl__m.capacity) {
-        __spl__m.entries[__spl__m.size].ptr = ptr;
-        __spl__m.entries[__spl__m.size].refs = refs;
-        __spl__m.size++;
-    } else {
-        __spl__m.capacity *= 2;
-        __spl__m.entries = realloc(__spl__m.entries, __spl__m.capacity*sizeof(__spl__gcmap__entry_t));
-        __spl__m.entries[__spl__m.size].ptr = ptr;
-        __spl__m.entries[__spl__m.size].refs = refs;
-        __spl__m.size++;
+void __spl__destroy__gc() {
+    if (objects.arr!=NULL) {
+        free(objects.arr);
     }
-}
-
-__attribute__((used))
-int32_t __spl__get__refs(void *ptr) {
-    for(int i = 0; i < __spl__m.size; ++i) {
-        if (__spl__m.entries[i].ptr == ptr) {
-            return __spl__m.entries[i].refs;
-        }
-    }
-    return -1;
-}
-
-__attribute__((used))
-void __spl__set__refs(void *ptr, int32_t refs) {
-    for(int i = 0; i < __spl__m.size; ++i) {
-        if (__spl__m.entries[i].ptr == ptr) {
-            __spl__m.entries[i].refs = refs;
-        }
-    }
-    __spl__add__to__gc(ptr, refs);
-}
-
-__attribute__((used))
-void __spl__dec__refs(void *ptr) {
-    for(int i = 0; i < __spl__m.size; ++i) {
-        if (__spl__m.entries[i].ptr == ptr) {
-            __spl__m.entries[i].refs--;
-        }
-    }
-}
-
-__attribute__((used))
-void __spl__inc__refs(void *ptr) {
-    for(int i = 0; i < __spl__m.size; ++i) {
-        if (__spl__m.entries[i].ptr == ptr) {
-            __spl__m.entries[i].refs++;
-        }
+    if (refs.arr!=NULL) {
+        free(refs.arr);
     }
 }
 
 __attribute__((used))
 void *__spl__alloc(int32_t size) {
-    void *ptr = malloc(size);
-    __spl__add__to__gc(ptr, 1);
+    if (objects.size==objects.capacity) {
+        objects.capacity*=2;
+        objects.arr=(Object_t*)realloc(objects.arr, objects.capacity*sizeof(Object_t));
+        memset(objects.arr+objects.capacity/2*sizeof(Object_t), 0, objects.capacity/2*sizeof(Object_t));
+    }
+    objects.arr[objects.size].refs_count=0;
+    void *ptr=malloc(size);
+    objects.arr[objects.size].obj_ptr=ptr;
+    objects.size++;
+    //printf("alloc: %p - 0\n", ptr);
     return ptr;
 }
 
 __attribute__((used))
-void __spl__write(void *dest, void *data) {
-
-    if (dest != 0)
-        __spl__dec__refs(dest);
-
-    if (data != 0)
-        __spl__inc__refs(data);
-
-    if (dest != 0) {
-        if (__spl__get__refs(dest) == 0) {
-            __spl__set__refs(dest, -1);
-            free(dest);
+void __spl__destroyobj(void *ptr, void (*destructor)(void*), int8_t decreaseRefs) {
+    //printf("destroyobj: %p - ", ptr);
+    for (int32_t i = 0; i < objects.size; ++i) {
+        if (objects.arr[i].obj_ptr==ptr) {
+            if (decreaseRefs) {
+                objects.arr[i].refs_count--;
+            }
+            //printf("%d\n", objects.arr[i].refs_count);
+            if (objects.arr[i].refs_count==0) {
+                destructor(ptr);
+                free(ptr);
+                objects.arr[i].obj_ptr=NULL;
+            }
         }
     }
 }
 
 __attribute__((used))
-void __spl__destroyvar(void *ptr, void (*destructor)(void*)) {
-
-    if (ptr != 0) {
-        __spl__dec__refs(ptr);
-        if (__spl__get__refs(ptr) == 0) {
-            __spl__set__refs(ptr, -1);
-            if (destructor != 0) {
-                destructor(ptr);
+void __spl__destroyref(void *ptr, void (*destructor)(void*)) {
+    //printf("destroyref: %p - ", ptr);
+    for (int32_t i = 0; i < refs.size; ++i) {
+        if (refs.arr[i].ref==ptr) {
+            objects.arr[refs.arr[i].ObjID].refs_count--;
+            //printf("%d\n", objects.arr[refs.arr[i].ObjID].refs_count);
+            if (objects.arr[refs.arr[i].ObjID].refs_count==0) {
+                destructor(objects.arr[refs.arr[i].ObjID].obj_ptr);
+                free(objects.arr[refs.arr[i].ObjID].obj_ptr);
+                objects.arr[refs.arr[i].ObjID].obj_ptr=NULL;
             }
-            free(ptr);
+            refs.arr[i].ref=NULL;
+            refs.arr[i].ObjID=0;
         }
     }
+}
+
+__attribute__((used))
+void __spl__addref(void* ref, void* obj, void (*destructor)(void*)) {
+    __spl__destroyref(ref, destructor);
+    //printf("addref: %p - %p\n", ref, obj);
+    for (int32_t i = 0; i < objects.size; ++i) {
+        if (objects.arr[i].obj_ptr==obj) {
+            objects.arr[i].refs_count++;
+            if (refs.size==refs.capacity) {
+                refs.capacity*=2;
+                refs.arr=(Ref_t*)realloc(refs.arr, refs.capacity*sizeof(Ref_t));
+                memset(refs.arr+refs.capacity/2*sizeof(Ref_t), 0, refs.capacity/2*sizeof(Ref_t));
+            }
+            refs.arr[refs.size].ref=ref;
+            refs.arr[refs.size].ObjID=i;
+            refs.size++;
+            return;
+        }
+    }
+    printf("Can not create ref to obj\n");
+}
+
+__attribute__((used))
+void __spl__write(void *dest, void *source, void (*destructor)(void*)) {
+    __spl__destroyref(dest, destructor);
+    //printf("write: %p - %p\n", dest, source);
+    int32_t objID = -1;
+    for (int32_t i = 0; i < refs.size; ++i) {
+        if (refs.arr[i].ref==source) {
+            objID=refs.arr[i].ObjID;
+        }
+    }
+    if (objID==-1) {
+        return;
+    }
+    objects.arr[objID].refs_count++;
+    if (refs.size==refs.capacity) {
+        refs.capacity*=2;
+        refs.arr=(Ref_t*)realloc(refs.arr, refs.capacity*sizeof(Ref_t));
+        memset(refs.arr+refs.capacity/2*sizeof(Ref_t), 0, refs.capacity/2*sizeof(Ref_t));
+    }
+    refs.arr[refs.size].ref=dest;
+    refs.arr[refs.size].ObjID=objID;
+    refs.size++;
 }
 
 #endif //GC_H

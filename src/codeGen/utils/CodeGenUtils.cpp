@@ -176,8 +176,8 @@ Type *CodeGenUtils::getTypeNoPtr(shared_ptr<TypeNode> node) {
 void CodeGenUtils::destructAfterStatement() {
     for(auto v : codeGen->destructAfterStatement) {
          helper->createCall(
-         "__spl__destroyvar",
-         vector<Value *>{v.first, helper->getFunction("__spl__destructor__" +v.second)});
+         "__spl__destroyobj",
+         vector<Value *>{v.val, helper->getFunction("__spl__destructor__" +v.type), helper->getConstInt(8, v.decreaseRefs)});
     }
     codeGen->destructAfterStatement.clear();
 }

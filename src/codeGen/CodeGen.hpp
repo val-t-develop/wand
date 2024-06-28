@@ -43,6 +43,14 @@ class CodeGenUtils;
 
 class CodeGen {
   public:
+    class DestructAfterStatement {
+    public:
+        Value *val;
+        string type;
+        bool decreaseRefs;
+
+        DestructAfterStatement(Value *_val, string _type, bool _decreaseRefs);
+    };
     shared_ptr<CodeGenUtils> utils;
     shared_ptr<LLVMHelper> helper;
 
@@ -54,7 +62,7 @@ class CodeGen {
     BasicBlock *retBB{};
     stack<Value *> thisV;
     shared_ptr<VarRecord> thisRecord;
-    vector<pair<Value*, string>> destructAfterStatement = vector<pair<Value*, string>>();
+    vector<DestructAfterStatement> destructAfterStatement = vector<DestructAfterStatement>();
 
     shared_ptr<CompilationUnitNode> cu;
 
@@ -63,6 +71,8 @@ class CodeGen {
     stack<vector<pair<Value *, string>>> currBlockVars =
         stack<vector<pair<Value *, string>>>();
     Path file;
+    shared_ptr<MethodDeclNode> currMethod;
+    bool isRef = false;
 
     CodeGen(shared_ptr<CompilationUnitNode> _cu, Path& _file);
 
@@ -87,12 +97,12 @@ class CodeGen {
     void genIfElse(shared_ptr<IfElseNode> node);
     void genWhile(shared_ptr<WhileNode> node);
     void genFor(shared_ptr<ForNode> node);
-    Value *genExpression(shared_ptr<ExpressionNode> node);
+    Value *genExpression(shared_ptr<ExpressionNode> node, bool genRef);
     Value *genLiteral(shared_ptr<ExpressionNode> node);
     Value *genMethodCall(shared_ptr<MethodCallNode> node, Value *calle);
     Value *genVarDecl(shared_ptr<VarDeclNode> node);
     Value *genDefaultValue(shared_ptr<TypeNode> node);
-    Value *genVarValue(shared_ptr<VarRecordNode> node);
+    Value *genVarValue(shared_ptr<VarRecordNode> node, bool genRef);
     Value *genBinOp(shared_ptr<BinaryOperatorNode> node);
     Value *genNewNode(shared_ptr<NewNode> node);
 };

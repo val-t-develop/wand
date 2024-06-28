@@ -62,27 +62,31 @@ CodeGen::CodeGen(shared_ptr<CompilationUnitNode> _cu, Path& _file) : cu(_cu), fi
 void CodeGen::codeGen() {
     genImport(file);
 
-    helper->createFunctionPrototype("__spl__init__gcmap", helper->getVoidType(),
+    helper->createFunctionPrototype("__spl__init__gc", helper->getVoidType(),
                                     vector<Type *>{});
-    helper->createFunctionPrototype("__spl__destroy__gcmap",
+    helper->createFunctionPrototype("__spl__destroy__gc",
                                     helper->getVoidType(), vector<Type *>{});
     helper->createFunctionPrototype(
         "__spl__alloc", helper->getPointerType(helper->getVoidType()),
         vector<Type *>{helper->getIntType(32)});
     helper->createFunctionPrototype(
+        "__spl__destroyobj", helper->getVoidType(),
+        vector<Type *>{helper->getPointerType(helper->getVoidType()),
+            helper->getPointerType(helper->getVoidType())});
+    helper->createFunctionPrototype(
+        "__spl__destroyref", helper->getVoidType(),
+        vector<Type *>{helper->getPointerType(helper->getVoidType()),
+            helper->getPointerType(helper->getVoidType())});
+    helper->createFunctionPrototype(
+        "__spl__addref", helper->getVoidType(),
+        vector<Type *>{helper->getPointerType(helper->getVoidType()),
+                       helper->getPointerType(helper->getVoidType()),
+                       helper->getPointerType(helper->getVoidType())});
+    helper->createFunctionPrototype(
         "__spl__write", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
+                       helper->getPointerType(helper->getVoidType()),
                        helper->getPointerType(helper->getVoidType())});
-    helper->createFunctionPrototype(
-        "__spl__destroyvar", helper->getVoidType(),
-        vector<Type *>{helper->getPointerType(helper->getVoidType()),
-                       helper->getPointerType(helper->getVoidType())});
-    helper->createFunctionPrototype(
-        "__spl__dec__refs", helper->getVoidType(),
-        vector<Type *>{helper->getPointerType(helper->getVoidType())});
-    helper->createFunctionPrototype(
-        "__spl__inc__refs", helper->getVoidType(),
-        vector<Type *>{helper->getPointerType(helper->getVoidType())});
 
     for (shared_ptr<Node> node : cu->nodes) {
         if (node->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
@@ -377,6 +381,7 @@ CodeGen::genConstructorPrototype(shared_ptr<ConstructorDeclNode> node) {
 }
 
 Function *CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
+    currMethod= node;
     if (node->body != nullptr) {
         Function *TheFunction = helper->getFunction(node->getFullName());
 
@@ -481,12 +486,12 @@ Function *CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
                             helper->createBBinFunc("entry", MainFunction);
                         helper->activateBB(mainBB);
 
-                        helper->createCall("__spl__init__gcmap");
+                        helper->createCall("__spl__init__gc");
 
                         for (auto globInit : StaticGlobalsInit) {
                             if (globInit.second != nullptr) {
                                 Value *ptr = globInit.first;
-                                Value *val = genExpression(globInit.second);
+                                Value *val = genExpression(globInit.second, false);
                                 helper->createStore(val, ptr);
                             }
                         }
@@ -496,7 +501,7 @@ Function *CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
                             vector<Value *>({helper->getNullptr(
                                 static_cast<PointerType *>(args_types[0]))}));
 
-                        helper->createCall("__spl__destroy__gcmap");
+                        helper->createCall("__spl__destroy__gc");
 
                         if (RetVal) {
                             helper->createRet(RetVal);
@@ -539,13 +544,11 @@ Function *CodeGen::genDestructorDecl(shared_ptr<ClassDeclNode> node) {
                     utils->getTypeNoPtr(node->record), val,
                     vector<Value *>{helper->getConstInt(32, 0),
                                     helper->getConstInt(32, i)});
-                Value *loadptr = helper->createLoad(
-                    utils->getType(node->fields[i]->type->getReturnType()), ptr);
                 if (node->fields[i]->type->type->record->type != "primitive") {
                     helper->createCall(
-                        "__spl__destroyvar",
+                        "__spl__destroyref",
                         vector<Value *>{
-                            loadptr,
+                            ptr,
                             helper->getFunction("__spl__destructor__" +
                                                 node->fields[i]->type->getFullName())});
                 }
@@ -585,13 +588,11 @@ Function *CodeGen::genDestructorDecl(shared_ptr<ClassDeclNode> node) {
                 utils->getTypeNoPtr(node->record), val,
                 vector<Value *>{helper->getConstInt(32, 0),
                                 helper->getConstInt(32, i)});
-            Value *loadptr = helper->createLoad(
-                utils->getType(node->fields[i]->type->getReturnType()), ptr);
             if (node->fields[i]->type->type->record->type != "primitive") {
                 helper->createCall(
-                    "__spl__destroyvar",
+                    "__spl__destroyref",
                     vector<Value *>{
-                        loadptr,
+                        ptr,
                         helper->getFunction("__spl__destructor__" +
                                             node->fields[i]->type->getFullName())});
             }
@@ -663,9 +664,11 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
                         NamedValues[helper->getCurrFunction()->getName().str() +
                                     "__spl__ret"];
                     Value *val = genExpression(
-                        static_pointer_cast<ReturnNode>(item)->expression);
-                    helper->createCall("__spl__write",
-                                       vector<Value *>{ptr, val});
+                        static_pointer_cast<ReturnNode>(item)->expression, false);
+                    if (val->getType()->isPointerTy()) {
+                        helper->createCall("__spl__addref",
+                                       vector<Value *>{ptr, val, helper->getFunction("__spl__destructor__"+currMethod->returnType->getFullName())});
+                    }
                     helper->createStore(val, ptr);
                 }
                 ret = true;
@@ -681,7 +684,7 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
                 }
                 utils->destructAfterStatement();
             } else if (item->isExpression()) {
-                genExpression(static_pointer_cast<ExpressionNode>(item));
+                genExpression(static_pointer_cast<ExpressionNode>(item), false);
                 utils->destructAfterStatement();
             } else if (item->kind == Node::NodeKind::IF_ELSE_NODE) {
                 genIfElse(static_pointer_cast<IfElseNode>(item));
@@ -697,14 +700,13 @@ bool CodeGen::genBlockStatement(shared_ptr<BlockNode> node) {
     }
 
     for (auto v : currBlockVars.top()) {
-        Value *val = helper->createLoad(v.first->getType(), v.first);
         if (v.second != "bool" && v.second != "int" && v.second != "byte" &&
             v.second != "short" && v.second != "long" && v.second != "float" &&
             v.second != "double" && v.second != "char" && v.second != "void") {
 
             helper->createCall(
-                "__spl__destroyvar",
-                vector<Value *>{val, helper->getFunction("__spl__destructor__" +
+                "__spl__destroyref",
+                vector<Value *>{v.first, helper->getFunction("__spl__destructor__" +
                                                          v.second)});
         }
     }
@@ -768,7 +770,7 @@ bool CodeGen::genConstructorBlockStatement(
                 if (static_pointer_cast<ReturnNode>(item)->expression !=
                     nullptr) {
                     Value *val = genExpression(
-                        static_pointer_cast<ReturnNode>(item)->expression);
+                        static_pointer_cast<ReturnNode>(item)->expression, false);
                     Value *ptr =
                         NamedValues[helper->getCurrFunction()->getName().str() +
                                     "__spl__ret"];
@@ -784,7 +786,7 @@ bool CodeGen::genConstructorBlockStatement(
                     genVarDecl(decl);
                 }
             } else if (item->isExpression()) {
-                genExpression(static_pointer_cast<ExpressionNode>(item));
+                genExpression(static_pointer_cast<ExpressionNode>(item), false);
                 utils->destructAfterStatement();
             } else if (item->kind == Node::NodeKind::IF_ELSE_NODE) {
                 genIfElse(static_pointer_cast<IfElseNode>(item));
@@ -799,14 +801,13 @@ bool CodeGen::genConstructorBlockStatement(
         }
     }
     for (auto v : currBlockVars.top()) {
-        Value *val = helper->createLoad(v.first->getType(), v.first);
         if (v.second != "bool" && v.second != "int" && v.second != "byte" &&
             v.second != "short" && v.second != "long" && v.second != "float" &&
             v.second != "double" && v.second != "char" && v.second != "void") {
 
             helper->createCall(
-                "__spl__destroyvar",
-                vector<Value *>{val, helper->getFunction("__spl__destructor__" +
+                "__spl__destroyref",
+                vector<Value *>{v.first, helper->getFunction("__spl__destructor__" +
                                                          v.second)});
         }
     }
@@ -817,7 +818,7 @@ bool CodeGen::genConstructorBlockStatement(
 }
 
 void CodeGen::genIfElse(shared_ptr<IfElseNode> node) {
-    Value *cond = genExpression(node->condition);
+    Value *cond = genExpression(node->condition, false);
 
     Function *TheFunction = helper->getCurrFunction();
 
@@ -864,7 +865,7 @@ void CodeGen::genIfElse(shared_ptr<IfElseNode> node) {
 }
 
 void CodeGen::genWhile(shared_ptr<WhileNode> node) {
-    Value *cond = genExpression(node->expression);
+    Value *cond = genExpression(node->expression, false);
 
     Function *TheFunction = helper->getCurrFunction();
 
@@ -911,7 +912,7 @@ void CodeGen::genFor(shared_ptr<ForNode> node) {
 
     helper->activateBB(forcondBB);
 
-    Value *cond = genExpression(node->condition);
+    Value *cond = genExpression(node->condition, false);
     helper->createIfElse(cond, forbodyBB, forcontBB);
 
     helper->activateBB(forbodyBB);
@@ -930,10 +931,16 @@ void CodeGen::genFor(shared_ptr<ForNode> node) {
     helper->activateBB(forcontBB);
 }
 
-Value *CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
+Value *CodeGen::genExpression(shared_ptr<ExpressionNode> node, bool genRef = false) {
     if (node->isLiteral()) {
+        if (genRef) {
+            isRef = false;
+        }
         return genLiteral(node);
     } else if (node->kind == Node::NodeKind::METHOD_CALL_NODE) {
+        if (genRef) {
+            isRef = false;
+        }
         shared_ptr<MethodCallNode> callNode =
             static_pointer_cast<MethodCallNode>(node);
         bool isStatic = false;
@@ -955,12 +962,24 @@ Value *CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
             return genMethodCall(callNode, calle);
         }
     } else if (node->kind == Node::NodeKind::BINARY_OPERATOR_NODE) {
+        if (genRef) {
+            isRef = false;
+        }
         return genBinOp(static_pointer_cast<BinaryOperatorNode>(node));
     } else if (node->kind == Node::NodeKind::VAR_RECORD_NODE) {
-        return genVarValue(static_pointer_cast<VarRecordNode>(node));
+        if (genRef) {
+            isRef = true;
+        }
+        return genVarValue(static_pointer_cast<VarRecordNode>(node), genRef);
     } else if (node->kind == Node::NodeKind::NEW_NODE) {
+        if (genRef) {
+            isRef = false;
+        }
         return genNewNode(static_pointer_cast<NewNode>(node));
     } else if (node->kind == Node::NodeKind::ARRAY_CREATION_NODE) {
+        if (genRef) {
+            isRef = false;
+        }
         auto n = static_pointer_cast<ArrayCreationNode>(node);
         if (n->isStatic) {
             Type *lastTy = utils->getType(n->type->type->record);
@@ -991,6 +1010,9 @@ Value *CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
     } else if (node->kind == Node::NodeKind::ARRAY_INITIALIZER_NODE) {
 
     } else if (node->kind == Node::NodeKind::ARRAY_ACCESS_NODE) {
+        if (genRef) {
+            isRef = false;
+        }
         auto n = static_pointer_cast<ArrayAccessNode>(node);
         Value *arr = genExpression(n->array);
         // TODO
@@ -1034,10 +1056,18 @@ Value *CodeGen::genExpression(shared_ptr<ExpressionNode> node) {
                     utils->getTypeNoPtr(val_type), val, ids);
                 val_type = static_pointer_cast<VarRecordNode>(access->access[i])
                                ->getReturnType();
-                val =
-                    helper->createLoad(utils->getType(val_type), getelementptr);
+                if (i==access->access.size()-1 && genRef) {
+                    isRef = true;
+                    val=getelementptr;
+                } else {
+                    val =
+                        helper->createLoad(utils->getType(val_type), getelementptr);
+                }
             } else if (access->access[i]->kind ==
                        Node::NodeKind::METHOD_CALL_NODE) {
+                if (genRef) {
+                    isRef = false;
+                }
                 val = genMethodCall(static_pointer_cast<MethodCallNode>(access->access[i]), val);
                 val_type = static_pointer_cast<MethodCallNode>(access->access[i])->getReturnType();
             }
@@ -1076,7 +1106,7 @@ Value *CodeGen::genLiteral(shared_ptr<ExpressionNode> node) {
             literal_node->str.size()+1),"__spl__str__literal",
             helper->getConstNullTerminatedString(literal_node->str));
         auto v = helper->createCall("__spl__constructor__String____StringLiteral", {c});
-        destructAfterStatement.push_back(pair<Value*, string>(v, "String"));
+        destructAfterStatement.push_back(DestructAfterStatement(v, "String", false));
         return v;
     }
     Out::errorMessage("BUG! Can not return value of literal");
@@ -1097,8 +1127,8 @@ Value *CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
         if (calle != nullptr) {
             thisV.pop();
         }
-        if (tmp->getType() != helper->getVoidType()) {
-            helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+        if (tmp->getType()->isPointerTy()) {
+            destructAfterStatement.push_back(DestructAfterStatement(tmp, node->getReturnType()->getFullName(), true));
         }
         return tmp;
     } else {
@@ -1126,9 +1156,8 @@ Value *CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
                 if (calle != nullptr) {
                     thisV.pop();
                 }
-                if (tmp->getType() != helper->getVoidType()) {
-                    helper->createCall("__spl__dec__refs",
-                                       vector<Value *>{tmp});
+                if (tmp->getType()->isPointerTy()) {
+                    destructAfterStatement.push_back(DestructAfterStatement(tmp, funRecord->retTypeRec->getFullName(), true));
                 }
                 return tmp;
             }
@@ -1147,8 +1176,8 @@ Value *CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
             if (calle != nullptr) {
                 thisV.pop();
             }
-            if (tmp->getType() != helper->getVoidType()) {
-                helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+            if (tmp->getType()->isPointerTy()) {
+                destructAfterStatement.push_back(DestructAfterStatement(tmp, funRecord->retTypeRec->getFullName(), true));
             }
             return tmp;
         }
@@ -1167,7 +1196,7 @@ Value *CodeGen::genVarDecl(shared_ptr<VarDeclNode> node) {
     Value *ptr =
         helper->createAlloca(val->getType(), nullptr, node->getFullName());
     if (val->getType()->isPointerTy()) {
-        helper->createCall("__spl__write", vector<Value *>{ptr, val});
+        helper->createCall("__spl__addref", vector<Value *>{ptr, val, helper->getFunction("__spl__destructor__"+node->type->getFullName())});
     }
     helper->createStore(val, ptr);
     NamedValues[node->getFullName()] = ptr;
@@ -1214,7 +1243,7 @@ Value *CodeGen::genDefaultValue(shared_ptr<TypeNode> node) {
     return nullptr;
 }
 
-Value *CodeGen::genVarValue(shared_ptr<VarRecordNode> node) {
+Value *CodeGen::genVarValue(shared_ptr<VarRecordNode> node, bool genRef = false) {
     Value *ptr = NamedValues[node->getFullName()];
     if (ptr == nullptr) {
         ptr = GlobalNamedValues[node->getFullName()];
@@ -1228,13 +1257,17 @@ Value *CodeGen::genVarValue(shared_ptr<VarRecordNode> node) {
         }
     }
     Type *type = varTypes[node->record];
-    Value *val = helper->createLoad(type, ptr);
-    return val;
+    if (genRef) {
+        return ptr;
+    } else {
+        Value *val = helper->createLoad(type, ptr);
+        return val;
+    }
 }
 
 Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
     auto L = genExpression(node->left);
-    auto R = genExpression(node->right);
+    auto R = genExpression(node->right, true);
 
     if (node->op ==
         BinaryOperatorNode::BinaryOperatorKind::RIGHT_SHIFT_ASSIGN) {
@@ -1321,7 +1354,13 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                     // TODO
                 }
             }
-            helper->createCall("__spl__write", vector<Value *>{ptr, R});
+            if (R->getType()->isPointerTy()) {
+                if (isRef) {
+                    helper->createCall("__spl__write", vector<Value *>{ptr, R, helper->getFunction("__spl__destructor__"+val_type->ir_name)});
+                } else {
+                    helper->createCall("__spl__addref", vector<Value *>{ptr, R, helper->getFunction("__spl__destructor__"+val_type->ir_name)});
+                }
+            }
             helper->createStore(R, ptr);
             return R;
         } else {
@@ -1399,7 +1438,7 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
             if (L->getType() == StringPtrType) {
                 if (R->getType() == StringPtrType) {
                     auto tmp = helper->createCall("String.concat__spl__String__String__String", {L, R});
-                    helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+                    destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
                     return tmp;
                 } else if (!R->getType()->isStructTy()) {
                     Type *charType = utils->getType("char");
@@ -1409,23 +1448,23 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                     Type *doubleType = utils->getType("double");
                     if (R->getType()==charType) {
                         auto tmp = helper->createCall("String.concat__spl__String__String__char", {L, R});
-                        helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
                         return tmp;
                     } else if (R->getType()==boolType) {
                         auto tmp = helper->createCall("String.concat__spl__String__String__bool", {L, R});
-                        helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
                         return tmp;
                     } else if (R->getType()==intType) {
                         auto tmp = helper->createCall("String.concat__spl__String__String__int", {L, R});
-                        helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
                         return tmp;
                     } else if (R->getType()==floatType) {
                         auto tmp = helper->createCall("String.concat__spl__String__String__float", {L, R});
-                        helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
                         return tmp;
                     } else if (R->getType()==doubleType) {
                         auto tmp = helper->createCall("String.concat__spl__String__String__double", {L, R});
-                        helper->createCall("__spl__dec__refs", vector<Value *>{tmp});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
                         return tmp;
                     } else {
                         Out::errorMessage("Can not get primitive type");
@@ -1491,6 +1530,10 @@ Value *CodeGen::genNewNode(shared_ptr<NewNode> node) {
     }
     auto tmp = helper->createCall(str, args);
     destructAfterStatement.push_back(
-        pair<Value *, string>(tmp, node->type->getFullName()));
+        DestructAfterStatement(tmp, node->type->getFullName(), false));
     return tmp;
 }
+
+ CodeGen::DestructAfterStatement::DestructAfterStatement(Value *_val,
+                                                        string _type,
+                                                        bool _decreaseRefs) : val(_val), type(_type), decreaseRefs(_decreaseRefs) {}
