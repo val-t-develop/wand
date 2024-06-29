@@ -27,10 +27,16 @@
 
 class IntLiteralNode : public ExpressionNode {
   public:
+    enum class Type {
+        BYTE,
+        SHORT,
+        INT,
+        LONG
+    };
     int64_t value;
-    bool longVal;
+    Type type;
     shared_ptr<ClassRecord> typeRec;
 
-    IntLiteralNode(int64_t _value, bool _longVal, shared_ptr<ClassRecord> _typeRec, shared_ptr<Node> _parent);
+    IntLiteralNode(int64_t _value, Type _type, shared_ptr<ClassRecord> _typeRec, shared_ptr<Node> _parent);
     shared_ptr<ClassRecord> getReturnType() override;
 };

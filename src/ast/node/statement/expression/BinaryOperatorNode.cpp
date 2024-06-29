@@ -63,4 +63,65 @@ BinaryOperatorNode::BinaryOperatorNode(shared_ptr<ExpressionNode> _left,
     : ExpressionNode(_parent, NodeKind::BINARY_OPERATOR_NODE), left(_left),
       right(_right), op(_op) {}
 
-shared_ptr<ClassRecord> BinaryOperatorNode::getReturnType() { return nullptr; }
+shared_ptr<ClassRecord> BinaryOperatorNode::getReturnType() {
+    if (op==BinaryOperatorKind::RIGHT_SHIFT_ASSIGN ||
+        op==BinaryOperatorKind::LEFT_SHIFT_ASSIGN ||
+        op==BinaryOperatorKind::BIT_OR_ASSIGN ||
+        op==BinaryOperatorKind::XOR_ASSIGN ||
+        op==BinaryOperatorKind::MOD_ASSIGN ||
+        op==BinaryOperatorKind::BIT_AND_ASSIGN ||
+        op==BinaryOperatorKind::DIV_ASSIGN ||
+        op==BinaryOperatorKind::MUL_ASSIGN ||
+        op==BinaryOperatorKind::SUB_ASSIGN ||
+        op==BinaryOperatorKind::ADD_ASSIGN ||
+        op==BinaryOperatorKind::ASSIGN ||
+        op==BinaryOperatorKind::BIT_OR ||
+        op==BinaryOperatorKind::BIT_AND ||
+        op==BinaryOperatorKind::LEFT_SHIFT ||
+        op==BinaryOperatorKind::RIGHT_SHIFT) {
+        return left->getReturnType();
+    } else if (op==BinaryOperatorKind::OR ||
+        op==BinaryOperatorKind::AND ||
+        op==BinaryOperatorKind::LESS ||
+        op==BinaryOperatorKind::GREATER ||
+        op==BinaryOperatorKind::LESS_EQUAL ||
+        op==BinaryOperatorKind::GREATER_EQUAL ||
+        op==BinaryOperatorKind::EQUAL ||
+        op==BinaryOperatorKind::NOT_EQUAL ||
+        op==BinaryOperatorKind::INSTANCEOF) {
+        return make_shared<ClassRecord>("bool", "primitive");
+    } else if (op==BinaryOperatorKind::ADD && left->getReturnType()->getFullName()=="String") {
+        return left->getReturnType();
+    } else if (op==BinaryOperatorKind::ADD && right->getReturnType()->getFullName()=="String") {
+        return left->getReturnType();
+    } else if (op==BinaryOperatorKind::ADD ||
+        op==BinaryOperatorKind::SUB ||
+        op==BinaryOperatorKind::MUL ||
+        op==BinaryOperatorKind::DIV) {
+        if (left->getReturnType()->getFullName()=="double") {
+            return left->getReturnType();
+        } else if (right->getReturnType()->getFullName()=="double") {
+            return right->getReturnType();
+        } else if (left->getReturnType()->getFullName()=="float") {
+            return left->getReturnType();
+        } else if (right->getReturnType()->getFullName()=="float") {
+            return right->getReturnType();
+        } else if (left->getReturnType()->getFullName()=="long") {
+            return left->getReturnType();
+        } else if (right->getReturnType()->getFullName()=="long") {
+            return right->getReturnType();
+        } else if (left->getReturnType()->getFullName()=="int") {
+            return left->getReturnType();
+        } else if (right->getReturnType()->getFullName()=="int") {
+            return right->getReturnType();
+        } if (left->getReturnType()->getFullName()=="short") {
+            return left->getReturnType();
+        } else if (right->getReturnType()->getFullName()=="short") {
+            return right->getReturnType();
+        } else if (left->getReturnType()->getFullName()=="byte") {
+            return left->getReturnType();
+        } else if (right->getReturnType()->getFullName()=="byte") {
+            return right->getReturnType();
+        }
+    }
+}

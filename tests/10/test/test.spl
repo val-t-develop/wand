@@ -22,24 +22,14 @@ package test;
 
 class Main {
 
-    public static byte getByte() {
-        byte a=12;
-        return a;
-    }
-
-    public static short getShort() {
-        short a=12;
-        return a;
-    }
-
     public static int main (String[] args) {
         String a = "abc";
         a=a.concat("def");
         a=a.concat('g');
         a=a.concat(true);
         a=a.concat(false);
-        a=a.concat(getByte());
-        a=a.concat(getShort());
+        a=a.concat(12b);
+        a=a.concat(12s);
         a=a.concat(12345);
         a=a.concat(12345l);
         a=a.concat(12.3f);

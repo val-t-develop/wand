@@ -341,11 +341,14 @@ Function *CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {
         }
     }
     if (!isStatic) {
-        args_types.push_back(utils->getType(utils->currClass->record));
-
-        for (int i = 1; i < node->args.size(); ++i) {
-            auto arg = node->args[i];
-            args_types.push_back(utils->getType(arg->type->type->record));
+        for (int i = 0; i < node->args.size(); ++i) {
+            if (i==0) {
+                node->args[0]->record->typeRec=classesStack.top()->record;
+                args_types.push_back(utils->getType(utils->currClass->record));
+            } else {
+                auto arg = node->args[i];
+                args_types.push_back(utils->getType(arg->type->type->record));
+            }
         }
     } else {
         for (int i = 0; i < node->args.size(); ++i) {
@@ -438,7 +441,6 @@ Function *CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
                     helper->createStore(Arg, ptr);
                     NamedValues[argName] = ptr;
 
-                    node->args[0]->record->typeRec=classesStack.top()->record;
                     varTypes[node->args[0]->record] = Arg->getType();
                     thisRecord = node->args[0]->record;
                 } else {
@@ -1079,12 +1081,19 @@ Value *CodeGen::genExpression(shared_ptr<ExpressionNode> node, bool genRef = fal
 
 Value *CodeGen::genLiteral(shared_ptr<ExpressionNode> node) {
     if (node->kind == Node::NodeKind::INT_LITERAL_NODE) {
-        if (static_pointer_cast<IntLiteralNode>(node)->longVal) {
+        auto IntLiteral = static_pointer_cast<IntLiteralNode>(node);
+        if (IntLiteral->type==IntLiteralNode::Type::BYTE) {
             return helper->getConstInt(
-                64, static_pointer_cast<IntLiteralNode>(node)->value);
-        } else {
+                8, static_pointer_cast<IntLiteralNode>(node)->value);
+        } else if (IntLiteral->type==IntLiteralNode::Type::SHORT) {
+            return helper->getConstInt(
+                16, static_pointer_cast<IntLiteralNode>(node)->value);
+        } else if (IntLiteral->type==IntLiteralNode::Type::INT) {
             return helper->getConstInt(
                 32, static_pointer_cast<IntLiteralNode>(node)->value);
+        } else if (IntLiteral->type==IntLiteralNode::Type::LONG) {
+            return helper->getConstInt(
+                64, static_pointer_cast<IntLiteralNode>(node)->value);
         }
     } else if (node->kind == Node::NodeKind::BOOL_LITERAL_NODE) {
         return helper->getConstInt(
@@ -1140,14 +1149,17 @@ Value *CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
         for (shared_ptr<ExpressionNode> arg : node->args) {
             args.push_back(genExpression(arg));
         }
+        if (calle!=nullptr) {
+            node->args.insert(node->args.begin(), make_shared<VarRecordNode>(nullptr, nullptr));
+        }
 
         auto funcsRecord = node->record->similar;
         for (auto funRecord : funcsRecord) {
             Function *TheFunction =
                 helper->getFunction(funRecord->getFullName());
             bool same = true;
-            for (int i = 0; i < args.size(); ++i) {
-                if (args[i]->getType() != TheFunction->getArg(i)->getType()) {
+            for (int i = (calle!=nullptr?1:0); i < node->args.size(); ++i) {
+                if (funRecord->vars[i]->typeRec->getFullName() != node->args[i]->getReturnType()->getFullName()) {
                     same = false;
                 }
             }
@@ -1166,8 +1178,8 @@ Value *CodeGen::genMethodCall(shared_ptr<MethodCallNode> node, Value *calle) {
         string fullName = funRecord->getFullName();
         Function *TheFunction = helper->getFunction(fullName);
         bool same = true;
-        for (int i = 0; i < args.size(); ++i) {
-            if (args[i]->getType() != TheFunction->getArg(i)->getType()) {
+        for (int i = (calle!=nullptr?1:0); i < args.size(); ++i) {
+            if (funRecord->vars[i]->typeRec->getFullName() != node->args[i]->getReturnType()->getFullName()) {
                 same = false;
             }
         }
@@ -1356,9 +1368,9 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
             }
             if (R->getType()->isPointerTy()) {
                 if (isRef) {
-                    helper->createCall("__spl__write", vector<Value *>{ptr, R, helper->getFunction("__spl__destructor__"+val_type->ir_name)});
+                    helper->createCall("__spl__write", vector<Value *>{ptr, R, helper->getFunction("__spl__destructor__"+val_type->getFullName())});
                 } else {
-                    helper->createCall("__spl__addref", vector<Value *>{ptr, R, helper->getFunction("__spl__destructor__"+val_type->ir_name)});
+                    helper->createCall("__spl__addref", vector<Value *>{ptr, R, helper->getFunction("__spl__destructor__"+val_type->getFullName())});
                 }
             }
             helper->createStore(R, ptr);

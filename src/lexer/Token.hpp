@@ -78,6 +78,10 @@ class Token {
         NEW,
         ASSERT,
 
+        DEC_BYTE_LITERAL,
+        HEX_BYTE_LITERAL,
+        DEC_SHORT_LITERAL,
+        HEX_SHORT_LITERAL,
         DEC_INT_LITERAL,
         HEX_INT_LITERAL,
         DEC_LONG_LITERAL,

@@ -405,13 +405,13 @@ void Lexer::tokenizeIdentifier() {
         kind = Token::Kind::CONST;
     } else if (str == "bool") {
         kind = Token::Kind::BOOL;
-    } else if (str == "byte") { // TODO
+    } else if (str == "byte") {
         kind = Token::Kind::BYTE;
-    } else if (str == "short") { // TODO
+    } else if (str == "short") {
         kind = Token::Kind::SHORT;
     } else if (str == "int") {
         kind = Token::Kind::INT;
-    } else if (str == "long") { // TODO
+    } else if (str == "long") {
         kind = Token::Kind::LONG;
     } else if (str == "float") {
         kind = Token::Kind::FLOAT;
@@ -513,6 +513,12 @@ void Lexer::tokenizeDec() {
 
     if (ch == 'l' || ch == 'L') {
         kind = Token::Kind::DEC_LONG_LITERAL;
+        incCurrChar();
+    } if (ch == 'b' || ch == 'B') {
+        kind = Token::Kind::DEC_BYTE_LITERAL;
+        incCurrChar();
+    } if (ch == 's' || ch == 'S') {
+        kind = Token::Kind::DEC_SHORT_LITERAL;
         incCurrChar();
     } else if (ch == 'f' || ch == 'F') {
         kind = Token::Kind::DEC_FLOAT_LITERAL;

@@ -988,6 +988,10 @@ shared_ptr<ExpressionNode> AstBuilder::enterPrimary() {
         lexer.getCurrent()->kind == Token::Kind::HEX_FLOAT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::DEC_DOUBLE_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::HEX_DOUBLE_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_BYTE_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_BYTE_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_SHORT_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_SHORT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::DEC_INT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::DEC_LONG_LITERAL ||
@@ -1411,16 +1415,26 @@ shared_ptr<ExpressionNode> AstBuilder::enterLiteral() {
         long double val = ParserUtils::parseDouble(lexer.getCurrent()->str);
         lexer.goForward();
         return make_shared<FloatLiteralNode>(val, true, symbolTable->lookupClass("float"), symbolTable->lookupClass("double"), nullptr);
-    } else if (lexer.getCurrent()->kind == Token::Kind::DEC_INT_LITERAL ||
-               lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL) {
+    } else if (lexer.getCurrent()->kind == Token::Kind::DEC_BYTE_LITERAL ||
+               lexer.getCurrent()->kind == Token::Kind::HEX_BYTE_LITERAL) {
         int64_t val = ParserUtils::parseLong(lexer.getCurrent()->str);
         lexer.goForward();
-        return make_shared<IntLiteralNode>(val, false, symbolTable->lookupClass("int"), nullptr);
+        return make_shared<IntLiteralNode>(val, IntLiteralNode::Type::BYTE, symbolTable->lookupClass("byte"), nullptr);
+    } else if (lexer.getCurrent()->kind == Token::Kind::DEC_SHORT_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_SHORT_LITERAL) {
+        int64_t val = ParserUtils::parseLong(lexer.getCurrent()->str);
+        lexer.goForward();
+        return make_shared<IntLiteralNode>(val, IntLiteralNode::Type::SHORT, symbolTable->lookupClass("short"), nullptr);
+    } else if (lexer.getCurrent()->kind == Token::Kind::DEC_INT_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL) {
+        int64_t val = ParserUtils::parseLong(lexer.getCurrent()->str);
+        lexer.goForward();
+        return make_shared<IntLiteralNode>(val, IntLiteralNode::Type::INT, symbolTable->lookupClass("int"), nullptr);
     } else if (lexer.getCurrent()->kind == Token::Kind::DEC_LONG_LITERAL ||
                lexer.getCurrent()->kind == Token::Kind::HEX_LONG_LITERAL) {
         int64_t val = ParserUtils::parseLong(lexer.getCurrent()->str);
         lexer.goForward();
-        return make_shared<IntLiteralNode>(val, true, symbolTable->lookupClass("long"), nullptr);
+        return make_shared<IntLiteralNode>(val, IntLiteralNode::Type::LONG, symbolTable->lookupClass("long"), nullptr);
     } else if (lexer.getCurrent()->kind == Token::Kind::NULL_LITERAL) {
         lexer.goForward();
         return make_shared<NullLiteralNode>(nullptr);

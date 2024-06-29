@@ -22,24 +22,14 @@ package test;
 
 class Main {
 
-    public static byte getByte() {
-        byte a=12;
-        return a;
-    }
-
-    public static short getShort() {
-        short a=12;
-        return a;
-    }
-
     public static int main (String[] args) {
         String a = "abc";
         a=a+"def";
         a=a+'g';
         a=a+true;
         a=a+false;
-        a=a+getByte();
-        a=a+getShort();
+        a=a+12b;
+        a=a+12s;
         a=a+12345;
         a=a+12345l;
         a=a+12.3f;

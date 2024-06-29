@@ -996,6 +996,10 @@ void SymbolListener::enterPrimary() {
         lexer.getCurrent()->kind == Token::Kind::HEX_FLOAT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::DEC_DOUBLE_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::HEX_DOUBLE_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_BYTE_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_BYTE_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_SHORT_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_SHORT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::DEC_INT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::DEC_LONG_LITERAL ||
@@ -1195,6 +1199,10 @@ void SymbolListener::enterLiteral() {
         lexer.getCurrent()->kind == Token::Kind::HEX_FLOAT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::DEC_DOUBLE_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::HEX_DOUBLE_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_BYTE_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_BYTE_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::DEC_SHORT_LITERAL ||
+        lexer.getCurrent()->kind == Token::Kind::HEX_SHORT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::DEC_INT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::DEC_LONG_LITERAL ||
