@@ -99,7 +99,7 @@ class Path {
 int main (int argc, char **argv) {
     string output = Path("log/exe.log").readFile();
     string exitCode = Path("log/exe.code.log").readFile();
-    if (exitCode.starts_with("0") && output.starts_with("aa\ntruefalse\n1111\n12.30000012.300000\n12.30000012.300000\nabcabc\n")) {
+    if (exitCode.starts_with("0") && output.starts_with("aa\ntruefalse\n1212\n1212\n1111\n1111\n12.30000012.300000\n12.30000012.300000\nabcabc\n")) {
         system("echo OK > test.result");
     } else {
         system("echo FAIL > test.result");

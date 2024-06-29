@@ -80,11 +80,38 @@ String* __spl__constructor__String__bool(int8_t _a) {
 }
 
 __attribute__((used))
+String* __spl__constructor__String__byte(int8_t _a) {
+    String* obj = __spl__alloc(sizeof(String));
+    obj->size = snprintf(NULL, 0,"%d", _a);
+    obj->str = malloc(sizeof(char)*(obj->size+1));
+    sprintf(obj->str, "%d", _a);
+    return obj;
+}
+
+__attribute__((used))
+String* __spl__constructor__String__short(int16_t _a) {
+    String* obj = __spl__alloc(sizeof(String));
+    obj->size = snprintf(NULL, 0,"%d", _a);
+    obj->str = malloc(sizeof(char)*(obj->size+1));
+    sprintf(obj->str, "%d", _a);
+    return obj;
+}
+
+__attribute__((used))
 String* __spl__constructor__String__int(int32_t _a) {
     String* obj = __spl__alloc(sizeof(String));
     obj->size = snprintf(NULL, 0,"%d", _a);
     obj->str = malloc(sizeof(char)*(obj->size+1));
     sprintf(obj->str, "%d", _a);
+    return obj;
+}
+
+__attribute__((used))
+String* __spl__constructor__String__long(int64_t _a) {
+    String* obj = __spl__alloc(sizeof(String));
+    obj->size = snprintf(NULL, 0,"%ld", _a);
+    obj->str = malloc(sizeof(char)*(obj->size+1));
+    sprintf(obj->str, "%ld", _a);
     return obj;
 }
 
@@ -180,10 +207,61 @@ void __String___concat__spl__void__String__String__bool(String* _this, String *_
 }
 
 __attribute__((used))
+void __String___concat__spl__void__String__String__byte(String* _this, String *_a, int8_t _b) {
+    int32_t l = snprintf(NULL, 0,"%d", _b);
+    char* str = malloc(l+1);
+    sprintf(str, "%d", _b);
+    _this->size = _a->size+l;
+    if (_this->size != 0) {
+        _this->str = malloc(sizeof(char)*(_this->size+1));
+        memcpy(_this->str, _a->str, _a->size*sizeof(char));
+        memcpy(_this->str+_a->size, str, l*sizeof(char));
+        _this->str[_this->size] = '\0';
+    } else {
+        _this->str = NULL;
+    }
+    free(str);
+}
+
+__attribute__((used))
+void __String___concat__spl__void__String__String__short(String* _this, String *_a, int16_t _b) {
+    int32_t l = snprintf(NULL, 0,"%d", _b);
+    char* str = malloc(l+1);
+    sprintf(str, "%d", _b);
+    _this->size = _a->size+l;
+    if (_this->size != 0) {
+        _this->str = malloc(sizeof(char)*(_this->size+1));
+        memcpy(_this->str, _a->str, _a->size*sizeof(char));
+        memcpy(_this->str+_a->size, str, l*sizeof(char));
+        _this->str[_this->size] = '\0';
+    } else {
+        _this->str = NULL;
+    }
+    free(str);
+}
+
+__attribute__((used))
 void __String___concat__spl__void__String__String__int(String* _this, String *_a, int32_t _b) {
     int32_t l = snprintf(NULL, 0,"%d", _b);
     char* str = malloc(l+1);
     sprintf(str, "%d", _b);
+    _this->size = _a->size+l;
+    if (_this->size != 0) {
+        _this->str = malloc(sizeof(char)*(_this->size+1));
+        memcpy(_this->str, _a->str, _a->size*sizeof(char));
+        memcpy(_this->str+_a->size, str, l*sizeof(char));
+        _this->str[_this->size] = '\0';
+    } else {
+        _this->str = NULL;
+    }
+    free(str);
+}
+
+__attribute__((used))
+void __String___concat__spl__void__String__String__long(String* _this, String *_a, int64_t _b) {
+    int32_t l = snprintf(NULL, 0,"%ld", _b);
+    char* str = malloc(l+1);
+    sprintf(str, "%ld", _b);
     _this->size = _a->size+l;
     if (_this->size != 0) {
         _this->str = malloc(sizeof(char)*(_this->size+1));

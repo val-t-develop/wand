@@ -405,13 +405,13 @@ void Lexer::tokenizeIdentifier() {
         kind = Token::Kind::CONST;
     } else if (str == "bool") {
         kind = Token::Kind::BOOL;
-    } else if (str == "byte") {
+    } else if (str == "byte") { // TODO
         kind = Token::Kind::BYTE;
-    } else if (str == "short") {
+    } else if (str == "short") { // TODO
         kind = Token::Kind::SHORT;
     } else if (str == "int") {
         kind = Token::Kind::INT;
-    } else if (str == "long") {
+    } else if (str == "long") { // TODO
         kind = Token::Kind::LONG;
     } else if (str == "float") {
         kind = Token::Kind::FLOAT;

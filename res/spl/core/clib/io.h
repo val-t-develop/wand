@@ -55,13 +55,43 @@ void System___out___println__spl__void__bool(int8_t a) {
 }
 
 __attribute__((used))
-void System___out___print__spl__void__int(int a) {
+void System___out___print__spl__void__byte(int8_t a) {
+    printf("%hhd", a);
+}
+
+__attribute__((used))
+void System___out___println__spl__void__byte(int8_t a) {
+    printf("%hhd\n", a);
+}
+
+__attribute__((used))
+void System___out___print__spl__void__short(int16_t a) {
+    printf("%hd", a);
+}
+
+__attribute__((used))
+void System___out___println__spl__void__short(int16_t a) {
+    printf("%hd\n", a);
+}
+
+__attribute__((used))
+void System___out___print__spl__void__int(int32_t a) {
     printf("%d", a);
 }
 
 __attribute__((used))
-void System___out___println__spl__void__int(int a) {
+void System___out___println__spl__void__int(int32_t a) {
     printf("%d\n", a);
+}
+
+__attribute__((used))
+void System___out___print__spl__void__long(int64_t a) {
+    printf("%ld", a);
+}
+
+__attribute__((used))
+void System___out___println__spl__void__long(int64_t a) {
+    printf("%ld\n", a);
 }
 
 __attribute__((used))

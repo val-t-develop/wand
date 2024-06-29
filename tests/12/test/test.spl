@@ -21,11 +21,24 @@
 package test;
 class Main {
 
+    public static byte getByte() {
+        byte a=12;
+        return a;
+    }
+
+    public static byte getShort() {
+        short a=12;
+        return a;
+    }
+
     public static int main (String[] args) {
         System.out.println('a'+"bc");
         System.out.println(true+"bc");
         System.out.println(false+"bc");
+        System.out.println(getByte()+"bc");
+        System.out.println(getShort()+"bc");
         System.out.println(12345+"bc");
+        System.out.println(12345l+"bc");
         System.out.println(12.345f+"bc");
         System.out.println(12.345d+"bc");
         return 0;

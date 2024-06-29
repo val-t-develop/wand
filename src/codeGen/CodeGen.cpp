@@ -1443,7 +1443,10 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                 } else if (!R->getType()->isStructTy()) {
                     Type *charType = utils->getType("char");
                     Type *boolType = utils->getType("bool");
+                    Type *byteType = utils->getType("byte");
+                    Type *shortType = utils->getType("short");
                     Type *intType = utils->getType("int");
+                    Type *longType = utils->getType("long");
                     Type *floatType = utils->getType("float");
                     Type *doubleType = utils->getType("double");
                     if (R->getType()==charType) {
@@ -1454,8 +1457,20 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                         auto tmp = helper->createCall("String.concat__spl__String__String__bool", {L, R});
                         destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
                         return tmp;
+                    } else if (R->getType()==byteType) {
+                        auto tmp = helper->createCall("String.concat__spl__String__String__byte", {L, R});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
+                        return tmp;
+                    } else if (R->getType()==shortType) {
+                        auto tmp = helper->createCall("String.concat__spl__String__String__short", {L, R});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
+                        return tmp;
                     } else if (R->getType()==intType) {
                         auto tmp = helper->createCall("String.concat__spl__String__String__int", {L, R});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
+                        return tmp;
+                    } else if (R->getType()==longType) {
+                        auto tmp = helper->createCall("String.concat__spl__String__String__long", {L, R});
                         destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
                         return tmp;
                     } else if (R->getType()==floatType) {
@@ -1476,7 +1491,10 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                 if (!L->getType()->isStructTy()) {
                     Type *charType = utils->getType("char");
                     Type *boolType = utils->getType("bool");
+                    Type *byteType = utils->getType("byte");
+                    Type *shortType = utils->getType("short");
                     Type *intType = utils->getType("int");
+                    Type *longType = utils->getType("long");
                     Type *floatType = utils->getType("float");
                     Type *doubleType = utils->getType("double");
                     if (L->getType()==charType) {
@@ -1491,13 +1509,31 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                         auto tmp = helper->createCall("String.concat__spl__String__String__String", {Str, R});
                         destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
                         return tmp;
-                    } else if (L->getType()==intType) {
+                    } else if (L->getType()==byteType) {
+                        auto Str = helper->createCall("__spl__constructor__String__byte", {L});
+                        destructAfterStatement.push_back(DestructAfterStatement(Str, "String", false));
+                        auto tmp = helper->createCall("String.concat__spl__String__String__String", {Str, R});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
+                        return tmp;
+                    }else if (L->getType()==shortType) {
+                        auto Str = helper->createCall("__spl__constructor__String__short", {L});
+                        destructAfterStatement.push_back(DestructAfterStatement(Str, "String", false));
+                        auto tmp = helper->createCall("String.concat__spl__String__String__String", {Str, R});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
+                        return tmp;
+                    }else if (L->getType()==intType) {
                         auto Str = helper->createCall("__spl__constructor__String__int", {L});
                         destructAfterStatement.push_back(DestructAfterStatement(Str, "String", false));
                         auto tmp = helper->createCall("String.concat__spl__String__String__String", {Str, R});
                         destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
                         return tmp;
-                    } else if (L->getType()==floatType) {
+                    } else if (L->getType()==longType) {
+                        auto Str = helper->createCall("__spl__constructor__String__long", {L});
+                        destructAfterStatement.push_back(DestructAfterStatement(Str, "String", false));
+                        auto tmp = helper->createCall("String.concat__spl__String__String__String", {Str, R});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
+                        return tmp;
+                    }else if (L->getType()==floatType) {
                         auto Str = helper->createCall("__spl__constructor__String__float", {L});
                         destructAfterStatement.push_back(DestructAfterStatement(Str, "String", false));
                         auto tmp = helper->createCall("String.concat__spl__String__String__String", {Str, R});

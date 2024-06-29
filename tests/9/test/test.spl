@@ -21,13 +21,30 @@
 package test;
 
 class Main {
+
+    public static byte getByte() {
+        byte a=12;
+        return a;
+    }
+
+    public static short getShort() {
+        short a=12;
+        return a;
+    }
+
     public static int main (String[] args) {
         System.out.print('a');
         System.out.println('a');
         System.out.print(true);
         System.out.println(false);
+        System.out.print(getByte());
+        System.out.println(getByte());
+        System.out.print(getShort());
+        System.out.println(getShort());
         System.out.print(11);
         System.out.println(11);
+        System.out.print(11l);
+        System.out.println(11l);
         System.out.print(12.3f);
         System.out.println(12.3f);
         System.out.print(12.3d);

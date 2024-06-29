@@ -26,8 +26,14 @@ class System {
         public static void println(char a);
         public static void print(bool a);
         public static void println(bool a);
+        public static void print(byte a);
+        public static void println(byte a);
+        public static void print(short a);
+        public static void println(short a);
         public static void print(int a);
         public static void println(int a);
+        public static void print(long a);
+        public static void println(long a);
         public static void print(float a);
         public static void println(float a);
         public static void print(double a);

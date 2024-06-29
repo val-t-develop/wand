@@ -25,7 +25,10 @@ class __String {
     public static void concat(String _this, String _a, String _b);
     public static void concat(String _this, String _a, char _b);
     public static void concat(String _this, String _a, bool _b);
+    public static void concat(String _this, String _a, byte _b);
+    public static void concat(String _this, String _a, short _b);
     public static void concat(String _this, String _a, int _b);
+    public static void concat(String _this, String _a, long _b);
     public static void concat(String _this, String _a, float _b);
     public static void concat(String _this, String _a, double _b);
 }
@@ -36,7 +39,10 @@ class String {
     public String(String a);
     public String(char a);
     public String(bool a);
+    public String(byte a);
+    public String(short a);
     public String(int a);
+    public String(long a);
     public String(float a);
     public String(double a);
     public String(__StringLiteral a);
@@ -56,7 +62,22 @@ class String {
         __String.concat(ret, this, a);
         return ret;
     }
+    public String concat(byte a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
+    public String concat(short a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
     public String concat(int a) {
+        String ret = new String();
+        __String.concat(ret, this, a);
+        return ret;
+    }
+    public String concat(long a) {
         String ret = new String();
         __String.concat(ret, this, a);
         return ret;
