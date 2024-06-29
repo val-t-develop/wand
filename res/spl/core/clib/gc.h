@@ -81,7 +81,7 @@ void *__spl__alloc(int32_t size) {
     if (objects.size==objects.capacity) {
         objects.capacity*=2;
         objects.arr=(Object_t*)realloc(objects.arr, objects.capacity*sizeof(Object_t));
-        memset(objects.arr+objects.capacity/2*sizeof(Object_t), 0, objects.capacity/2*sizeof(Object_t));
+        memset(objects.arr+objects.size, 0, objects.size*sizeof(Object_t));
     }
     objects.arr[objects.size].refs_count=0;
     void *ptr=malloc(size);
@@ -137,7 +137,7 @@ void __spl__addref(void* ref, void* obj, void (*destructor)(void*)) {
             if (refs.size==refs.capacity) {
                 refs.capacity*=2;
                 refs.arr=(Ref_t*)realloc(refs.arr, refs.capacity*sizeof(Ref_t));
-                memset(refs.arr+refs.capacity/2*sizeof(Ref_t), 0, refs.capacity/2*sizeof(Ref_t));
+                memset(refs.arr+refs.size, 0, refs.size*sizeof(Ref_t));
             }
             refs.arr[refs.size].ref=ref;
             refs.arr[refs.size].ObjID=i;
@@ -165,7 +165,7 @@ void __spl__write(void *dest, void *source, void (*destructor)(void*)) {
     if (refs.size==refs.capacity) {
         refs.capacity*=2;
         refs.arr=(Ref_t*)realloc(refs.arr, refs.capacity*sizeof(Ref_t));
-        memset(refs.arr+refs.capacity/2*sizeof(Ref_t), 0, refs.capacity/2*sizeof(Ref_t));
+        memset(refs.arr+refs.size, 0, refs.size*sizeof(Ref_t));
     }
     refs.arr[refs.size].ref=dest;
     refs.arr[refs.size].ObjID=objID;

@@ -37,3 +37,10 @@ vector<string> split(string s, string delimiter) {
     res.push_back(s.substr(pos_start));
     return res;
 }
+int64_t power(int base, int exponent) {
+    int64_t result = 1;
+    for (int i = 0; i < exponent; ++i) {
+        result*=base;
+    }
+    return result;
+}

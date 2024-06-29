@@ -100,7 +100,7 @@ long double ParserUtils::parseDouble(string token) {
     }
     int64_t ai = parseLong(a);
     int64_t bi = parseLong(b);
-    return ((long double)bi) / (10 * b.length()) + ai;
+    return ((long double)bi) / power(10, b.length()) + ai;
 }
 
 int64_t ParserUtils::parseLong(string token) { return atoi(token.c_str()); }

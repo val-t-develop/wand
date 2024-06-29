@@ -53,3 +53,4 @@ using std::ofstream;
 using std::stack;
 
 vector<string> split(string s, string delimiter);
+int64_t power(int base, int exponent);

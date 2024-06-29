@@ -1,0 +1,33 @@
+//  SPL - Simple Programming Language compiler
+//  Copyright (C) 2022  Valentyn Tymchyshyn
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or any
+//  later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+//  Valentyn Tymchyshyn (val.t.develop) (val.t.develo@gmail.com)
+//
+//  Code of test
+
+package test;
+class Main {
+
+    public static int main (String[] args) {
+        System.out.println('a'+"bc");
+        System.out.println(true+"bc");
+        System.out.println(false+"bc");
+        System.out.println(12345+"bc");
+        System.out.println(12.345f+"bc");
+        System.out.println(12.345d+"bc");
+        return 0;
+    }
+}

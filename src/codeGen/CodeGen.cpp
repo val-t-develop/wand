@@ -1474,8 +1474,44 @@ Value *CodeGen::genBinOp(shared_ptr<BinaryOperatorNode> node) {
                 }
             } else {
                 if (!L->getType()->isStructTy()) {
-                    Out::errorMessage("Can not concat primitive types yet");
-                    return nullptr;
+                    Type *charType = utils->getType("char");
+                    Type *boolType = utils->getType("bool");
+                    Type *intType = utils->getType("int");
+                    Type *floatType = utils->getType("float");
+                    Type *doubleType = utils->getType("double");
+                    if (L->getType()==charType) {
+                        auto Str = helper->createCall("__spl__constructor__String__char", {L});
+                        destructAfterStatement.push_back(DestructAfterStatement(Str, "String", false));
+                        auto tmp = helper->createCall("String.concat__spl__String__String__String", {Str, R});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
+                        return tmp;
+                    } else if (L->getType()==boolType) {
+                        auto Str = helper->createCall("__spl__constructor__String__bool", {L});
+                        destructAfterStatement.push_back(DestructAfterStatement(Str, "String", false));
+                        auto tmp = helper->createCall("String.concat__spl__String__String__String", {Str, R});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
+                        return tmp;
+                    } else if (L->getType()==intType) {
+                        auto Str = helper->createCall("__spl__constructor__String__int", {L});
+                        destructAfterStatement.push_back(DestructAfterStatement(Str, "String", false));
+                        auto tmp = helper->createCall("String.concat__spl__String__String__String", {Str, R});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
+                        return tmp;
+                    } else if (L->getType()==floatType) {
+                        auto Str = helper->createCall("__spl__constructor__String__float", {L});
+                        destructAfterStatement.push_back(DestructAfterStatement(Str, "String", false));
+                        auto tmp = helper->createCall("String.concat__spl__String__String__String", {Str, R});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
+                        return tmp;
+                    } else if (L->getType()==doubleType) {
+                        auto Str = helper->createCall("__spl__constructor__String__double", {L});
+                        destructAfterStatement.push_back(DestructAfterStatement(Str, "String", false));
+                        auto tmp = helper->createCall("String.concat__spl__String__String__String", {Str, R});
+                        destructAfterStatement.push_back(DestructAfterStatement(tmp, "String", true));
+                        return tmp;
+                    } else {
+                        Out::errorMessage("Can not get primitive type");
+                    }
                 } else {
                     Out::errorMessage("Can not concat class to string");
                 }

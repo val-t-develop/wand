@@ -107,7 +107,7 @@ define dso_local ptr @__spl__alloc(i32 noundef %0) #0 {
   %4 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
   %5 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 2), align 4
   %6 = icmp eq i32 %4, %5
-  br i1 %6, label %7, label %25
+  br i1 %6, label %7, label %22
 
 7:                                                ; preds = %1
   %8 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 2), align 4
@@ -120,41 +120,38 @@ define dso_local ptr @__spl__alloc(i32 noundef %0) #0 {
   %14 = call ptr @realloc(ptr noundef %10, i64 noundef %13) #10
   store ptr %14, ptr @objects, align 8
   %15 = load ptr, ptr @objects, align 8
-  %16 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 2), align 4
-  %17 = sdiv i32 %16, 2
-  %18 = sext i32 %17 to i64
-  %19 = mul i64 %18, 16
-  %20 = getelementptr inbounds %struct.Object, ptr %15, i64 %19
-  %21 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 2), align 4
-  %22 = sdiv i32 %21, 2
-  %23 = sext i32 %22 to i64
-  %24 = mul i64 %23, 16
-  call void @llvm.memset.p0.i64(ptr align 8 %20, i8 0, i64 %24, i1 false)
-  br label %25
+  %16 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
+  %17 = sext i32 %16 to i64
+  %18 = getelementptr inbounds %struct.Object, ptr %15, i64 %17
+  %19 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
+  %20 = sext i32 %19 to i64
+  %21 = mul i64 %20, 16
+  call void @llvm.memset.p0.i64(ptr align 8 %18, i8 0, i64 %21, i1 false)
+  br label %22
 
-25:                                               ; preds = %7, %1
-  %26 = load ptr, ptr @objects, align 8
-  %27 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
-  %28 = sext i32 %27 to i64
-  %29 = getelementptr inbounds %struct.Object, ptr %26, i64 %28
-  %30 = getelementptr inbounds %struct.Object, ptr %29, i32 0, i32 1
-  store i32 0, ptr %30, align 8
-  %31 = load i32, ptr %2, align 4
-  %32 = sext i32 %31 to i64
-  %33 = call noalias ptr @malloc(i64 noundef %32) #8
-  store ptr %33, ptr %3, align 8
-  %34 = load ptr, ptr %3, align 8
-  %35 = load ptr, ptr @objects, align 8
-  %36 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
-  %37 = sext i32 %36 to i64
-  %38 = getelementptr inbounds %struct.Object, ptr %35, i64 %37
-  %39 = getelementptr inbounds %struct.Object, ptr %38, i32 0, i32 0
-  store ptr %34, ptr %39, align 8
-  %40 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
-  %41 = add nsw i32 %40, 1
-  store i32 %41, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
-  %42 = load ptr, ptr %3, align 8
-  ret ptr %42
+22:                                               ; preds = %7, %1
+  %23 = load ptr, ptr @objects, align 8
+  %24 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
+  %25 = sext i32 %24 to i64
+  %26 = getelementptr inbounds %struct.Object, ptr %23, i64 %25
+  %27 = getelementptr inbounds %struct.Object, ptr %26, i32 0, i32 1
+  store i32 0, ptr %27, align 8
+  %28 = load i32, ptr %2, align 4
+  %29 = sext i32 %28 to i64
+  %30 = call noalias ptr @malloc(i64 noundef %29) #8
+  store ptr %30, ptr %3, align 8
+  %31 = load ptr, ptr %3, align 8
+  %32 = load ptr, ptr @objects, align 8
+  %33 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
+  %34 = sext i32 %33 to i64
+  %35 = getelementptr inbounds %struct.Object, ptr %32, i64 %34
+  %36 = getelementptr inbounds %struct.Object, ptr %35, i32 0, i32 0
+  store ptr %31, ptr %36, align 8
+  %37 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
+  %38 = add nsw i32 %37, 1
+  store i32 %38, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
+  %39 = load ptr, ptr %3, align 8
+  ret ptr %39
 }
 
 ; Function Attrs: nounwind allocsize(1)
@@ -382,11 +379,11 @@ define dso_local void @__spl__addref(ptr noundef %0, ptr noundef %1, ptr noundef
   store i32 0, ptr %7, align 4
   br label %10
 
-10:                                               ; preds = %68, %3
+10:                                               ; preds = %65, %3
   %11 = load i32, ptr %7, align 4
   %12 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
   %13 = icmp slt i32 %11, %12
-  br i1 %13, label %14, label %71
+  br i1 %13, label %14, label %68
 
 14:                                               ; preds = %10
   %15 = load ptr, ptr @objects, align 8
@@ -397,7 +394,7 @@ define dso_local void @__spl__addref(ptr noundef %0, ptr noundef %1, ptr noundef
   %20 = load ptr, ptr %19, align 8
   %21 = load ptr, ptr %5, align 8
   %22 = icmp eq ptr %20, %21
-  br i1 %22, label %23, label %67
+  br i1 %22, label %23, label %64
 
 23:                                               ; preds = %14
   %24 = load ptr, ptr @objects, align 8
@@ -411,7 +408,7 @@ define dso_local void @__spl__addref(ptr noundef %0, ptr noundef %1, ptr noundef
   %31 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
   %32 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 2), align 4
   %33 = icmp eq i32 %31, %32
-  br i1 %33, label %34, label %52
+  br i1 %33, label %34, label %49
 
 34:                                               ; preds = %23
   %35 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 2), align 4
@@ -424,52 +421,49 @@ define dso_local void @__spl__addref(ptr noundef %0, ptr noundef %1, ptr noundef
   %41 = call ptr @realloc(ptr noundef %37, i64 noundef %40) #10
   store ptr %41, ptr @refs, align 8
   %42 = load ptr, ptr @refs, align 8
-  %43 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 2), align 4
-  %44 = sdiv i32 %43, 2
-  %45 = sext i32 %44 to i64
-  %46 = mul i64 %45, 16
-  %47 = getelementptr inbounds %struct.Ref, ptr %42, i64 %46
-  %48 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 2), align 4
-  %49 = sdiv i32 %48, 2
-  %50 = sext i32 %49 to i64
-  %51 = mul i64 %50, 16
-  call void @llvm.memset.p0.i64(ptr align 8 %47, i8 0, i64 %51, i1 false)
-  br label %52
+  %43 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
+  %44 = sext i32 %43 to i64
+  %45 = getelementptr inbounds %struct.Ref, ptr %42, i64 %44
+  %46 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
+  %47 = sext i32 %46 to i64
+  %48 = mul i64 %47, 16
+  call void @llvm.memset.p0.i64(ptr align 8 %45, i8 0, i64 %48, i1 false)
+  br label %49
 
-52:                                               ; preds = %34, %23
-  %53 = load ptr, ptr %4, align 8
-  %54 = load ptr, ptr @refs, align 8
-  %55 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
-  %56 = sext i32 %55 to i64
-  %57 = getelementptr inbounds %struct.Ref, ptr %54, i64 %56
-  %58 = getelementptr inbounds %struct.Ref, ptr %57, i32 0, i32 0
-  store ptr %53, ptr %58, align 8
-  %59 = load i32, ptr %7, align 4
-  %60 = load ptr, ptr @refs, align 8
-  %61 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
-  %62 = sext i32 %61 to i64
-  %63 = getelementptr inbounds %struct.Ref, ptr %60, i64 %62
-  %64 = getelementptr inbounds %struct.Ref, ptr %63, i32 0, i32 1
-  store i32 %59, ptr %64, align 8
-  %65 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
-  %66 = add nsw i32 %65, 1
-  store i32 %66, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
-  br label %73
+49:                                               ; preds = %34, %23
+  %50 = load ptr, ptr %4, align 8
+  %51 = load ptr, ptr @refs, align 8
+  %52 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
+  %53 = sext i32 %52 to i64
+  %54 = getelementptr inbounds %struct.Ref, ptr %51, i64 %53
+  %55 = getelementptr inbounds %struct.Ref, ptr %54, i32 0, i32 0
+  store ptr %50, ptr %55, align 8
+  %56 = load i32, ptr %7, align 4
+  %57 = load ptr, ptr @refs, align 8
+  %58 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
+  %59 = sext i32 %58 to i64
+  %60 = getelementptr inbounds %struct.Ref, ptr %57, i64 %59
+  %61 = getelementptr inbounds %struct.Ref, ptr %60, i32 0, i32 1
+  store i32 %56, ptr %61, align 8
+  %62 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
+  %63 = add nsw i32 %62, 1
+  store i32 %63, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
+  br label %70
 
-67:                                               ; preds = %14
-  br label %68
+64:                                               ; preds = %14
+  br label %65
 
-68:                                               ; preds = %67
-  %69 = load i32, ptr %7, align 4
-  %70 = add nsw i32 %69, 1
-  store i32 %70, ptr %7, align 4
+65:                                               ; preds = %64
+  %66 = load i32, ptr %7, align 4
+  %67 = add nsw i32 %66, 1
+  store i32 %67, ptr %7, align 4
   br label %10, !llvm.loop !7
 
-71:                                               ; preds = %10
-  %72 = call i32 (ptr, ...) @printf(ptr noundef @.str)
-  br label %73
+68:                                               ; preds = %10
+  %69 = call i32 (ptr, ...) @printf(ptr noundef @.str)
+  br label %70
 
-73:                                               ; preds = %71, %52
+70:                                               ; preds = %68, %49
   ret void
 }
 
@@ -534,7 +528,7 @@ define dso_local void @__spl__write(ptr noundef %0, ptr noundef %1, ptr noundef 
   br i1 %37, label %38, label %39
 
 38:                                               ; preds = %35
-  br label %83
+  br label %80
 
 39:                                               ; preds = %35
   %40 = load ptr, ptr @objects, align 8
@@ -548,7 +542,7 @@ define dso_local void @__spl__write(ptr noundef %0, ptr noundef %1, ptr noundef 
   %47 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
   %48 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 2), align 4
   %49 = icmp eq i32 %47, %48
-  br i1 %49, label %50, label %68
+  br i1 %49, label %50, label %65
 
 50:                                               ; preds = %39
   %51 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 2), align 4
@@ -561,39 +555,36 @@ define dso_local void @__spl__write(ptr noundef %0, ptr noundef %1, ptr noundef 
   %57 = call ptr @realloc(ptr noundef %53, i64 noundef %56) #10
   store ptr %57, ptr @refs, align 8
   %58 = load ptr, ptr @refs, align 8
-  %59 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 2), align 4
-  %60 = sdiv i32 %59, 2
-  %61 = sext i32 %60 to i64
-  %62 = mul i64 %61, 16
-  %63 = getelementptr inbounds %struct.Ref, ptr %58, i64 %62
-  %64 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 2), align 4
-  %65 = sdiv i32 %64, 2
-  %66 = sext i32 %65 to i64
-  %67 = mul i64 %66, 16
-  call void @llvm.memset.p0.i64(ptr align 8 %63, i8 0, i64 %67, i1 false)
-  br label %68
+  %59 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
+  %60 = sext i32 %59 to i64
+  %61 = getelementptr inbounds %struct.Ref, ptr %58, i64 %60
+  %62 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
+  %63 = sext i32 %62 to i64
+  %64 = mul i64 %63, 16
+  call void @llvm.memset.p0.i64(ptr align 8 %61, i8 0, i64 %64, i1 false)
+  br label %65
 
-68:                                               ; preds = %50, %39
-  %69 = load ptr, ptr %4, align 8
-  %70 = load ptr, ptr @refs, align 8
-  %71 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
-  %72 = sext i32 %71 to i64
-  %73 = getelementptr inbounds %struct.Ref, ptr %70, i64 %72
-  %74 = getelementptr inbounds %struct.Ref, ptr %73, i32 0, i32 0
-  store ptr %69, ptr %74, align 8
-  %75 = load i32, ptr %7, align 4
-  %76 = load ptr, ptr @refs, align 8
-  %77 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
-  %78 = sext i32 %77 to i64
-  %79 = getelementptr inbounds %struct.Ref, ptr %76, i64 %78
-  %80 = getelementptr inbounds %struct.Ref, ptr %79, i32 0, i32 1
-  store i32 %75, ptr %80, align 8
-  %81 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
-  %82 = add nsw i32 %81, 1
-  store i32 %82, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
-  br label %83
+65:                                               ; preds = %50, %39
+  %66 = load ptr, ptr %4, align 8
+  %67 = load ptr, ptr @refs, align 8
+  %68 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
+  %69 = sext i32 %68 to i64
+  %70 = getelementptr inbounds %struct.Ref, ptr %67, i64 %69
+  %71 = getelementptr inbounds %struct.Ref, ptr %70, i32 0, i32 0
+  store ptr %66, ptr %71, align 8
+  %72 = load i32, ptr %7, align 4
+  %73 = load ptr, ptr @refs, align 8
+  %74 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
+  %75 = sext i32 %74 to i64
+  %76 = getelementptr inbounds %struct.Ref, ptr %73, i64 %75
+  %77 = getelementptr inbounds %struct.Ref, ptr %76, i32 0, i32 1
+  store i32 %72, ptr %77, align 8
+  %78 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
+  %79 = add nsw i32 %78, 1
+  store i32 %79, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
+  br label %80
 
-83:                                               ; preds = %68, %38
+80:                                               ; preds = %65, %38
   ret void
 }
 
@@ -714,37 +705,39 @@ define dso_local ptr @__spl__constructor__String__bool(i8 noundef signext %0) #0
   store ptr %4, ptr %3, align 8
   %5 = load i8, ptr %2, align 1
   %6 = icmp ne i8 %5, 0
-  br i1 %6, label %7, label %15
+  br i1 %6, label %7, label %16
 
 7:                                                ; preds = %1
   %8 = load ptr, ptr %3, align 8
   %9 = getelementptr inbounds %struct.String_t, ptr %8, i32 0, i32 1
   store i64 4, ptr %9, align 8
-  %10 = call noalias ptr @malloc(i64 noundef 4) #8
+  %10 = call noalias ptr @malloc(i64 noundef 5) #8
   %11 = load ptr, ptr %3, align 8
   %12 = getelementptr inbounds %struct.String_t, ptr %11, i32 0, i32 0
   store ptr %10, ptr %12, align 8
   %13 = load ptr, ptr %3, align 8
   %14 = getelementptr inbounds %struct.String_t, ptr %13, i32 0, i32 0
-  store ptr @.str.1, ptr %14, align 8
-  br label %23
+  %15 = load ptr, ptr %14, align 8
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %15, ptr align 1 @.str.1, i64 5, i1 false)
+  br label %25
 
-15:                                               ; preds = %1
-  %16 = load ptr, ptr %3, align 8
-  %17 = getelementptr inbounds %struct.String_t, ptr %16, i32 0, i32 1
-  store i64 5, ptr %17, align 8
-  %18 = call noalias ptr @malloc(i64 noundef 5) #8
-  %19 = load ptr, ptr %3, align 8
-  %20 = getelementptr inbounds %struct.String_t, ptr %19, i32 0, i32 0
-  store ptr %18, ptr %20, align 8
-  %21 = load ptr, ptr %3, align 8
-  %22 = getelementptr inbounds %struct.String_t, ptr %21, i32 0, i32 0
-  store ptr @.str.2, ptr %22, align 8
-  br label %23
+16:                                               ; preds = %1
+  %17 = load ptr, ptr %3, align 8
+  %18 = getelementptr inbounds %struct.String_t, ptr %17, i32 0, i32 1
+  store i64 5, ptr %18, align 8
+  %19 = call noalias ptr @malloc(i64 noundef 6) #8
+  %20 = load ptr, ptr %3, align 8
+  %21 = getelementptr inbounds %struct.String_t, ptr %20, i32 0, i32 0
+  store ptr %19, ptr %21, align 8
+  %22 = load ptr, ptr %3, align 8
+  %23 = getelementptr inbounds %struct.String_t, ptr %22, i32 0, i32 0
+  %24 = load ptr, ptr %23, align 8
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %24, ptr align 1 @.str.2, i64 6, i1 false)
+  br label %25
 
-23:                                               ; preds = %15, %7
-  %24 = load ptr, ptr %3, align 8
-  ret ptr %24
+25:                                               ; preds = %16, %7
+  %26 = load ptr, ptr %3, align 8
+  ret ptr %26
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
@@ -952,7 +945,7 @@ define dso_local void @__String.concat__spl__void__String__String__String(ptr no
   %17 = getelementptr inbounds %struct.String_t, ptr %16, i32 0, i32 1
   %18 = load i64, ptr %17, align 8
   %19 = icmp ne i64 %18, 0
-  br i1 %19, label %20, label %61
+  br i1 %19, label %20, label %60
 
 20:                                               ; preds = %3
   %21 = load ptr, ptr %4, align 8
@@ -981,33 +974,32 @@ define dso_local void @__String.concat__spl__void__String__String__String(ptr no
   %42 = load ptr, ptr %5, align 8
   %43 = getelementptr inbounds %struct.String_t, ptr %42, i32 0, i32 1
   %44 = load i64, ptr %43, align 8
-  %45 = mul i64 %44, 1
-  %46 = getelementptr inbounds i8, ptr %41, i64 %45
-  %47 = load ptr, ptr %6, align 8
-  %48 = getelementptr inbounds %struct.String_t, ptr %47, i32 0, i32 0
-  %49 = load ptr, ptr %48, align 8
-  %50 = load ptr, ptr %6, align 8
-  %51 = getelementptr inbounds %struct.String_t, ptr %50, i32 0, i32 1
-  %52 = load i64, ptr %51, align 8
-  %53 = mul i64 %52, 1
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %46, ptr align 1 %49, i64 %53, i1 false)
-  %54 = load ptr, ptr %4, align 8
-  %55 = getelementptr inbounds %struct.String_t, ptr %54, i32 0, i32 0
-  %56 = load ptr, ptr %55, align 8
-  %57 = load ptr, ptr %4, align 8
-  %58 = getelementptr inbounds %struct.String_t, ptr %57, i32 0, i32 1
-  %59 = load i64, ptr %58, align 8
-  %60 = getelementptr inbounds i8, ptr %56, i64 %59
-  store i8 0, ptr %60, align 1
-  br label %64
+  %45 = getelementptr inbounds i8, ptr %41, i64 %44
+  %46 = load ptr, ptr %6, align 8
+  %47 = getelementptr inbounds %struct.String_t, ptr %46, i32 0, i32 0
+  %48 = load ptr, ptr %47, align 8
+  %49 = load ptr, ptr %6, align 8
+  %50 = getelementptr inbounds %struct.String_t, ptr %49, i32 0, i32 1
+  %51 = load i64, ptr %50, align 8
+  %52 = mul i64 %51, 1
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %45, ptr align 1 %48, i64 %52, i1 false)
+  %53 = load ptr, ptr %4, align 8
+  %54 = getelementptr inbounds %struct.String_t, ptr %53, i32 0, i32 0
+  %55 = load ptr, ptr %54, align 8
+  %56 = load ptr, ptr %4, align 8
+  %57 = getelementptr inbounds %struct.String_t, ptr %56, i32 0, i32 1
+  %58 = load i64, ptr %57, align 8
+  %59 = getelementptr inbounds i8, ptr %55, i64 %58
+  store i8 0, ptr %59, align 1
+  br label %63
 
-61:                                               ; preds = %3
-  %62 = load ptr, ptr %4, align 8
-  %63 = getelementptr inbounds %struct.String_t, ptr %62, i32 0, i32 0
-  store ptr null, ptr %63, align 8
-  br label %64
+60:                                               ; preds = %3
+  %61 = load ptr, ptr %4, align 8
+  %62 = getelementptr inbounds %struct.String_t, ptr %61, i32 0, i32 0
+  store ptr null, ptr %62, align 8
+  br label %63
 
-64:                                               ; preds = %61, %20
+63:                                               ; preds = %60, %20
   ret void
 }
 
@@ -1092,7 +1084,7 @@ define dso_local void @__String.concat__spl__void__String__String__bool(ptr noun
   store i8 %2, ptr %6, align 1
   %7 = load i8, ptr %6, align 1
   %8 = icmp ne i8 %7, 0
-  br i1 %8, label %9, label %58
+  br i1 %8, label %9, label %57
 
 9:                                                ; preds = %3
   %10 = load ptr, ptr %5, align 8
@@ -1106,7 +1098,7 @@ define dso_local void @__String.concat__spl__void__String__String__bool(ptr noun
   %17 = getelementptr inbounds %struct.String_t, ptr %16, i32 0, i32 1
   %18 = load i64, ptr %17, align 8
   %19 = icmp ne i64 %18, 0
-  br i1 %19, label %20, label %54
+  br i1 %19, label %20, label %53
 
 20:                                               ; preds = %9
   %21 = load ptr, ptr %4, align 8
@@ -1135,92 +1127,90 @@ define dso_local void @__String.concat__spl__void__String__String__bool(ptr noun
   %42 = load ptr, ptr %5, align 8
   %43 = getelementptr inbounds %struct.String_t, ptr %42, i32 0, i32 1
   %44 = load i64, ptr %43, align 8
-  %45 = mul i64 %44, 1
-  %46 = getelementptr inbounds i8, ptr %41, i64 %45
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %46, ptr align 1 @.str.5, i64 4, i1 false)
-  %47 = load ptr, ptr %4, align 8
-  %48 = getelementptr inbounds %struct.String_t, ptr %47, i32 0, i32 0
-  %49 = load ptr, ptr %48, align 8
-  %50 = load ptr, ptr %4, align 8
-  %51 = getelementptr inbounds %struct.String_t, ptr %50, i32 0, i32 1
-  %52 = load i64, ptr %51, align 8
-  %53 = getelementptr inbounds i8, ptr %49, i64 %52
-  store i8 0, ptr %53, align 1
-  br label %57
+  %45 = getelementptr inbounds i8, ptr %41, i64 %44
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %45, ptr align 1 @.str.5, i64 4, i1 false)
+  %46 = load ptr, ptr %4, align 8
+  %47 = getelementptr inbounds %struct.String_t, ptr %46, i32 0, i32 0
+  %48 = load ptr, ptr %47, align 8
+  %49 = load ptr, ptr %4, align 8
+  %50 = getelementptr inbounds %struct.String_t, ptr %49, i32 0, i32 1
+  %51 = load i64, ptr %50, align 8
+  %52 = getelementptr inbounds i8, ptr %48, i64 %51
+  store i8 0, ptr %52, align 1
+  br label %56
 
-54:                                               ; preds = %9
-  %55 = load ptr, ptr %4, align 8
-  %56 = getelementptr inbounds %struct.String_t, ptr %55, i32 0, i32 0
-  store ptr null, ptr %56, align 8
-  br label %57
+53:                                               ; preds = %9
+  %54 = load ptr, ptr %4, align 8
+  %55 = getelementptr inbounds %struct.String_t, ptr %54, i32 0, i32 0
+  store ptr null, ptr %55, align 8
+  br label %56
 
-57:                                               ; preds = %54, %20
-  br label %107
+56:                                               ; preds = %53, %20
+  br label %105
 
-58:                                               ; preds = %3
-  %59 = load ptr, ptr %5, align 8
-  %60 = getelementptr inbounds %struct.String_t, ptr %59, i32 0, i32 1
-  %61 = load i64, ptr %60, align 8
-  %62 = add i64 %61, 5
-  %63 = load ptr, ptr %4, align 8
-  %64 = getelementptr inbounds %struct.String_t, ptr %63, i32 0, i32 1
-  store i64 %62, ptr %64, align 8
-  %65 = load ptr, ptr %4, align 8
-  %66 = getelementptr inbounds %struct.String_t, ptr %65, i32 0, i32 1
-  %67 = load i64, ptr %66, align 8
-  %68 = icmp ne i64 %67, 0
-  br i1 %68, label %69, label %103
+57:                                               ; preds = %3
+  %58 = load ptr, ptr %5, align 8
+  %59 = getelementptr inbounds %struct.String_t, ptr %58, i32 0, i32 1
+  %60 = load i64, ptr %59, align 8
+  %61 = add i64 %60, 5
+  %62 = load ptr, ptr %4, align 8
+  %63 = getelementptr inbounds %struct.String_t, ptr %62, i32 0, i32 1
+  store i64 %61, ptr %63, align 8
+  %64 = load ptr, ptr %4, align 8
+  %65 = getelementptr inbounds %struct.String_t, ptr %64, i32 0, i32 1
+  %66 = load i64, ptr %65, align 8
+  %67 = icmp ne i64 %66, 0
+  br i1 %67, label %68, label %101
 
-69:                                               ; preds = %58
-  %70 = load ptr, ptr %4, align 8
-  %71 = getelementptr inbounds %struct.String_t, ptr %70, i32 0, i32 1
-  %72 = load i64, ptr %71, align 8
-  %73 = add i64 %72, 1
-  %74 = mul i64 1, %73
-  %75 = call noalias ptr @malloc(i64 noundef %74) #8
-  %76 = load ptr, ptr %4, align 8
-  %77 = getelementptr inbounds %struct.String_t, ptr %76, i32 0, i32 0
-  store ptr %75, ptr %77, align 8
-  %78 = load ptr, ptr %4, align 8
-  %79 = getelementptr inbounds %struct.String_t, ptr %78, i32 0, i32 0
-  %80 = load ptr, ptr %79, align 8
-  %81 = load ptr, ptr %5, align 8
-  %82 = getelementptr inbounds %struct.String_t, ptr %81, i32 0, i32 0
-  %83 = load ptr, ptr %82, align 8
-  %84 = load ptr, ptr %5, align 8
-  %85 = getelementptr inbounds %struct.String_t, ptr %84, i32 0, i32 1
-  %86 = load i64, ptr %85, align 8
-  %87 = mul i64 %86, 1
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %80, ptr align 1 %83, i64 %87, i1 false)
-  %88 = load ptr, ptr %4, align 8
-  %89 = getelementptr inbounds %struct.String_t, ptr %88, i32 0, i32 0
-  %90 = load ptr, ptr %89, align 8
-  %91 = load ptr, ptr %5, align 8
-  %92 = getelementptr inbounds %struct.String_t, ptr %91, i32 0, i32 1
-  %93 = load i64, ptr %92, align 8
-  %94 = mul i64 %93, 1
-  %95 = getelementptr inbounds i8, ptr %90, i64 %94
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %95, ptr align 1 @.str.6, i64 5, i1 false)
-  %96 = load ptr, ptr %4, align 8
-  %97 = getelementptr inbounds %struct.String_t, ptr %96, i32 0, i32 0
-  %98 = load ptr, ptr %97, align 8
-  %99 = load ptr, ptr %4, align 8
-  %100 = getelementptr inbounds %struct.String_t, ptr %99, i32 0, i32 1
-  %101 = load i64, ptr %100, align 8
-  %102 = getelementptr inbounds i8, ptr %98, i64 %101
-  store i8 0, ptr %102, align 1
-  br label %106
+68:                                               ; preds = %57
+  %69 = load ptr, ptr %4, align 8
+  %70 = getelementptr inbounds %struct.String_t, ptr %69, i32 0, i32 1
+  %71 = load i64, ptr %70, align 8
+  %72 = add i64 %71, 1
+  %73 = mul i64 1, %72
+  %74 = call noalias ptr @malloc(i64 noundef %73) #8
+  %75 = load ptr, ptr %4, align 8
+  %76 = getelementptr inbounds %struct.String_t, ptr %75, i32 0, i32 0
+  store ptr %74, ptr %76, align 8
+  %77 = load ptr, ptr %4, align 8
+  %78 = getelementptr inbounds %struct.String_t, ptr %77, i32 0, i32 0
+  %79 = load ptr, ptr %78, align 8
+  %80 = load ptr, ptr %5, align 8
+  %81 = getelementptr inbounds %struct.String_t, ptr %80, i32 0, i32 0
+  %82 = load ptr, ptr %81, align 8
+  %83 = load ptr, ptr %5, align 8
+  %84 = getelementptr inbounds %struct.String_t, ptr %83, i32 0, i32 1
+  %85 = load i64, ptr %84, align 8
+  %86 = mul i64 %85, 1
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %79, ptr align 1 %82, i64 %86, i1 false)
+  %87 = load ptr, ptr %4, align 8
+  %88 = getelementptr inbounds %struct.String_t, ptr %87, i32 0, i32 0
+  %89 = load ptr, ptr %88, align 8
+  %90 = load ptr, ptr %5, align 8
+  %91 = getelementptr inbounds %struct.String_t, ptr %90, i32 0, i32 1
+  %92 = load i64, ptr %91, align 8
+  %93 = getelementptr inbounds i8, ptr %89, i64 %92
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %93, ptr align 1 @.str.6, i64 5, i1 false)
+  %94 = load ptr, ptr %4, align 8
+  %95 = getelementptr inbounds %struct.String_t, ptr %94, i32 0, i32 0
+  %96 = load ptr, ptr %95, align 8
+  %97 = load ptr, ptr %4, align 8
+  %98 = getelementptr inbounds %struct.String_t, ptr %97, i32 0, i32 1
+  %99 = load i64, ptr %98, align 8
+  %100 = getelementptr inbounds i8, ptr %96, i64 %99
+  store i8 0, ptr %100, align 1
+  br label %104
 
-103:                                              ; preds = %58
-  %104 = load ptr, ptr %4, align 8
-  %105 = getelementptr inbounds %struct.String_t, ptr %104, i32 0, i32 0
-  store ptr null, ptr %105, align 8
-  br label %106
+101:                                              ; preds = %57
+  %102 = load ptr, ptr %4, align 8
+  %103 = getelementptr inbounds %struct.String_t, ptr %102, i32 0, i32 0
+  store ptr null, ptr %103, align 8
+  br label %104
 
-106:                                              ; preds = %103, %69
-  br label %107
+104:                                              ; preds = %101, %68
+  br label %105
 
-107:                                              ; preds = %106, %57
+105:                                              ; preds = %104, %56
   ret void
 }
 
@@ -1258,7 +1248,7 @@ define dso_local void @__String.concat__spl__void__String__String__int(ptr nound
   %27 = getelementptr inbounds %struct.String_t, ptr %26, i32 0, i32 1
   %28 = load i64, ptr %27, align 8
   %29 = icmp ne i64 %28, 0
-  br i1 %29, label %30, label %68
+  br i1 %29, label %30, label %67
 
 30:                                               ; preds = %3
   %31 = load ptr, ptr %4, align 8
@@ -1287,30 +1277,31 @@ define dso_local void @__String.concat__spl__void__String__String__int(ptr nound
   %52 = load ptr, ptr %5, align 8
   %53 = getelementptr inbounds %struct.String_t, ptr %52, i32 0, i32 1
   %54 = load i64, ptr %53, align 8
-  %55 = mul i64 %54, 1
-  %56 = getelementptr inbounds i8, ptr %51, i64 %55
-  %57 = load ptr, ptr %8, align 8
-  %58 = load i32, ptr %7, align 4
-  %59 = sext i32 %58 to i64
-  %60 = mul i64 %59, 1
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %56, ptr align 1 %57, i64 %60, i1 false)
-  %61 = load ptr, ptr %4, align 8
-  %62 = getelementptr inbounds %struct.String_t, ptr %61, i32 0, i32 0
-  %63 = load ptr, ptr %62, align 8
-  %64 = load ptr, ptr %4, align 8
-  %65 = getelementptr inbounds %struct.String_t, ptr %64, i32 0, i32 1
-  %66 = load i64, ptr %65, align 8
-  %67 = getelementptr inbounds i8, ptr %63, i64 %66
-  store i8 0, ptr %67, align 1
-  br label %71
+  %55 = getelementptr inbounds i8, ptr %51, i64 %54
+  %56 = load ptr, ptr %8, align 8
+  %57 = load i32, ptr %7, align 4
+  %58 = sext i32 %57 to i64
+  %59 = mul i64 %58, 1
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %55, ptr align 1 %56, i64 %59, i1 false)
+  %60 = load ptr, ptr %4, align 8
+  %61 = getelementptr inbounds %struct.String_t, ptr %60, i32 0, i32 0
+  %62 = load ptr, ptr %61, align 8
+  %63 = load ptr, ptr %4, align 8
+  %64 = getelementptr inbounds %struct.String_t, ptr %63, i32 0, i32 1
+  %65 = load i64, ptr %64, align 8
+  %66 = getelementptr inbounds i8, ptr %62, i64 %65
+  store i8 0, ptr %66, align 1
+  br label %70
 
-68:                                               ; preds = %3
-  %69 = load ptr, ptr %4, align 8
-  %70 = getelementptr inbounds %struct.String_t, ptr %69, i32 0, i32 0
-  store ptr null, ptr %70, align 8
-  br label %71
+67:                                               ; preds = %3
+  %68 = load ptr, ptr %4, align 8
+  %69 = getelementptr inbounds %struct.String_t, ptr %68, i32 0, i32 0
+  store ptr null, ptr %69, align 8
+  br label %70
 
-71:                                               ; preds = %68, %30
+70:                                               ; preds = %67, %30
+  %71 = load ptr, ptr %8, align 8
+  call void @free(ptr noundef %71) #9
   ret void
 }
 
@@ -1350,7 +1341,7 @@ define dso_local void @__String.concat__spl__void__String__String__float(ptr nou
   %29 = getelementptr inbounds %struct.String_t, ptr %28, i32 0, i32 1
   %30 = load i64, ptr %29, align 8
   %31 = icmp ne i64 %30, 0
-  br i1 %31, label %32, label %70
+  br i1 %31, label %32, label %69
 
 32:                                               ; preds = %3
   %33 = load ptr, ptr %4, align 8
@@ -1379,30 +1370,31 @@ define dso_local void @__String.concat__spl__void__String__String__float(ptr nou
   %54 = load ptr, ptr %5, align 8
   %55 = getelementptr inbounds %struct.String_t, ptr %54, i32 0, i32 1
   %56 = load i64, ptr %55, align 8
-  %57 = mul i64 %56, 1
-  %58 = getelementptr inbounds i8, ptr %53, i64 %57
-  %59 = load ptr, ptr %8, align 8
-  %60 = load i32, ptr %7, align 4
-  %61 = sext i32 %60 to i64
-  %62 = mul i64 %61, 1
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %58, ptr align 1 %59, i64 %62, i1 false)
-  %63 = load ptr, ptr %4, align 8
-  %64 = getelementptr inbounds %struct.String_t, ptr %63, i32 0, i32 0
-  %65 = load ptr, ptr %64, align 8
-  %66 = load ptr, ptr %4, align 8
-  %67 = getelementptr inbounds %struct.String_t, ptr %66, i32 0, i32 1
-  %68 = load i64, ptr %67, align 8
-  %69 = getelementptr inbounds i8, ptr %65, i64 %68
-  store i8 0, ptr %69, align 1
-  br label %73
+  %57 = getelementptr inbounds i8, ptr %53, i64 %56
+  %58 = load ptr, ptr %8, align 8
+  %59 = load i32, ptr %7, align 4
+  %60 = sext i32 %59 to i64
+  %61 = mul i64 %60, 1
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %57, ptr align 1 %58, i64 %61, i1 false)
+  %62 = load ptr, ptr %4, align 8
+  %63 = getelementptr inbounds %struct.String_t, ptr %62, i32 0, i32 0
+  %64 = load ptr, ptr %63, align 8
+  %65 = load ptr, ptr %4, align 8
+  %66 = getelementptr inbounds %struct.String_t, ptr %65, i32 0, i32 1
+  %67 = load i64, ptr %66, align 8
+  %68 = getelementptr inbounds i8, ptr %64, i64 %67
+  store i8 0, ptr %68, align 1
+  br label %72
 
-70:                                               ; preds = %3
-  %71 = load ptr, ptr %4, align 8
-  %72 = getelementptr inbounds %struct.String_t, ptr %71, i32 0, i32 0
-  store ptr null, ptr %72, align 8
-  br label %73
+69:                                               ; preds = %3
+  %70 = load ptr, ptr %4, align 8
+  %71 = getelementptr inbounds %struct.String_t, ptr %70, i32 0, i32 0
+  store ptr null, ptr %71, align 8
+  br label %72
 
-73:                                               ; preds = %70, %32
+72:                                               ; preds = %69, %32
+  %73 = load ptr, ptr %8, align 8
+  call void @free(ptr noundef %73) #9
   ret void
 }
 
@@ -1440,7 +1432,7 @@ define dso_local void @__String.concat__spl__void__String__String__double(ptr no
   %27 = getelementptr inbounds %struct.String_t, ptr %26, i32 0, i32 1
   %28 = load i64, ptr %27, align 8
   %29 = icmp ne i64 %28, 0
-  br i1 %29, label %30, label %68
+  br i1 %29, label %30, label %67
 
 30:                                               ; preds = %3
   %31 = load ptr, ptr %4, align 8
@@ -1469,30 +1461,31 @@ define dso_local void @__String.concat__spl__void__String__String__double(ptr no
   %52 = load ptr, ptr %5, align 8
   %53 = getelementptr inbounds %struct.String_t, ptr %52, i32 0, i32 1
   %54 = load i64, ptr %53, align 8
-  %55 = mul i64 %54, 1
-  %56 = getelementptr inbounds i8, ptr %51, i64 %55
-  %57 = load ptr, ptr %8, align 8
-  %58 = load i32, ptr %7, align 4
-  %59 = sext i32 %58 to i64
-  %60 = mul i64 %59, 1
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %56, ptr align 1 %57, i64 %60, i1 false)
-  %61 = load ptr, ptr %4, align 8
-  %62 = getelementptr inbounds %struct.String_t, ptr %61, i32 0, i32 0
-  %63 = load ptr, ptr %62, align 8
-  %64 = load ptr, ptr %4, align 8
-  %65 = getelementptr inbounds %struct.String_t, ptr %64, i32 0, i32 1
-  %66 = load i64, ptr %65, align 8
-  %67 = getelementptr inbounds i8, ptr %63, i64 %66
-  store i8 0, ptr %67, align 1
-  br label %71
+  %55 = getelementptr inbounds i8, ptr %51, i64 %54
+  %56 = load ptr, ptr %8, align 8
+  %57 = load i32, ptr %7, align 4
+  %58 = sext i32 %57 to i64
+  %59 = mul i64 %58, 1
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %55, ptr align 1 %56, i64 %59, i1 false)
+  %60 = load ptr, ptr %4, align 8
+  %61 = getelementptr inbounds %struct.String_t, ptr %60, i32 0, i32 0
+  %62 = load ptr, ptr %61, align 8
+  %63 = load ptr, ptr %4, align 8
+  %64 = getelementptr inbounds %struct.String_t, ptr %63, i32 0, i32 1
+  %65 = load i64, ptr %64, align 8
+  %66 = getelementptr inbounds i8, ptr %62, i64 %65
+  store i8 0, ptr %66, align 1
+  br label %70
 
-68:                                               ; preds = %3
-  %69 = load ptr, ptr %4, align 8
-  %70 = getelementptr inbounds %struct.String_t, ptr %69, i32 0, i32 0
-  store ptr null, ptr %70, align 8
-  br label %71
+67:                                               ; preds = %3
+  %68 = load ptr, ptr %4, align 8
+  %69 = getelementptr inbounds %struct.String_t, ptr %68, i32 0, i32 0
+  store ptr null, ptr %69, align 8
+  br label %70
 
-71:                                               ; preds = %68, %30
+70:                                               ; preds = %67, %30
+  %71 = load ptr, ptr %8, align 8
+  call void @free(ptr noundef %71) #9
   ret void
 }
 
