@@ -52,10 +52,6 @@ class CodeGenUtils {
 
     Type *getType(string id);
     Type *getTypeNoPtr(string id);
-    Type *getType(shared_ptr<ClassRecord> node);
-    Type *getTypeNoPtr(shared_ptr<ClassRecord> node);
-    Type *getType(shared_ptr<TypeNode> node);
-    Type *getTypeNoPtr(shared_ptr<TypeNode> node);
 
     void destructAfterStatement();
 };
