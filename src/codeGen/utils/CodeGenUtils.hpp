@@ -46,13 +46,10 @@ class CodeGenUtils {
     CodeGen *codeGen;
     shared_ptr<LLVMHelper> helper;
 
-    shared_ptr<ClassDeclNode> currClass;
-    string currClassName = "";
     map<string, StructType *> classesTypes = map<string, StructType *>();
 
     CodeGenUtils(CodeGen *_codeGen);
 
-    void setCurrClassName();
     Type *getType(string id);
     Type *getTypeNoPtr(string id);
     Type *getType(shared_ptr<ClassRecord> node);

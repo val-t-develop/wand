@@ -217,26 +217,20 @@ void CodeGen::genImport(Path f) {
 }
 
 void CodeGen::createClassType(shared_ptr<ClassDeclNode> node) {
-    utils->currClass = node;
     classesStack.push(node);
-    utils->setCurrClassName();
 
-    StructType *structType = helper->createStructType(utils->currClassName);
-    utils->classesTypes.insert({utils->currClassName, structType});
+    StructType *structType = helper->createStructType(classesStack.top()->getFullName());
+    utils->classesTypes.insert({classesStack.top()->getFullName(), structType});
 
     for (shared_ptr<ClassDeclNode> item : node->innerClasses) {
         createClassType(item);
     }
 
     classesStack.pop();
-    utils->currClass = classesStack.empty() ? nullptr : classesStack.top();
-    utils->setCurrClassName();
 }
 
 void CodeGen::genClassDecl(shared_ptr<ClassDeclNode> node, bool genMethod) {
-    utils->currClass = node;
     classesStack.push(node);
-    utils->setCurrClassName();
 
     for (shared_ptr<ClassDeclNode> item : node->innerClasses) {
         genClassDecl(item, genMethod);
@@ -259,14 +253,10 @@ void CodeGen::genClassDecl(shared_ptr<ClassDeclNode> node, bool genMethod) {
     }
 
     classesStack.pop();
-    utils->currClass = classesStack.empty() ? nullptr : classesStack.top();
-    utils->setCurrClassName();
 }
 
 void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
-    utils->currClass = node;
     classesStack.push(node);
-    utils->setCurrClassName();
 
     vector<Type *> types = vector<Type *>();
 
@@ -327,8 +317,6 @@ void CodeGen::genStruct(shared_ptr<ClassDeclNode> node) {
         genStruct(item);
     }
     classesStack.pop();
-    utils->currClass = classesStack.empty() ? nullptr : classesStack.top();
-    utils->setCurrClassName();
 }
 
 Function *CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {
@@ -344,7 +332,7 @@ Function *CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {
         for (int i = 0; i < node->args.size(); ++i) {
             if (i==0) {
                 node->args[0]->record->typeRec=classesStack.top()->record;
-                args_types.push_back(utils->getType(utils->currClass->record));
+                args_types.push_back(utils->getType(classesStack.top()->record));
             } else {
                 auto arg = node->args[i];
                 args_types.push_back(utils->getType(arg->type->type->record));
@@ -363,15 +351,15 @@ Function *CodeGen::genMethodPrototype(shared_ptr<MethodDeclNode> node) {
 
 Function *CodeGen::genDestructorPrototype(shared_ptr<ClassDeclNode> node) {
     vector<Type *> args_types = vector<Type *>();
-    args_types.push_back(utils->getType(utils->currClass->record));
+    args_types.push_back(utils->getType(classesStack.top()->record));
     return helper->createFunctionPrototype("__spl__destructor__" +
-                                               utils->currClassName,
+                                               classesStack.top()->getFullName(),
                                            helper->getVoidType(), args_types);
 }
 
 Function *
 CodeGen::genConstructorPrototype(shared_ptr<ConstructorDeclNode> node) {
-    string str = "__spl__constructor__" + utils->currClassName;
+    string str = "__spl__constructor__" + classesStack.top()->getFullName();
     for (auto arg : node->args) {
         str += "__" + arg->type->getFullName();
     }
@@ -380,7 +368,7 @@ CodeGen::genConstructorPrototype(shared_ptr<ConstructorDeclNode> node) {
         args_types.push_back(utils->getType(arg->type->type->record));
     }
     return helper->createFunctionPrototype(
-        str, utils->getType(utils->currClass->record), args_types);
+        str, utils->getType(classesStack.top()->record), args_types);
 }
 
 Function *CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
@@ -397,7 +385,7 @@ Function *CodeGen::genMethodDecl(shared_ptr<MethodDeclNode> node) {
             }
         }
         if (!isStatic) {
-            args_types.push_back(utils->getType(utils->currClass->record));
+            args_types.push_back(utils->getType(classesStack.top()->record));
             for (int i = 1; i < node->args.size(); ++i) {
                 auto arg = node->args[i];
                 args_types.push_back(utils->getType(arg->type->type->record));
@@ -523,10 +511,10 @@ Function *CodeGen::genDestructorDecl(shared_ptr<ClassDeclNode> node) {
     if (!node->destructors.empty()) {
         if (node->destructors[0]->body!=nullptr) {
             Function *TheFunction =
-                helper->getFunction("__spl__destructor__" + utils->currClassName);
+                helper->getFunction("__spl__destructor__" + classesStack.top()->getFullName());
 
             vector<Type *> args_types = vector<Type *>();
-            args_types.push_back(utils->getType(utils->currClass->record));
+            args_types.push_back(utils->getType(classesStack.top()->record));
 
             if (!TheFunction) {
                 return nullptr;
@@ -569,10 +557,10 @@ Function *CodeGen::genDestructorDecl(shared_ptr<ClassDeclNode> node) {
         return nullptr;
     } else {
         Function *TheFunction =
-            helper->getFunction("__spl__destructor__" + utils->currClassName);
+            helper->getFunction("__spl__destructor__" + classesStack.top()->getFullName());
 
         vector<Type *> args_types = vector<Type *>();
-        args_types.push_back(utils->getType(utils->currClass->record));
+        args_types.push_back(utils->getType(classesStack.top()->record));
 
         if (!TheFunction) {
             return nullptr;
@@ -615,7 +603,7 @@ Function *CodeGen::genDestructorDecl(shared_ptr<ClassDeclNode> node) {
 
 Function *CodeGen::genConstructorDecl(shared_ptr<ConstructorDeclNode> node) {
     if (node->body != nullptr) {
-        string str = "__spl__constructor__" + utils->currClassName;
+        string str = "__spl__constructor__" + classesStack.top()->getFullName();
         for (auto arg : node->args) {
             str += "__" + arg->type->getFullName();
         }
@@ -724,7 +712,7 @@ bool CodeGen::genConstructorBlockStatement(
     shared_ptr<BlockNode> node = constructor->body;
     currBlockVars.push(vector<pair<Value *, string>>());
 
-    Type *type = utils->getTypeNoPtr(utils->currClass->record);
+    Type *type = utils->getTypeNoPtr(classesStack.top()->record);
     Value *sizeofIV = helper->createSizeof(type);
 
     Value *heapallocatmp = helper->createCall(
@@ -734,9 +722,9 @@ bool CodeGen::genConstructorBlockStatement(
                              string(heapallocatmp->getName()) + "tmp_var");
     helper->createStore(heapallocatmp, ptr);
 
-    for (int i = 0; i < utils->currClass->fields.size(); i++) {
-        shared_ptr<VarRecord> n_var_rec = utils->currClass->fields[i]->record;
-        auto classRecord = utils->currClass->record;
+    for (int i = 0; i < classesStack.top()->fields.size(); i++) {
+        shared_ptr<VarRecord> n_var_rec = classesStack.top()->fields[i]->record;
+        auto classRecord = classesStack.top()->record;
         Type *t = utils->getTypeNoPtr(classRecord);
         int struct_n = 0;
         for (int j = 0; j < classRecord->fields.size(); ++j) {
@@ -750,7 +738,7 @@ bool CodeGen::genConstructorBlockStatement(
         Value *getelementptr = helper->createGetElementPtr(
             t, heapallocatmp, vector<Value *>{nullV, struct_nV}, "access_tmp");
 
-        auto n_classRecord = utils->currClass->fields[i]->type->type->record;
+        auto n_classRecord = classesStack.top()->fields[i]->type->type->record;
         Type *n_t = utils->getTypeNoPtr(n_classRecord);
         auto last =
             helper->createLoad(n_t, getelementptr, "loadgetelementptrtmp");

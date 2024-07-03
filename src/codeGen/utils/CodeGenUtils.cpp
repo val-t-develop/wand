@@ -27,14 +27,6 @@
 CodeGenUtils::CodeGenUtils(CodeGen *_codeGen)
     : codeGen(_codeGen), helper(_codeGen->helper) {}
 
-void CodeGenUtils::setCurrClassName() {
-    if (currClass != nullptr) {
-        currClassName = currClass->getFullName();
-    } else {
-        currClassName = "";
-    }
-}
-
 Type *CodeGenUtils::getType(string id) {
     if (id == "bool") {
         return helper->getIntType(1);
