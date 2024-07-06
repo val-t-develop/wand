@@ -85,6 +85,21 @@ src_files = ['src/main.cpp', 'src/main.hpp', 'src/License.hpp',
     'src/ast/node/statement/expression/literal/CharLiteralNode.hpp', 'src/ast/node/statement/expression/literal/CharLiteralNode.cpp', 
     'src/ast/node/statement/expression/literal/BoolLiteralNode.hpp', 'src/ast/node/statement/expression/literal/BoolLiteralNode.cpp',
     'src/IRTree/builder/IRTreeBuilder.hpp', 'src/IRTree/builder/IRTreeBuilder.cpp',
+    'src/IRTree/node/IRNode.hpp', 'src/IRTree/node/IRNode.cpp',
+    'src/IRTree/node/IRTree.hpp', 'src/IRTree/node/IRTree.cpp',
+    'src/IRTree/node/IRFunction.hpp', 'src/IRTree/node/IRFunction.cpp',
+    'src/IRTree/node/IRStruct.hpp', 'src/IRTree/node/IRStruct.cpp',
+    'src/IRTree/node/statement/IRStatement.hpp', 'src/IRTree/node/statement/IRStatement.cpp',
+    'src/IRTree/node/statement/IRBlock.hpp', 'src/IRTree/node/statement/IRBlock.cpp',
+    'src/IRTree/node/statement/IRReturn.hpp', 'src/IRTree/node/statement/IRReturn.cpp',
+    'src/IRTree/node/statement/IRIfElse.hpp', 'src/IRTree/node/statement/IRIfElse.cpp',
+    'src/IRTree/node/statement/IRVarDecl.hpp', 'src/IRTree/node/statement/IRVarDecl.cpp',
+    'src/IRTree/node/statement/IRWhile.hpp', 'src/IRTree/node/statement/IRWhile.cpp',
+    'src/IRTree/node/statement/expression/IRExpression.hpp', 'src/IRTree/node/statement/expression/IRExpression.cpp',
+    'src/IRTree/node/statement/expression/IRCall.hpp', 'src/IRTree/node/statement/expression/IRCall.cpp',
+    'src/IRTree/node/statement/expression/IRBinOp.hpp', 'src/IRTree/node/statement/expression/IRBinOp.cpp',
+    'src/IRTree/node/statement/expression/IRUnOp.hpp', 'src/IRTree/node/statement/expression/IRUnOp.cpp',
+
     'src/codeGen/utils/LLVMHelper.cpp', 'src/codeGen/utils/LLVMHelper.hpp']
 
 executable('spl', src_files, dependencies : llvm_dep, include_directories : incdir)
