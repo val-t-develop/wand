@@ -84,8 +84,7 @@ src_files = ['src/main.cpp', 'src/main.hpp', 'src/License.hpp',
     'src/ast/node/statement/expression/literal/FloatLiteralNode.hpp', 'src/ast/node/statement/expression/literal/FloatLiteralNode.cpp', 
     'src/ast/node/statement/expression/literal/CharLiteralNode.hpp', 'src/ast/node/statement/expression/literal/CharLiteralNode.cpp', 
     'src/ast/node/statement/expression/literal/BoolLiteralNode.hpp', 'src/ast/node/statement/expression/literal/BoolLiteralNode.cpp',
-    'src/codeGen/CodeGen.cpp', 'src/codeGen/CodeGen.hpp',
-    'src/codeGen/utils/CodeGenUtils.cpp', 'src/codeGen/utils/CodeGenUtils.hpp',
+    'src/IRTree/builder/IRTreeBuilder.hpp', 'src/IRTree/builder/IRTreeBuilder.cpp',
     'src/codeGen/utils/LLVMHelper.cpp', 'src/codeGen/utils/LLVMHelper.hpp']
 
 executable('spl', src_files, dependencies : llvm_dep, include_directories : incdir)

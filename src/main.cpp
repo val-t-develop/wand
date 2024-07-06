@@ -23,7 +23,6 @@
 
 #include "main.hpp"
 #include <ast/builder/AstBuilder.hpp>
-#include <codeGen/CodeGen.hpp>
 
 vector<string> Main::obj_files = vector<string>();
 stack<CU *> Main::currCUsStack = stack<CU *>();
@@ -127,12 +126,12 @@ void CU::completeToState(State state) {
             st->resetTable();
             currState = State::AST;
         } else if (currState == State::AST) {
-            codeGen = make_shared<CodeGen>(cu, file);
-            codeGen->codeGen();
-            codeGen->build();
+            irTreeBuilder=make_shared<IRTreeBuilder>(cu, file);
+            irTreeBuilder->walk();
+            currState = State::IR_TREE;
+        } else if (currState == State::IR_TREE) {
             currState = State::CODE_GEN;
-        } else if (currState == State::CODE_GEN) {
-        }
+        } else if (currState == State::CODE_GEN) {}
         Main::currCUsStack.pop();
     }
 }

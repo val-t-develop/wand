@@ -23,16 +23,16 @@
 
 #pragma once
 #include <ast/builder/AstBuilder.hpp>
-#include <codeGen/CodeGen.hpp>
 #include <lexer/Lexer.hpp>
 #include <symbolListener/SymbolListener.hpp>
 #include <symbolTable/SymbolTable.hpp>
+#include <IRTree/builder/IRTreeBuilder.hpp>
 #include <utils/ArgsParser.hpp>
 #include <utils/Out.hpp>
 
 class CU {
   public:
-    enum State { NOTHING = 0, LEXER = 1, ST = 2, AST = 3, CODE_GEN = 4 };
+    enum State { NOTHING = 0, LEXER = 1, ST = 2, AST = 3, IR_TREE = 4, CODE_GEN = 5 };
 
     string fullFileName;
     string fileName;
@@ -43,7 +43,7 @@ class CU {
     shared_ptr<SymbolListener> symbolListener;
     shared_ptr<CompilationUnitNode> cu;
     shared_ptr<AstBuilder> astBuilder;
-    shared_ptr<CodeGen> codeGen;
+    shared_ptr<IRTreeBuilder> irTreeBuilder;
 
     map<vector<string>, vector<Path>> importFiles =
         map<vector<string>, vector<Path>>();
