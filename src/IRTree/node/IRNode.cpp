@@ -26,9 +26,22 @@
 IRNode::IRNode(Kind _kind) : kind(_kind) {}
 
 bool IRNode::isExpression() {
-    if (kind==Kind::CALL ||
-        kind==Kind::UN_OP ||
-        kind==Kind::BIN_OP) {
+    if (kind == Kind::CALL || kind == Kind::UN_OP || kind == Kind::BIN_OP) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool IRNode::isLiteral() {
+    if (kind==Kind::STRING_LITERAL ||
+        kind==Kind::CHAR_LITERAL ||
+        kind==Kind::BYTE_LITERAL ||
+        kind==Kind::SHORT_LITERAL ||
+        kind==Kind::INT_LITERAL ||
+        kind==Kind::LONG_LITERAL ||
+        kind==Kind::FLOAT_LITERAL ||
+        kind==Kind::DOUBLE_LITERAL) {
         return true;
     } else {
         return false;

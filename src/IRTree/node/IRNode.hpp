@@ -39,6 +39,16 @@ public:
         CALL,
         BIN_OP,
         UN_OP,
+
+        STRING_LITERAL,
+        CHAR_LITERAL,
+        BOOL_LITERAL,
+        BYTE_LITERAL,
+        SHORT_LITERAL,
+        INT_LITERAL,
+        LONG_LITERAL,
+        FLOAT_LITERAL,
+        DOUBLE_LITERAL,
     };
 
     Kind kind = Kind::NONE;
@@ -46,4 +56,5 @@ public:
     IRNode(Kind _kind);
 
     bool isExpression();
+    bool isLiteral();
 };

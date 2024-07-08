@@ -30,7 +30,7 @@ class IRWhile : public IRStatement {
 public:
     vector<shared_ptr<IRStatement>> before;
     shared_ptr<IRExpression> cond;
-    shared_ptr<IRBlock> body;
+    shared_ptr<IRStatement> body;
 
-    IRWhile(vector<shared_ptr<IRStatement>> _before, shared_ptr<IRExpression> _cond, shared_ptr<IRBlock> _body);
+    IRWhile(vector<shared_ptr<IRStatement>> _before, shared_ptr<IRExpression> _cond, shared_ptr<IRStatement> _body);
 };

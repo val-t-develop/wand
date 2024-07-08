@@ -18,10 +18,19 @@
 /*
  *  Valentyn Tymchyshyn (val.t.develop) (val.t.develo@gmail.com)
  *
- *  IR tree part for while loop.
+ *  IR tree part for literal.
  */
 
-#include "IRWhile.hpp"
+#pragma once
+#include "IRExpression.hpp"
 
-IRWhile::IRWhile(vector<shared_ptr<IRStatement>> _before,
-                 shared_ptr<IRExpression> _cond, shared_ptr<IRStatement> _body) : before(_before), cond(_cond), body(_body), IRStatement(Kind::WHILE) {}
+class IRLiteral : public IRExpression {
+public:
+    string strLiteral = "";
+    char charLiteral = '';
+    uint64_t intLoteral = 0;
+    bool boolLiteral = false;
+    double doubleLiteral = 0.0;
+
+    IRLiteral(Kind _kind);
+};
