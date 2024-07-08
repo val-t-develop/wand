@@ -27,8 +27,7 @@
 class IRLiteral : public IRExpression {
 public:
     string strLiteral = "";
-    char charLiteral = '';
-    uint64_t intLoteral = 0;
+    int64_t intLoteral = 0;
     bool boolLiteral = false;
     double doubleLiteral = 0.0;
 
