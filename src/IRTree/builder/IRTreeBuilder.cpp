@@ -27,6 +27,7 @@
 #include <IRTree/node/statement/IRReturn.hpp>
 #include <IRTree/node/statement/IRWhile.hpp>
 #include <IRTree/node/statement/expression/IRAccess.hpp>
+#include <IRTree/node/statement/expression/IRAlloc.hpp>
 #include <IRTree/node/statement/expression/IRVar.hpp>
 #include <ast/node/statement/expression/literal/BoolLiteralNode.hpp>
 #include <ast/node/statement/expression/literal/CharLiteralNode.hpp>
@@ -171,7 +172,21 @@ void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
     if (node->body != nullptr) {
         body = enterBlock(node->body);
     }
-    // TODO constructor body
+    vector<shared_ptr<IRStatement>> constructorHeader{};
+    constructorHeader.push_back(make_shared<IRVarDecl>("this", classesStack.top()->getFullName()));
+    constructorHeader.push_back(make_shared<IRBinOp>(make_shared<IRVar>("this"), make_shared<IRAlloc>(classesStack.top()->getFullName()), BinaryOperatorNode::BinaryOperatorKind::ASSIGN));
+    for (auto el : classesStack.top()->fields) {
+        auto access = make_shared<IRAccess>();
+        access->access.push_back(make_shared<IRVar>("this"));
+        access->access.push_back(make_shared<IRVar>(el->getFullName()));
+        constructorHeader.push_back(make_shared<IRBinOp>(access, getDefaultValue(el->type), BinaryOperatorNode::BinaryOperatorKind::ASSIGN));
+    }
+    if (body!=nullptr) {
+        body->nodes.insert(body->nodes.begin(), constructorHeader.begin(), constructorHeader.end());
+    } else {
+        body=make_shared<IRBlock>(constructorHeader);
+    }
+    body->nodes.push_back(make_shared<IRReturn>(make_shared<IRVar>("this")));
     auto currClass = classesStack.top();
     tree->funcs.push_back(make_shared<IRFunction>(
         "__spl__constructor__" + currClass->getFullName() + argsSpec, currClass->getFullName(),
@@ -367,6 +382,8 @@ IRTreeBuilder::enterLiteral(shared_ptr<ExpressionNode> node) {
     } else if (node->kind == Node::NodeKind::STRING_LITERAL_NODE) {
         literal = make_shared<IRLiteral>(IRNode::Kind::STRING_LITERAL);
         literal->strLiteral = static_pointer_cast<StringLiteralNode>(node)->str;
+    } else if (node->kind == Node::NodeKind::NULL_LITERAL_NODE) {
+        literal = make_shared<IRLiteral>(IRNode::Kind::NULL_LITERAL);
     }
     return literal;
 }
@@ -462,5 +479,30 @@ shared_ptr<IRCall> IRTreeBuilder::enterNew(shared_ptr<NewNode> node) {
         args.push_back(enterExpression(el));
         argsSpec += "__" + el->getReturnType()->getFullName();
     }
-    return make_shared<IRCall>("__spl__constructor__"+argsSpec, args);
+    return make_shared<IRCall>("__spl__constructor__" + argsSpec, args);
+}
+
+shared_ptr<IRExpression>
+IRTreeBuilder::getDefaultValue(shared_ptr<TypeNode> node) {
+    if (node->getFullName()=="char") {
+        return make_shared<IRLiteral>(IRNode::Kind::CHAR_LITERAL);
+    } else if (node->getFullName()=="bool") {
+        return make_shared<IRLiteral>(IRNode::Kind::BOOL_LITERAL);
+    } else if (node->getFullName()=="byte") {
+        return make_shared<IRLiteral>(IRNode::Kind::BYTE_LITERAL);
+    } else if (node->getFullName()=="short") {
+        return make_shared<IRLiteral>(IRNode::Kind::SHORT_LITERAL);
+    } else if (node->getFullName()=="int") {
+        return make_shared<IRLiteral>(IRNode::Kind::INT_LITERAL);
+    } else if (node->getFullName()=="long") {
+        return make_shared<IRLiteral>(IRNode::Kind::LONG_LITERAL);
+    } else if (node->getFullName()=="float") {
+        return make_shared<IRLiteral>(IRNode::Kind::FLOAT_LITERAL);
+    } else if (node->getFullName()=="double") {
+        return make_shared<IRLiteral>(IRNode::Kind::DOUBLE_LITERAL);
+    } else if (node->getFullName()=="String") {
+        return make_shared<IRLiteral>(IRNode::Kind::STRING_LITERAL);
+    } else {
+        return make_shared<IRLiteral>(IRNode::Kind::NULL_LITERAL);
+    }
 }

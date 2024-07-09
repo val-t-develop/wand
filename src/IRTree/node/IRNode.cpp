@@ -41,7 +41,8 @@ bool IRNode::isLiteral() {
         kind==Kind::INT_LITERAL ||
         kind==Kind::LONG_LITERAL ||
         kind==Kind::FLOAT_LITERAL ||
-        kind==Kind::DOUBLE_LITERAL) {
+        kind==Kind::DOUBLE_LITERAL ||
+        kind==Kind::NULL_LITERAL) {
         return true;
     } else {
         return false;

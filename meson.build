@@ -102,6 +102,7 @@ src_files = ['src/main.cpp', 'src/main.hpp', 'src/License.hpp',
     'src/IRTree/node/statement/expression/IRLiteral.hpp', 'src/IRTree/node/statement/expression/IRLiteral.cpp',
     'src/IRTree/node/statement/expression/IRVar.hpp', 'src/IRTree/node/statement/expression/IRVar.cpp',
     'src/IRTree/node/statement/expression/IRAccess.hpp', 'src/IRTree/node/statement/expression/IRAccess.cpp',
+    'src/IRTree/node/statement/expression/IRAlloc.hpp', 'src/IRTree/node/statement/expression/IRAlloc.cpp',
 
     'src/codeGen/utils/LLVMHelper.cpp', 'src/codeGen/utils/LLVMHelper.hpp']
 

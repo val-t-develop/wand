@@ -55,4 +55,6 @@ public:
     shared_ptr<IRCall> enterCall(shared_ptr<MethodCallNode> node);
     shared_ptr<IRBinOp> enterBinOp(shared_ptr<BinaryOperatorNode> node);
     shared_ptr<IRCall> enterNew(shared_ptr<NewNode> node);
+
+    shared_ptr<IRExpression> getDefaultValue(shared_ptr<TypeNode> node);
 };
