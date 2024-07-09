@@ -18,49 +18,15 @@
 /*
  *  Valentyn Tymchyshyn (val.t.develop) (val.t.develo@gmail.com)
  *
- *  IR tree node.
+ *  IR tree part for function pointer.
  */
 
 #pragma once
-#include <Defs.hpp>
+#include "IRExpression.hpp"
 
-class IRNode {
+class IRFunc : public IRExpression {
 public:
-    enum class Kind {
-        NONE,
-        TREE,
-        FUNCTION,
-        STRUCT,
-        BLOCK,
-        IF_ELSE,
-        RETURN,
-        VAR_DECL,
-        WHILE,
+    string name;
 
-        VAR,
-        ACCESS,
-        CALL,
-        BIN_OP,
-        UN_OP,
-        ALLOC,
-        FUNCTION_POINTER,
-
-        STRING_LITERAL,
-        CHAR_LITERAL,
-        BOOL_LITERAL,
-        BYTE_LITERAL,
-        SHORT_LITERAL,
-        INT_LITERAL,
-        LONG_LITERAL,
-        FLOAT_LITERAL,
-        DOUBLE_LITERAL,
-        NULL_LITERAL
-    };
-
-    Kind kind = Kind::NONE;
-
-    IRNode(Kind _kind);
-
-    bool isExpression();
-    bool isLiteral();
+    IRFunc(string _name);
 };

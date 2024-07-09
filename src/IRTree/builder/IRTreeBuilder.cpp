@@ -28,6 +28,7 @@
 #include <IRTree/node/statement/IRWhile.hpp>
 #include <IRTree/node/statement/expression/IRAccess.hpp>
 #include <IRTree/node/statement/expression/IRAlloc.hpp>
+#include <IRTree/node/statement/expression/IRFunc.hpp>
 #include <IRTree/node/statement/expression/IRVar.hpp>
 #include <ast/node/statement/expression/literal/BoolLiteralNode.hpp>
 #include <ast/node/statement/expression/literal/CharLiteralNode.hpp>
@@ -202,7 +203,14 @@ void IRTreeBuilder::enterDestructor(shared_ptr<ClassDeclNode> node) {
     } else {
         body = make_shared<IRBlock>(vector<shared_ptr<IRStatement>>{});
     }
-    // TODO destructor body
+    for (auto el : classesStack.top()->fields) {
+        auto access = make_shared<IRAccess>();
+        access->access.push_back(make_shared<IRVar>("this"));
+        access->access.push_back(make_shared<IRVar>(el->getFullName()));
+        if (el->type->type->record->type!="primitive") {
+            body->nodes.push_back(make_shared<IRCall>("__spl__destroyref", vector<shared_ptr<IRExpression>>{access, make_shared<IRFunc>("__spl__destructor__"+el->type->getFullName())}));
+        }
+    }
     auto currClass = classesStack.top();
     tree->funcs.push_back(make_shared<IRFunction>(
         "__spl__destructor__" + currClass->getFullName(), "void",
