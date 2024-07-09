@@ -23,13 +23,36 @@
 
 #pragma once
 #include <Defs.hpp>
+#include <IRTree/node/IRTree.hpp>
+#include <IRTree/node/statement/expression/IRBinOp.hpp>
+#include <IRTree/node/statement/expression/IRCall.hpp>
+#include <IRTree/node/statement/expression/IRExpression.hpp>
+#include <IRTree/node/statement/expression/IRLiteral.hpp>
 #include <src/ast/builder/AstBuilder.hpp>
 
 class IRTreeBuilder {
 public:
     shared_ptr<CompilationUnitNode> cu;
+    shared_ptr<IRTree> tree;
     Path file;
+
+    vector<string> imported = vector<string>();
+    stack<shared_ptr<ClassDeclNode>> classesStack = stack<shared_ptr<ClassDeclNode>>();
 
     IRTreeBuilder(shared_ptr<CompilationUnitNode> _cu, Path& _file);
     void walk();
+
+    void enterImports(Path f);
+    void enterClassDecl(shared_ptr<ClassDeclNode> node, bool genMethods);
+    void enterMethod(shared_ptr<MethodDeclNode> node);
+    void enterConstructor(shared_ptr<ConstructorDeclNode> node, bool defaultConstrucctor);
+    void enterDestructor(shared_ptr<ClassDeclNode> node);
+
+    shared_ptr<IRBlock> enterBlock(shared_ptr<BlockNode> node);
+    shared_ptr<IRStatement> enterStatement(shared_ptr<StatementNode> el);
+    shared_ptr<IRExpression> enterExpression(shared_ptr<ExpressionNode> node);
+    shared_ptr<IRLiteral> enterLiteral(shared_ptr<ExpressionNode> node);
+    shared_ptr<IRCall> enterCall(shared_ptr<MethodCallNode> node);
+    shared_ptr<IRBinOp> enterBinOp(shared_ptr<BinaryOperatorNode> node);
+    shared_ptr<IRCall> enterNew(shared_ptr<NewNode> node);
 };
