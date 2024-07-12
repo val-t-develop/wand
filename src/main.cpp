@@ -130,6 +130,10 @@ void CU::completeToState(State state) {
             irTreeBuilder->walk();
             currState = State::IR_TREE;
         } else if (currState == State::IR_TREE) {
+            codeGen = make_shared<CodeGen>(irTreeBuilder->tree, file);
+            codeGen->codeGen();
+            codeGen->build();
+
             currState = State::CODE_GEN;
         } else if (currState == State::CODE_GEN) {}
         Main::currCUsStack.pop();

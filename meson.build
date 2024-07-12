@@ -105,6 +105,8 @@ src_files = ['src/main.cpp', 'src/main.hpp', 'src/License.hpp',
     'src/IRTree/node/statement/expression/IRAlloc.hpp', 'src/IRTree/node/statement/expression/IRAlloc.cpp',
     'src/IRTree/node/statement/expression/IRFunc.hpp', 'src/IRTree/node/statement/expression/IRFunc.cpp',
 
+    'src/codeGen/CodeGen.cpp', 'src/codeGen/CodeGen.hpp',
+    'src/codeGen/utils/CodeGenUtils.cpp', 'src/codeGen/utils/CodeGenUtils.hpp',
     'src/codeGen/utils/LLVMHelper.cpp', 'src/codeGen/utils/LLVMHelper.hpp']
 
 executable('spl', src_files, dependencies : llvm_dep, include_directories : incdir)

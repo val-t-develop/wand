@@ -22,7 +22,7 @@
  */
 
 #pragma once
-#include <ast/builder/AstBuilder.hpp>
+#include <IRTree/builder/IRTreeBuilder.hpp>
 #include <codeGen/utils/CodeGenUtils.hpp>
 #include <codeGen/utils/LLVMHelper.hpp>
 #include <llvm/ADT/APFloat.h>
@@ -42,67 +42,26 @@ using namespace llvm;
 class CodeGenUtils;
 
 class CodeGen {
-  public:
+public:
     class DestructAfterStatement {
     public:
-        Value *val;
-        string type;
-        bool decreaseRefs;
+      Value *val;
+      string type;
+      bool decreaseRefs;
 
-        DestructAfterStatement(Value *_val, string _type, bool _decreaseRefs);
+      DestructAfterStatement(Value *_val, string _type, bool _decreaseRefs);
     };
+
+
     shared_ptr<CodeGenUtils> utils;
     shared_ptr<LLVMHelper> helper;
-
-    vector<string> imported = vector<string>();
-    map<string, Value *> NamedValues;
-    map<string, Value *> GlobalNamedValues;
-    map<Value *, shared_ptr<ExpressionNode>> StaticGlobalsInit;
-    map<shared_ptr<VarRecord>, Type *> varTypes;
-    BasicBlock *retBB{};
-    stack<Value *> thisV;
-    shared_ptr<VarRecord> thisRecord;
+    Path file;
+    shared_ptr<IRTree> tree;
     vector<DestructAfterStatement> destructAfterStatement = vector<DestructAfterStatement>();
 
-    shared_ptr<CompilationUnitNode> cu;
-
-    stack<shared_ptr<ClassDeclNode>> classesStack =
-        stack<shared_ptr<ClassDeclNode>>();
-    stack<vector<pair<Value *, string>>> currBlockVars =
-        stack<vector<pair<Value *, string>>>();
-    Path file;
-    shared_ptr<MethodDeclNode> currMethod;
-    bool isRef = false;
-
-    CodeGen(shared_ptr<CompilationUnitNode> _cu, Path& _file);
+    CodeGen(shared_ptr<IRTree> _tree, Path& _file);
 
     void codeGen();
 
     void build();
-    void genImport(Path f);
-    void createClassType(shared_ptr<ClassDeclNode> node);
-    void genClassDecl(shared_ptr<ClassDeclNode> node, bool genMethod);
-
-    void genStruct(shared_ptr<ClassDeclNode> node);
-
-    Function *genMethodPrototype(shared_ptr<MethodDeclNode> node);
-    Function *genDestructorPrototype(shared_ptr<ClassDeclNode> node);
-    Function *genConstructorPrototype(shared_ptr<ConstructorDeclNode> node);
-    Function *genMethodDecl(shared_ptr<MethodDeclNode> node);
-    Function *genDestructorDecl(shared_ptr<ClassDeclNode> node);
-    Function *genConstructorDecl(shared_ptr<ConstructorDeclNode> node);
-    bool genBlockStatement(shared_ptr<BlockNode> node);
-    bool
-    genConstructorBlockStatement(shared_ptr<ConstructorDeclNode> constructor);
-    void genIfElse(shared_ptr<IfElseNode> node);
-    void genWhile(shared_ptr<WhileNode> node);
-    void genFor(shared_ptr<ForNode> node);
-    Value *genExpression(shared_ptr<ExpressionNode> node, bool genRef);
-    Value *genLiteral(shared_ptr<ExpressionNode> node);
-    Value *genMethodCall(shared_ptr<MethodCallNode> node, Value *calle);
-    Value *genVarDecl(shared_ptr<VarDeclNode> node);
-    Value *genDefaultValue(shared_ptr<TypeNode> node);
-    Value *genVarValue(shared_ptr<VarRecordNode> node, bool genRef);
-    Value *genBinOp(shared_ptr<BinaryOperatorNode> node);
-    Value *genNewNode(shared_ptr<NewNode> node);
 };

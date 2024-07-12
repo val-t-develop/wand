@@ -22,11 +22,12 @@
  */
 
 #pragma once
+#include <IRTree/builder/IRTreeBuilder.hpp>
 #include <ast/builder/AstBuilder.hpp>
+#include <codeGen/CodeGen.hpp>
 #include <lexer/Lexer.hpp>
 #include <symbolListener/SymbolListener.hpp>
 #include <symbolTable/SymbolTable.hpp>
-#include <IRTree/builder/IRTreeBuilder.hpp>
 #include <utils/ArgsParser.hpp>
 #include <utils/Out.hpp>
 
@@ -44,6 +45,7 @@ class CU {
     shared_ptr<CompilationUnitNode> cu;
     shared_ptr<AstBuilder> astBuilder;
     shared_ptr<IRTreeBuilder> irTreeBuilder;
+    shared_ptr<CodeGen> codeGen;
 
     map<vector<string>, vector<Path>> importFiles =
         map<vector<string>, vector<Path>>();
