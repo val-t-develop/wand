@@ -23,6 +23,8 @@
 
 #pragma once
 #include <IRTree/builder/IRTreeBuilder.hpp>
+#include <IRTree/node/statement/IRIfElse.hpp>
+#include <IRTree/node/statement/IRWhile.hpp>
 #include <codeGen/utils/CodeGenUtils.hpp>
 #include <codeGen/utils/LLVMHelper.hpp>
 #include <llvm/ADT/APFloat.h>
@@ -58,10 +60,29 @@ public:
     Path file;
     shared_ptr<IRTree> tree;
     vector<DestructAfterStatement> destructAfterStatement = vector<DestructAfterStatement>();
+    BasicBlock *retBB;
+    shared_ptr<IRFunction> currFunction;
+    map<string, Type *> varTypes;
+    map<string, Value *> NamedValues;
+    map<string, Value *> GlobalNamedValues;
+    stack<vector<pair<Value *, string>>> currBlockVars =
+        stack<vector<pair<Value *, string>>>();
+    // TODO NamedValues and currBlockVars should be united
 
     CodeGen(shared_ptr<IRTree> _tree, Path& _file);
 
     void codeGen();
 
     void build();
+
+    void genStructType(shared_ptr<IRStruct> node);
+    void genStruct(shared_ptr<IRStruct> node);
+    void genGlobalVar(shared_ptr<IRVarDecl> node);
+    void genFunctionPrototype(shared_ptr<IRFunction> node);
+    void genFunction(shared_ptr<IRFunction> node);
+    bool genBlock(shared_ptr<IRBlock> node);
+    void genIfElse(shared_ptr<IRIfElse> node);
+    void genWhile(shared_ptr<IRWhile> node);
+    void genVarDecl(shared_ptr<IRVarDecl> node);
+    Value *genExpression(shared_ptr<IRExpression> node, bool genRefs);
 };

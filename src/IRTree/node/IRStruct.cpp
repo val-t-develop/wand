@@ -23,4 +23,4 @@
 
 #include "IRStruct.hpp"
 
-IRStruct::IRStruct(vector<shared_ptr<IRVarDecl>> _fields) : fields(_fields), IRNode(Kind::STRUCT) {}
+IRStruct::IRStruct(string _name, vector<shared_ptr<IRVarDecl>> _fields) : name(_name), fields(_fields), IRNode(Kind::STRUCT) {}

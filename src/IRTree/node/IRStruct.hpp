@@ -27,7 +27,8 @@
 
 class IRStruct : public IRNode {
 public:
+     string name;
      vector<shared_ptr<IRVarDecl>> fields;
 
-     IRStruct(vector<shared_ptr<IRVarDecl>> _fields);
+     IRStruct(string _name, vector<shared_ptr<IRVarDecl>> _fields);
 };

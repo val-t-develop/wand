@@ -30,6 +30,7 @@
 
 class IRTree : public IRNode {
 public:
+    string moduleName = "";
     vector<shared_ptr<IRFunction>> funcs = vector<shared_ptr<IRFunction>>();
     vector<shared_ptr<IRStruct>> structs = vector<shared_ptr<IRStruct>>();
     vector<shared_ptr<IRVarDecl>> globalVars = vector<shared_ptr<IRVarDecl>>();

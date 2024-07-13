@@ -50,6 +50,17 @@ void IRTreeBuilder::walk() {
         for (shared_ptr<Node> n : importCU->nodes) {
             if (n->kind == Node::NodeKind::PACKAGE_DECL_NODE) {
                 auto name = static_pointer_cast<PackageDeclNode>(n)->name;
+
+                tree->moduleName = "";
+                for (string str :
+                     static_pointer_cast<PackageDeclNode>(cu->nodes[0])->name) {
+                    if (str != "") {
+                        tree->moduleName += str + ".";
+                    }
+                     }
+                tree->moduleName.pop_back();
+
+
                 if (name.size()==2) {
                     if (name[0]=="spl" && name[1]=="core") {
                         if (p.getFilename() == "core.spl") {
@@ -107,7 +118,7 @@ void IRTreeBuilder::enterClassDecl(shared_ptr<ClassDeclNode> node,
                                    bool genMethods) {
     classesStack.push(node);
     shared_ptr<IRStruct> Struct =
-        make_shared<IRStruct>(vector<shared_ptr<IRVarDecl>>{});
+        make_shared<IRStruct>(node->getFullName(), vector<shared_ptr<IRVarDecl>>{});
     for (auto el : node->innerClasses) {
         enterClassDecl(el, genMethods);
     }
@@ -180,7 +191,7 @@ void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
         auto access = make_shared<IRAccess>();
         access->access.push_back(make_shared<IRVar>("this"));
         access->access.push_back(make_shared<IRVar>(el->getFullName()));
-        constructorHeader.push_back(make_shared<IRBinOp>(access, getDefaultValue(el->type), BinaryOperatorNode::BinaryOperatorKind::ASSIGN));
+        constructorHeader.push_back(make_shared<IRBinOp>(access, getDefaultValue(el->type->getFullName()), BinaryOperatorNode::BinaryOperatorKind::ASSIGN));
     }
     if (body!=nullptr) {
         body->nodes.insert(body->nodes.begin(), constructorHeader.begin(), constructorHeader.end());
@@ -263,6 +274,7 @@ IRTreeBuilder::enterStatement(shared_ptr<StatementNode> el) {
         return make_shared<IRReturn>(
             enterExpression(static_pointer_cast<ReturnNode>(el)->expression));
     } else if (el->kind == Node::NodeKind::VAR_DECL_NODE) {
+        // TODO
         shared_ptr<IRBlock> block =
             make_shared<IRBlock>(vector<shared_ptr<IRStatement>>{});
         auto varDeclNode = static_pointer_cast<VarDeclNode>(el);
@@ -277,6 +289,7 @@ IRTreeBuilder::enterStatement(shared_ptr<StatementNode> el) {
         }
         return block;
     } else if (el->kind == Node::NodeKind::VARS_DECL_NODE) {
+        // TODO
         shared_ptr<IRBlock> block =
             make_shared<IRBlock>(vector<shared_ptr<IRStatement>>{});
         for (auto varDeclNode : static_pointer_cast<VarsDeclNode>(el)->decls) {
@@ -491,24 +504,24 @@ shared_ptr<IRCall> IRTreeBuilder::enterNew(shared_ptr<NewNode> node) {
 }
 
 shared_ptr<IRExpression>
-IRTreeBuilder::getDefaultValue(shared_ptr<TypeNode> node) {
-    if (node->getFullName()=="char") {
+IRTreeBuilder::getDefaultValue(string type) {
+    if (type=="char") {
         return make_shared<IRLiteral>(IRNode::Kind::CHAR_LITERAL);
-    } else if (node->getFullName()=="bool") {
+    } else if (type=="bool") {
         return make_shared<IRLiteral>(IRNode::Kind::BOOL_LITERAL);
-    } else if (node->getFullName()=="byte") {
+    } else if (type=="byte") {
         return make_shared<IRLiteral>(IRNode::Kind::BYTE_LITERAL);
-    } else if (node->getFullName()=="short") {
+    } else if (type=="short") {
         return make_shared<IRLiteral>(IRNode::Kind::SHORT_LITERAL);
-    } else if (node->getFullName()=="int") {
+    } else if (type=="int") {
         return make_shared<IRLiteral>(IRNode::Kind::INT_LITERAL);
-    } else if (node->getFullName()=="long") {
+    } else if (type=="long") {
         return make_shared<IRLiteral>(IRNode::Kind::LONG_LITERAL);
-    } else if (node->getFullName()=="float") {
+    } else if (type=="float") {
         return make_shared<IRLiteral>(IRNode::Kind::FLOAT_LITERAL);
-    } else if (node->getFullName()=="double") {
+    } else if (type=="double") {
         return make_shared<IRLiteral>(IRNode::Kind::DOUBLE_LITERAL);
-    } else if (node->getFullName()=="String") {
+    } else if (type=="String") {
         return make_shared<IRLiteral>(IRNode::Kind::STRING_LITERAL);
     } else {
         return make_shared<IRLiteral>(IRNode::Kind::NULL_LITERAL);
