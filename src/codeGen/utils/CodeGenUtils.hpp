@@ -47,6 +47,7 @@ class CodeGenUtils {
     shared_ptr<LLVMHelper> helper;
 
     map<string, StructType *> classesTypes = map<string, StructType *>();
+    map<string, string> functionTypes = map<string, string>();
 
     CodeGenUtils(CodeGen *_codeGen);
 

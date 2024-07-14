@@ -41,6 +41,8 @@
 #include <IRTree/node/statement/IRIfElse.hpp>
 #include <IRTree/node/statement/IRReturn.hpp>
 #include <IRTree/node/statement/IRWhile.hpp>
+#include <IRTree/node/statement/expression/IRAccess.hpp>
+#include <IRTree/node/statement/expression/IRVar.hpp>
 #include <ast/node/statement/expression/literal/StringLiteralNode.hpp>
 
 CodeGen::CodeGen(shared_ptr<IRTree> _tree, Path& _file) : tree(_tree), file(_file) {
@@ -152,6 +154,7 @@ void CodeGen::genGlobalVar(shared_ptr<IRVarDecl> node) {
 }
 
 void CodeGen::genFunctionPrototype(shared_ptr<IRFunction> node) {
+    utils->functionTypes[node->name]=node->type;
     vector<Type *> args_types = vector<Type *>();
 
     for (int i = 0; i < node->args.size(); ++i) {
@@ -412,6 +415,91 @@ void CodeGen::genVarDecl(shared_ptr<IRVarDecl> node) {
         pair<Value *, string>(ptr, node->type));
 }
 
-Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRefs) {
+Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
+    if (node->kind == IRNode::Kind::VAR) {
+        if (genRef) {
+            isRef = true;
+        }
+        return genVarValue(static_pointer_cast<IRVar>(node), genRef);
+    } else if (node->kind == IRNode::Kind::ACCESS) {
 
+    } else if (node->kind == IRNode::Kind::CALL) {
+        if (genRef) {
+            isRef = false;
+        }
+        return genCall(static_pointer_cast<IRCall>(node));
+    } else if (node->kind == IRNode::Kind::BIN_OP) {
+
+    } else if (node->kind == IRNode::Kind::UN_OP) {
+
+    } else if (node->kind == IRNode::Kind::ALLOC) {
+
+    } else if (node->kind == IRNode::Kind::FUNCTION_POINTER) {
+
+    } else if (node->isLiteral()) {
+        if (genRef) {
+            isRef = false;
+        }
+        return genLiteral(static_pointer_cast<IRLiteral>(node));
+    }
+}
+
+Value *CodeGen::genLiteral(shared_ptr<IRLiteral> node) {
+    if (node->kind == IRNode::Kind::CHAR_LITERAL) {
+        return helper->getConstInt(8, node->strLiteral[0]);
+    } else if (node->kind == IRNode::Kind::BOOL_LITERAL) {
+        return helper->getConstInt(1, node->boolLiteral);
+    } else if (node->kind == IRNode::Kind::BYTE_LITERAL) {
+        return helper->getConstInt(8, node->intLoteral);
+    } else if (node->kind == IRNode::Kind::SHORT_LITERAL) {
+        return helper->getConstInt(16, node->intLoteral);
+    } else if (node->kind == IRNode::Kind::INT_LITERAL) {
+        return helper->getConstInt(32, node->intLoteral);
+    } else if (node->kind == IRNode::Kind::LONG_LITERAL) {
+        return helper->getConstInt(64, node->intLoteral);
+    } else if (node->kind == IRNode::Kind::FLOAT_LITERAL) {
+        return helper->getConstFloat(node->doubleLiteral);
+    } else if (node->kind == IRNode::Kind::DOUBLE_LITERAL) {
+        return helper->getConstDouble(node->doubleLiteral);
+    } else if (node->kind == IRNode::Kind::NULL_LITERAL) {
+        return helper->getNullptr(
+            helper->getPointerType(helper->getVoidType()));
+    } else if (node->kind == IRNode::Kind::STRING_LITERAL) {
+        Constant *c = helper->createConstantVar(
+            helper->getArrayType(helper->getIntType(8),
+                                 node->strLiteral.size()),
+            "__spl__str__literal",
+            helper->getConstNullTerminatedString(node->strLiteral));
+        auto v = helper->createCall(
+            "__spl__constructor__String____StringLiteral", {c});
+        destructAfterStatement.push_back(
+            DestructAfterStatement(v, "String", false));
+        return v;
+    }
+}
+Value *CodeGen::genCall(shared_ptr<IRCall> node) {
+    vector<Value *> args = vector<Value *>();
+    for (auto arg : node->args) {
+        args.push_back(genExpression(arg, false));
+    }
+    auto tmp = helper->createCall(node->name, args);
+    if (tmp->getType()->isPointerTy()) {
+        destructAfterStatement.push_back(DestructAfterStatement(
+            tmp, utils->functionTypes[node->name], true));
+    }
+    return tmp;
+}
+
+Value *CodeGen::genVarValue(shared_ptr<IRVar> node, bool genRef) {
+    Value *ptr = NamedValues[node->name];
+    if (ptr == nullptr) {
+        ptr = GlobalNamedValues[node->name];
+    }
+    Type *type = varTypes[node->name];
+    if (genRef) {
+        return ptr;
+    } else {
+        Value *val = helper->createLoad(type, ptr);
+        return val;
+    }
 }

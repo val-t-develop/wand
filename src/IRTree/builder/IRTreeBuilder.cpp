@@ -410,6 +410,7 @@ IRTreeBuilder::enterLiteral(shared_ptr<ExpressionNode> node) {
 }
 
 shared_ptr<IRCall> IRTreeBuilder::enterCall(shared_ptr<MethodCallNode> node) {
+    // TODO find right record of similars
     vector<shared_ptr<IRExpression>> args{};
     for (auto el : node->args) {
         args.push_back(enterExpression(el));

@@ -25,6 +25,7 @@
 #include <IRTree/builder/IRTreeBuilder.hpp>
 #include <IRTree/node/statement/IRIfElse.hpp>
 #include <IRTree/node/statement/IRWhile.hpp>
+#include <IRTree/node/statement/expression/IRVar.hpp>
 #include <codeGen/utils/CodeGenUtils.hpp>
 #include <codeGen/utils/LLVMHelper.hpp>
 #include <llvm/ADT/APFloat.h>
@@ -68,6 +69,7 @@ public:
     stack<vector<pair<Value *, string>>> currBlockVars =
         stack<vector<pair<Value *, string>>>();
     // TODO NamedValues and currBlockVars should be united
+    bool isRef = false;
 
     CodeGen(shared_ptr<IRTree> _tree, Path& _file);
 
@@ -84,5 +86,8 @@ public:
     void genIfElse(shared_ptr<IRIfElse> node);
     void genWhile(shared_ptr<IRWhile> node);
     void genVarDecl(shared_ptr<IRVarDecl> node);
-    Value *genExpression(shared_ptr<IRExpression> node, bool genRefs);
+    Value *genExpression(shared_ptr<IRExpression> node, bool genRef);
+    Value *genLiteral(shared_ptr<IRLiteral> node);
+    Value *genCall(shared_ptr<IRCall> node);
+    Value *genVarValue(shared_ptr<IRVar> node, bool genRef);
 };
