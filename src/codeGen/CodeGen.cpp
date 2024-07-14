@@ -128,7 +128,7 @@ void CodeGen::genStruct(shared_ptr<IRStruct> node) {
 
     for (auto var : node->fields) {
         types.push_back(utils->getType(var->type));
-        varTypes[var->name] = utils->getType(var->type);
+        varTypes[var->name] = var->type;
     }
 
     string fullName = node->name;
@@ -201,7 +201,7 @@ void CodeGen::genFunction(shared_ptr<IRFunction> node) {
             Value *ptr = helper->createAlloca(Arg->getType(), nullptr, argName);
             helper->createStore(Arg, ptr);
             NamedValues[argName] = ptr;
-            varTypes[node->args[i]->name] = Arg->getType();
+            varTypes[node->args[i]->name] = node->args[i]->type;
         }
 
         bool br = genBlock(node->body);
@@ -410,7 +410,7 @@ void CodeGen::genVarDecl(shared_ptr<IRVarDecl> node) {
     Value *ptr =
         helper->createAlloca(utils->getType(node->type), nullptr, node->name);
     NamedValues[node->name] = ptr;
-    varTypes[node->name] = utils->getType(node->type);
+    varTypes[node->name] = node->type;
     currBlockVars.top().push_back(
         pair<Value *, string>(ptr, node->type));
 }
@@ -495,7 +495,7 @@ Value *CodeGen::genVarValue(shared_ptr<IRVar> node, bool genRef) {
     if (ptr == nullptr) {
         ptr = GlobalNamedValues[node->name];
     }
-    Type *type = varTypes[node->name];
+    Type *type = utils->getType(varTypes[node->name]);
     if (genRef) {
         return ptr;
     } else {

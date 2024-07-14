@@ -63,7 +63,7 @@ public:
     vector<DestructAfterStatement> destructAfterStatement = vector<DestructAfterStatement>();
     BasicBlock *retBB;
     shared_ptr<IRFunction> currFunction;
-    map<string, Type *> varTypes;
+    map<string, string> varTypes;
     map<string, Value *> NamedValues;
     map<string, Value *> GlobalNamedValues;
     stack<vector<pair<Value *, string>>> currBlockVars =
