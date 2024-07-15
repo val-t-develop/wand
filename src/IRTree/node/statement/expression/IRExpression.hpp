@@ -23,7 +23,7 @@
 
 #pragma once
 #include <IRTree/node/statement/IRStatement.hpp>
-#include <codeGen/CodeGen.hpp>
+class CodeGen;
 
 class IRExpression : public IRStatement {
 public:

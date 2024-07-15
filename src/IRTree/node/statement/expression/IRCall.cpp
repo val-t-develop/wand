@@ -22,6 +22,7 @@
  */
 
 #include "IRCall.hpp"
+#include <codeGen/CodeGen.hpp>
 
 IRCall::IRCall(string _name, vector<shared_ptr<IRExpression>> _args)
     : name(_name), args(_args), IRExpression(Kind::CALL) {}

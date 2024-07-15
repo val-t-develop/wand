@@ -22,6 +22,7 @@
  */
 
 #include "IRVar.hpp"
+#include <codeGen/CodeGen.hpp>
 
 IRVar::IRVar(string _name) : name(_name), IRExpression(Kind::VAR) {}
 
