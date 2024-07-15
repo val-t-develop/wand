@@ -40,6 +40,7 @@
 
 #include <IRTree/node/statement/IRIfElse.hpp>
 #include <IRTree/node/statement/IRReturn.hpp>
+#include <IRTree/node/statement/IRVarsDecl.hpp>
 #include <IRTree/node/statement/IRWhile.hpp>
 #include <IRTree/node/statement/expression/IRAccess.hpp>
 #include <IRTree/node/statement/expression/IRValue.hpp>
@@ -303,6 +304,11 @@ bool CodeGen::genBlock(shared_ptr<IRBlock> node) {
             } else if (item->kind == IRNode::Kind::VAR_DECL) {
                 genVarDecl(static_pointer_cast<IRVarDecl>(item));
                 utils->destructAfterStatement();
+            } else if (item->kind == IRNode::Kind::VARS_DECL) {
+                for (auto el : static_pointer_cast<IRVarsDecl>(item)->vars) {
+                    genVarDecl(el);
+                }
+                utils->destructAfterStatement();
             } else if (item->isExpression()) {
                 genExpression(static_pointer_cast<IRExpression>(item), false);
                 utils->destructAfterStatement();
@@ -418,6 +424,7 @@ void CodeGen::genVarDecl(shared_ptr<IRVarDecl> node) {
     varTypes[node->name] = node->type;
     currBlockVars.top().push_back(
         pair<Value *, string>(ptr, node->type));
+    genExpression(make_shared<IRBinOp>(make_shared<IRVar>(node->name), node->init, BinaryOperatorNode::BinaryOperatorKind::ASSIGN), false);
 }
 
 Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {

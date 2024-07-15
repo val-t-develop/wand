@@ -23,6 +23,7 @@
 
 #pragma once
 #include "IRStatement.hpp"
+#include "expression/IRExpression.hpp"
 
 #include <Defs.hpp>
 
@@ -30,6 +31,7 @@ class IRVarDecl : public IRStatement {
 public:
     string name;
     string type;
+    shared_ptr<IRExpression> init;
 
-    IRVarDecl(string _name, string _type);
+    IRVarDecl(string _name, string _type, shared_ptr<IRExpression> _init);
 };

@@ -25,6 +25,7 @@
 
 #include <IRTree/node/statement/IRIfElse.hpp>
 #include <IRTree/node/statement/IRReturn.hpp>
+#include <IRTree/node/statement/IRVarsDecl.hpp>
 #include <IRTree/node/statement/IRWhile.hpp>
 #include <IRTree/node/statement/expression/IRAccess.hpp>
 #include <IRTree/node/statement/expression/IRAlloc.hpp>
@@ -132,9 +133,9 @@ void IRTreeBuilder::enterClassDecl(shared_ptr<ClassDeclNode> node,
             }
         }
         if (isStatic) {
-            tree->globalVars.push_back(make_shared<IRVarDecl>(el->getFullName(), el->type->getFullName()));
+            tree->globalVars.push_back(make_shared<IRVarDecl>(el->getFullName(), el->type->getFullName(), nullptr));
         } else {
-            Struct->fields.push_back(make_shared<IRVarDecl>(el->getFullName(), el->type->getFullName()));
+            Struct->fields.push_back(make_shared<IRVarDecl>(el->getFullName(), el->type->getFullName(), nullptr));
         }
     }
     tree->structs.push_back(Struct);
@@ -161,7 +162,7 @@ void IRTreeBuilder::enterMethod(shared_ptr<MethodDeclNode> node) {
 
     for (auto arg : node->args) {
         args.push_back(make_shared<IRVarDecl>(arg->getFullName(),
-                                              arg->type->getFullName()));
+                                              arg->type->getFullName(), nullptr));
     }
     if (node->body != nullptr) {
         body = enterBlock(node->body);
@@ -178,15 +179,14 @@ void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
 
     for (auto arg : node->args) {
         args.push_back(make_shared<IRVarDecl>(arg->getFullName(),
-                                              arg->type->getFullName()));
+                                              arg->type->getFullName(), nullptr));
         argsSpec += "__" + arg->type->getFullName();
     }
     if (node->body != nullptr) {
         body = enterBlock(node->body);
     }
     vector<shared_ptr<IRStatement>> constructorHeader{};
-    constructorHeader.push_back(make_shared<IRVarDecl>("this", classesStack.top()->getFullName()));
-    constructorHeader.push_back(make_shared<IRBinOp>(make_shared<IRVar>("this"), make_shared<IRAlloc>(classesStack.top()->getFullName()), BinaryOperatorNode::BinaryOperatorKind::ASSIGN));
+    constructorHeader.push_back(make_shared<IRVarDecl>("this", classesStack.top()->getFullName(), make_shared<IRAlloc>(classesStack.top()->getFullName())));
     for (auto el : classesStack.top()->fields) {
         auto access = make_shared<IRAccess>();
         access->access.push_back(make_shared<IRVar>("this"));
@@ -224,7 +224,7 @@ void IRTreeBuilder::enterDestructor(shared_ptr<ClassDeclNode> node) {
     tree->funcs.push_back(make_shared<IRFunction>(
         "__spl__destructor__" + currClass->getFullName(), "void",
         vector<shared_ptr<IRVarDecl>>{
-            make_shared<IRVarDecl>("this", currClass->getFullName())},
+            make_shared<IRVarDecl>("this", currClass->getFullName(), nullptr)},
         body));
 }
 
@@ -238,17 +238,10 @@ shared_ptr<IRBlock> IRTreeBuilder::enterBlock(shared_ptr<BlockNode> node) {
             block->nodes.push_back(make_shared<IRReturn>(enterExpression(static_pointer_cast<ReturnNode>(el)->expression)));
         } else if (el->kind == Node::NodeKind::VAR_DECL_NODE) {
             auto varDeclNode = static_pointer_cast<VarDeclNode>(el);
-            block->nodes.push_back(make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName()));
-            if (varDeclNode->init != nullptr) {
-                block->nodes.push_back(enterExpression(make_shared<BinaryOperatorNode>(make_shared<VarRecordNode>(varDeclNode->record, nullptr), varDeclNode->init, BinaryOperatorNode::BinaryOperatorKind::ASSIGN, nullptr)));
-            }
+            block->nodes.push_back(make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName(), varDeclNode->init!=nullptr?enterExpression(varDeclNode->init):nullptr));
         } else if (el->kind == Node::NodeKind::VARS_DECL_NODE) {
-            for (auto varDeclNode :
-                 static_pointer_cast<VarsDeclNode>(el)->decls) {
-                block->nodes.push_back(make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName()));
-                if (varDeclNode->init != nullptr) {
-                    block->nodes.push_back(enterExpression(make_shared<BinaryOperatorNode>(make_shared<VarRecordNode>(varDeclNode->record, nullptr), varDeclNode->init, BinaryOperatorNode::BinaryOperatorKind::ASSIGN, nullptr)));
-                }
+            for (auto varDeclNode : static_pointer_cast<VarsDeclNode>(el)->decls) {
+                block->nodes.push_back(make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName(), varDeclNode->init!=nullptr?enterExpression(varDeclNode->init):nullptr));
             }
         } else if (el->kind == Node::NodeKind::IF_ELSE_NODE) {
             auto ifElseNode = static_pointer_cast<IfElseNode>(el);
@@ -272,38 +265,14 @@ IRTreeBuilder::enterStatement(shared_ptr<StatementNode> el) {
         return make_shared<IRReturn>(
             enterExpression(static_pointer_cast<ReturnNode>(el)->expression));
     } else if (el->kind == Node::NodeKind::VAR_DECL_NODE) {
-        // TODO
-        shared_ptr<IRBlock> block =
-            make_shared<IRBlock>(vector<shared_ptr<IRStatement>>{});
         auto varDeclNode = static_pointer_cast<VarDeclNode>(el);
-        block->nodes.push_back(make_shared<IRVarDecl>(
-            varDeclNode->getFullName(), varDeclNode->type->getFullName()));
-        if (varDeclNode->init != nullptr) {
-            block->nodes.push_back(
-                enterExpression(make_shared<BinaryOperatorNode>(
-                    make_shared<VarRecordNode>(varDeclNode->record, nullptr),
-                    varDeclNode->init,
-                    BinaryOperatorNode::BinaryOperatorKind::ASSIGN, nullptr)));
-        }
-        return block;
+        return make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName(), varDeclNode->init!=nullptr?enterExpression(varDeclNode->init):nullptr);
     } else if (el->kind == Node::NodeKind::VARS_DECL_NODE) {
-        // TODO
-        shared_ptr<IRBlock> block =
-            make_shared<IRBlock>(vector<shared_ptr<IRStatement>>{});
+        shared_ptr<IRVarsDecl> vars = make_shared<IRVarsDecl>();
         for (auto varDeclNode : static_pointer_cast<VarsDeclNode>(el)->decls) {
-            block->nodes.push_back(make_shared<IRVarDecl>(
-                varDeclNode->getFullName(), varDeclNode->type->getFullName()));
-            if (varDeclNode->init != nullptr) {
-                block->nodes.push_back(
-                    enterExpression(make_shared<BinaryOperatorNode>(
-                        make_shared<VarRecordNode>(varDeclNode->record,
-                                                   nullptr),
-                        varDeclNode->init,
-                        BinaryOperatorNode::BinaryOperatorKind::ASSIGN,
-                        nullptr)));
-            }
+            vars->vars.push_back(make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName(), varDeclNode->init!=nullptr?enterExpression(varDeclNode->init):nullptr));
         }
-        return block;
+        return vars;
     } else if (el->kind == Node::NodeKind::IF_ELSE_NODE) {
         auto ifElseNode = static_pointer_cast<IfElseNode>(el);
         return make_shared<IRIfElse>(enterExpression(ifElseNode->condition),

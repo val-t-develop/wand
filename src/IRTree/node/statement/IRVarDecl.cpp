@@ -18,9 +18,9 @@
 /*
  *  Valentyn Tymchyshyn (val.t.develop) (val.t.develo@gmail.com)
  *
- *  IR tree part for function.
+ *  IR tree part for variable declaration.
  */
 
 #include "IRVarDecl.hpp"
 
-IRVarDecl::IRVarDecl(string _name, string _type) : name(_name), type(_type), IRStatement(Kind::VAR_DECL) {}
+IRVarDecl::IRVarDecl(string _name, string _type, shared_ptr<IRExpression> _init) : name(_name), type(_type), init(_init), IRStatement(Kind::VAR_DECL) {}

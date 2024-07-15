@@ -18,51 +18,15 @@
 /*
  *  Valentyn Tymchyshyn (val.t.develop) (val.t.develo@gmail.com)
  *
- *  IR tree node.
+ *  IR tree part for variables declaration.
  */
 
 #pragma once
-#include <Defs.hpp>
+#include "IRVarDecl.hpp"
 
-class IRNode {
+class IRVarsDecl : public IRStatement {
 public:
-    enum class Kind {
-        NONE,
-        TREE,
-        FUNCTION,
-        STRUCT,
-        BLOCK,
-        IF_ELSE,
-        RETURN,
-        VAR_DECL,
-        VARS_DECL,
-        WHILE,
+    vector<shared_ptr<IRVarDecl>> vars = vector<shared_ptr<IRVarDecl>>();
 
-        VALUE,
-        VAR,
-        ACCESS,
-        CALL,
-        BIN_OP,
-        UN_OP,
-        ALLOC,
-        FUNCTION_POINTER,
-
-        STRING_LITERAL,
-        CHAR_LITERAL,
-        BOOL_LITERAL,
-        BYTE_LITERAL,
-        SHORT_LITERAL,
-        INT_LITERAL,
-        LONG_LITERAL,
-        FLOAT_LITERAL,
-        DOUBLE_LITERAL,
-        NULL_LITERAL
-    };
-
-    Kind kind = Kind::NONE;
-
-    IRNode(Kind _kind);
-
-    bool isExpression();
-    bool isLiteral();
+    IRVarsDecl();
 };
