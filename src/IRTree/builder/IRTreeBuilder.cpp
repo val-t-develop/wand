@@ -195,10 +195,8 @@ void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
     }
     if (body!=nullptr) {
         body->nodes.insert(body->nodes.begin(), constructorHeader.begin(), constructorHeader.end());
-    } else {
-        body=make_shared<IRBlock>(constructorHeader);
+        body->nodes.push_back(make_shared<IRReturn>(make_shared<IRVar>("this")));
     }
-    body->nodes.push_back(make_shared<IRReturn>(make_shared<IRVar>("this")));
     auto currClass = classesStack.top();
     tree->funcs.push_back(make_shared<IRFunction>(
         "__spl__constructor__" + currClass->getFullName() + argsSpec, currClass->getFullName(),
