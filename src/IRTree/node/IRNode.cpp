@@ -26,7 +26,15 @@
 IRNode::IRNode(Kind _kind) : kind(_kind) {}
 
 bool IRNode::isExpression() {
-    if (kind == Kind::CALL || kind == Kind::UN_OP || kind == Kind::BIN_OP) {
+    if (kind==Kind::VALUE ||
+        kind==Kind::VAR ||
+        kind==Kind::ACCESS ||
+        kind == Kind::CALL ||
+        kind == Kind::UN_OP ||
+        kind == Kind::BIN_OP ||
+        kind == Kind::ALLOC ||
+        kind == Kind::FUNCTION_POINTER ||
+        isLiteral()) {
         return true;
     } else {
         return false;
