@@ -29,4 +29,6 @@ class IRValue : public IRExpression {
 public:
     llvm::Value *val;
     IRValue(llvm::Value *_val);
+
+    string getReturnType(shared_ptr<CodeGen> codeGen) override;
 };

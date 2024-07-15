@@ -29,4 +29,6 @@ public:
     string name;
 
     IRFunc(string _name);
+
+    string getReturnType(shared_ptr<CodeGen> codeGen) override;
 };

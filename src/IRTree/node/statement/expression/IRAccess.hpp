@@ -29,4 +29,6 @@ public:
     vector<shared_ptr<IRExpression>> access = vector<shared_ptr<IRExpression>>();
 
     IRAccess();
+
+    string getReturnType(shared_ptr<CodeGen> codeGen) override;
 };

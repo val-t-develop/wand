@@ -4,4 +4,11 @@
 
 #include "IRValue.hpp"
 
+#include <utils/Out.hpp>
+
 IRValue::IRValue(llvm::Value *_val) : val(_val), IRExpression(Kind::VALUE) {}
+
+string IRValue::getReturnType(shared_ptr<CodeGen> codeGen) {
+    Out::errorMessage("Can not get type of value");
+    return "";
+}

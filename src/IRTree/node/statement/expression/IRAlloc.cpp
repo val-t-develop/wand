@@ -24,3 +24,8 @@
 #include "IRAlloc.hpp"
 
 IRAlloc::IRAlloc(string _type) : type(_type), IRExpression(Kind::ALLOC) {}
+
+
+string IRAlloc::getReturnType(shared_ptr<CodeGen> codeGen) {
+    return type;
+}

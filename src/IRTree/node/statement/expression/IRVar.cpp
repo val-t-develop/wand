@@ -24,3 +24,7 @@
 #include "IRVar.hpp"
 
 IRVar::IRVar(string _name) : name(_name), IRExpression(Kind::VAR) {}
+
+string IRVar::getReturnType(shared_ptr<CodeGen> codeGen) {
+    return codeGen->varTypes[name];
+}

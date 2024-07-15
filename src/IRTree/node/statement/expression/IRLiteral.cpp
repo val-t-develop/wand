@@ -24,3 +24,27 @@
 #include "IRLiteral.hpp"
 
 IRLiteral::IRLiteral(Kind _kind) : IRExpression(_kind) {}
+
+string IRLiteral::getReturnType(shared_ptr<CodeGen> codeGen) {
+    if (kind==Kind::STRING_LITERAL) {
+        return "String";
+    } else if (kind==Kind::CHAR_LITERAL) {
+        return "char";
+    } else if (kind==Kind::BOOL_LITERAL) {
+        return "bool";
+    } else if (kind==Kind::BYTE_LITERAL) {
+        return "byte";
+    } else if (kind==Kind::SHORT_LITERAL) {
+        return "short";
+    } else if (kind==Kind::INT_LITERAL) {
+        return "int";
+    } else if (kind==Kind::LONG_LITERAL) {
+        return "long";
+    } else if (kind==Kind::FLOAT_LITERAL) {
+        return "float";
+    } else if (kind==Kind::DOUBLE_LITERAL) {
+        return "double";
+    } else if (kind==Kind::NULL_LITERAL) {
+        return "null";
+    }
+}

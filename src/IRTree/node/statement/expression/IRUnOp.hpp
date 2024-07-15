@@ -31,4 +31,6 @@ public:
     bool isPre;
 
     IRUnOp(shared_ptr<IRExpression> _val, string _op, bool _isPre);
+
+    string getReturnType(shared_ptr<CodeGen> codeGen) override;
 };

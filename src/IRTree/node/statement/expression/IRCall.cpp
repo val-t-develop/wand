@@ -23,4 +23,9 @@
 
 #include "IRCall.hpp"
 
-IRCall::IRCall(string _name, vector<shared_ptr<IRExpression>> _args) : name(_name), args(_args), IRExpression(Kind::CALL) {}
+IRCall::IRCall(string _name, vector<shared_ptr<IRExpression>> _args)
+    : name(_name), args(_args), IRExpression(Kind::CALL) {}
+
+string IRCall::getReturnType(shared_ptr<CodeGen> codeGen) {
+    return codeGen->utils->functionTypes[name];
+}

@@ -23,8 +23,10 @@
 
 #pragma once
 #include <IRTree/node/statement/IRStatement.hpp>
+#include <codeGen/CodeGen.hpp>
 
 class IRExpression : public IRStatement {
 public:
     IRExpression(Kind _kind);
+    virtual string getReturnType(shared_ptr<CodeGen> codeGen) = 0;
 };
