@@ -90,4 +90,5 @@ public:
     Value *genLiteral(shared_ptr<IRLiteral> node);
     Value *genCall(shared_ptr<IRCall> node);
     Value *genVarValue(shared_ptr<IRVar> node, bool genRef);
+    Value *genBinOp(shared_ptr<IRBinOp> node);
 };

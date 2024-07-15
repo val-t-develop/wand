@@ -495,7 +495,10 @@ Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
         }
         return genCall(static_pointer_cast<IRCall>(node));
     } else if (node->kind == IRNode::Kind::BIN_OP) {
-
+        if (genRef) {
+            isRef = false;
+        }
+        return genBinOp(static_pointer_cast<IRBinOp>(node));
     } else if (node->kind == IRNode::Kind::UN_OP) {
 
     } else if (node->kind == IRNode::Kind::ALLOC) {
@@ -569,4 +572,26 @@ Value *CodeGen::genVarValue(shared_ptr<IRVar> node, bool genRef) {
         Value *val = helper->createLoad(type, ptr);
         return val;
     }
+}
+
+Value *CodeGen::genBinOp(shared_ptr<IRBinOp> node) {
+    if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::ASSIGN) {
+        auto L = genExpression(node->left, true);
+        auto R = genExpression(node->right, false);
+        string type = node->left->getReturnType(this);
+        if (type!="char"&&
+            type!="bool"&&
+            type!="byte"&&
+            type!="short"&&
+            type!="int"&&
+            type!="long"&&
+            type!="float"&&
+            type!="double") {
+            helper->createCall("__spl__addref", vector<Value *>{L, R, helper->getFunction("__spl__destructor__"+type)});
+        }
+        helper->createStore(R, L);
+    }
+    auto L = genExpression(node->left, false);
+    auto R = genExpression(node->right, false);
+    return nullptr;
 }
