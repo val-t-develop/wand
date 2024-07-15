@@ -227,7 +227,7 @@ void CodeGen::genFunction(shared_ptr<IRFunction> node) {
         verifyFunction(*TheFunction);
 
         if (node->type == "int") {
-            if (node->name == "main") {
+            if (node->name.ends_with("main__spl__int__String")) {
                 if (node->args.size() == 1) {
                     if (node->args[0]->type == "String") {
                         Function *MainFunction =
