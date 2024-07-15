@@ -46,6 +46,10 @@
 #include <IRTree/node/statement/expression/IRVar.hpp>
 #include <ast/node/statement/expression/literal/StringLiteralNode.hpp>
 
+CodeGen::DestructAfterStatement::DestructAfterStatement(Value *_val,
+                                                        string _type,
+                                                        bool _decreaseRefs) : val(_val), type(_type), decreaseRefs(_decreaseRefs) {}
+
 CodeGen::CodeGen(shared_ptr<IRTree> _tree, Path& _file) : tree(_tree), file(_file) {
     if (tree->moduleName=="spl.core") {
         auto dir = file.getParent();
