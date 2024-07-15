@@ -331,6 +331,7 @@ IRTreeBuilder::enterExpression(shared_ptr<ExpressionNode> node) {
             }
             new_access->access.push_back(enterExpression(static_pointer_cast<ExpressionNode>(el)));
         }
+        return new_access;
     }
     return nullptr;
 }

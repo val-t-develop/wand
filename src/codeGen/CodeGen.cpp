@@ -282,12 +282,12 @@ bool CodeGen::genBlock(shared_ptr<IRBlock> node) {
                 utils->destructAfterStatement();
                 break;
             } else if (item->kind == IRNode::Kind::RETURN) {
-                if (static_pointer_cast<IRReturn>(item)->val != nullptr) {
+                auto returnNode = static_pointer_cast<IRReturn>(item);
+                if (returnNode->val != nullptr) {
                     Value *ptr =
                         NamedValues[helper->getCurrFunction()->getName().str() +
                                     "__spl__ret"];
-                    Value *val = genExpression(
-                        static_pointer_cast<IRReturn>(item)->val, false);
+                    Value *val = genExpression(returnNode->val, false);
                     if (val->getType()->isPointerTy()) {
                         helper->createCall(
                             "__spl__addref",
