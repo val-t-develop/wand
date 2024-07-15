@@ -42,6 +42,7 @@
 #include <IRTree/node/statement/IRReturn.hpp>
 #include <IRTree/node/statement/IRWhile.hpp>
 #include <IRTree/node/statement/expression/IRAccess.hpp>
+#include <IRTree/node/statement/expression/IRValue.hpp>
 #include <IRTree/node/statement/expression/IRVar.hpp>
 #include <ast/node/statement/expression/literal/StringLiteralNode.hpp>
 
@@ -422,7 +423,61 @@ Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
         }
         return genVarValue(static_pointer_cast<IRVar>(node), genRef);
     } else if (node->kind == IRNode::Kind::ACCESS) {
+        auto access = static_pointer_cast<IRAccess>(node);
+        Value *val = genExpression(access->access[0], false);
+        string val_type;
+        if (access->access[0]->kind==IRNode::Kind::VAR) {
+            val_type = varTypes[static_pointer_cast<IRVar>(access->access[0])->name];
+        } else if (access->access[0]->kind == IRNode::Kind::CALL) {
+            val_type = utils->functionTypes[static_pointer_cast<IRCall>(access->access[0])->name];
+        } else {
+            Out::errorMessage("BUG! Can not get expression kind!");
+        }
+        // TODO array access
 
+        for (int i = 1; i < access->access.size(); ++i) {
+            if (access->access[i]->kind==IRNode::Kind::VAR) {
+                int n = -1;
+                shared_ptr<IRStruct> Struct;
+                for (auto el : tree->structs) {
+                    if (el->name==val_type) {
+                        Struct=el;
+                        break;
+                    }
+                }
+                for (int j = 0; j < Struct->fields.size(); ++j) {
+                    if (Struct->fields[j]->name==static_pointer_cast<IRVar>(access->access[i])->name) {
+                        n=j;
+                        break;
+                    }
+                }
+                if (n==-1) {
+                    Out::errorMessage("Can not find field in class");
+                }
+                vector<Value *> ids = vector<Value *>{
+                    helper->getConstInt(32, 0), helper->getConstInt(32, n)};
+                Value *getelementptr = helper->createGetElementPtr(
+                    utils->getTypeNoPtr(val_type), val, ids);
+
+                val_type=Struct->fields[n]->type;
+                if (i==access->access.size()-1 && genRef) {
+                    isRef = true;
+                    val=getelementptr;
+                } else {
+                    val =
+                        helper->createLoad(utils->getType(val_type), getelementptr);
+                }
+            } else if (access->access[i]->kind==IRNode::Kind::CALL) {
+                if (genRef) {
+                    isRef = false;
+                }
+                auto call = static_pointer_cast<IRCall>(access->access[i]);
+                call->args.insert(call->args.begin(), make_shared<IRValue>(val));
+                val = genCall(static_pointer_cast<IRCall>(access->access[i]));
+                val_type = utils->functionTypes[call->name];
+            }
+        }
+        return val;
     } else if (node->kind == IRNode::Kind::CALL) {
         if (genRef) {
             isRef = false;
@@ -442,6 +497,7 @@ Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
         }
         return genLiteral(static_pointer_cast<IRLiteral>(node));
     }
+    return nullptr;
 }
 
 Value *CodeGen::genLiteral(shared_ptr<IRLiteral> node) {
