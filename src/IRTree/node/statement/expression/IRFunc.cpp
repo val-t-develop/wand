@@ -26,4 +26,4 @@
 IRFunc::IRFunc(string _name)
     : name(_name), IRExpression(Kind::FUNCTION_POINTER) {}
 
-string IRFunc::getReturnType(shared_ptr<CodeGen> codeGen) {return "__spl__function_pointer";}
+string IRFunc::getReturnType(CodeGen* codeGen) {return "__spl__function_pointer";}

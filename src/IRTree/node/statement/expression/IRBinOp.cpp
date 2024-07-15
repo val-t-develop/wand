@@ -28,6 +28,6 @@ IRBinOp::IRBinOp(shared_ptr<IRExpression> _left,
                  BinaryOperatorNode::BinaryOperatorKind _opKind)
     : left(_left), right(_right), opKind(_opKind), IRExpression(Kind::BIN_OP) {}
 
-string IRBinOp::getReturnType(shared_ptr<CodeGen> codeGen) {
+string IRBinOp::getReturnType(CodeGen* codeGen) {
     return left->getReturnType(codeGen);
 }

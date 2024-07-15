@@ -25,6 +25,6 @@
 
 IRAccess::IRAccess() : IRExpression(Kind::ACCESS) {}
 
-string IRAccess::getReturnType(shared_ptr<CodeGen> codeGen) {
+string IRAccess::getReturnType(CodeGen* codeGen) {
     return access[access.size()-1]->getReturnType(codeGen);
 }

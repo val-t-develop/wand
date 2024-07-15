@@ -26,6 +26,6 @@
 
 IRVar::IRVar(string _name) : name(_name), IRExpression(Kind::VAR) {}
 
-string IRVar::getReturnType(shared_ptr<CodeGen> codeGen) {
+string IRVar::getReturnType(CodeGen* codeGen) {
     return codeGen->varTypes[name];
 }

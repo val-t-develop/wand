@@ -30,5 +30,5 @@ public:
 
     IRAlloc(string _type);
 
-    string getReturnType(shared_ptr<CodeGen> codeGen) override;
+    string getReturnType(CodeGen* codeGen) override;
 };

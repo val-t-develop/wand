@@ -30,5 +30,5 @@ public:
     vector<shared_ptr<IRExpression>> args;
 
     IRCall(string _name, vector<shared_ptr<IRExpression>> _args);
-    string getReturnType(shared_ptr<CodeGen> codeGen) override;
+    string getReturnType(CodeGen* codeGen) override;
 };

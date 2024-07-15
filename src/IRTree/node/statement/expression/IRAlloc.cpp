@@ -26,6 +26,6 @@
 IRAlloc::IRAlloc(string _type) : type(_type), IRExpression(Kind::ALLOC) {}
 
 
-string IRAlloc::getReturnType(shared_ptr<CodeGen> codeGen) {
+string IRAlloc::getReturnType(CodeGen* codeGen) {
     return type;
 }

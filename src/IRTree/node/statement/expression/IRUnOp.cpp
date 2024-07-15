@@ -26,6 +26,6 @@
 IRUnOp::IRUnOp(shared_ptr<IRExpression> _val, string _op, bool _isPre)
     : val(_val), op(_op), isPre(_isPre), IRExpression(Kind::UN_OP) {}
 
-string IRUnOp::getReturnType(shared_ptr<CodeGen> codeGen) {
+string IRUnOp::getReturnType(CodeGen* codeGen) {
     return val->getReturnType(codeGen);
 }

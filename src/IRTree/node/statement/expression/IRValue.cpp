@@ -8,7 +8,7 @@
 
 IRValue::IRValue(llvm::Value *_val) : val(_val), IRExpression(Kind::VALUE) {}
 
-string IRValue::getReturnType(shared_ptr<CodeGen> codeGen) {
+string IRValue::getReturnType(CodeGen* codeGen) {
     Out::errorMessage("Can not get type of value");
     return "";
 }

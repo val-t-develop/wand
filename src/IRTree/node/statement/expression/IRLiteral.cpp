@@ -25,7 +25,7 @@
 
 IRLiteral::IRLiteral(Kind _kind) : IRExpression(_kind) {}
 
-string IRLiteral::getReturnType(shared_ptr<CodeGen> codeGen) {
+string IRLiteral::getReturnType(CodeGen* codeGen) {
     if (kind==Kind::STRING_LITERAL) {
         return "String";
     } else if (kind==Kind::CHAR_LITERAL) {

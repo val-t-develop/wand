@@ -28,5 +28,5 @@ class CodeGen;
 class IRExpression : public IRStatement {
 public:
     IRExpression(Kind _kind);
-    virtual string getReturnType(shared_ptr<CodeGen> codeGen) = 0;
+    virtual string getReturnType(CodeGen* codeGen) = 0;
 };
