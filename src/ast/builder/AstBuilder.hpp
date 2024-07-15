@@ -50,6 +50,7 @@
 class AstBuilder {
   public:
     shared_ptr<SymbolTable> symbolTable;
+    stack<shared_ptr<ClassRecord>> classesStack = stack<shared_ptr<ClassRecord>>();
     Path filePath;
     Lexer lexer;
 

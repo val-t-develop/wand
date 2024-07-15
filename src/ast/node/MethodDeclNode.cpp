@@ -50,7 +50,7 @@ string MethodDeclNode::getFullName() {
         str += "__spl__" + returnType->type->record->getFullName();
         for (auto arg : args) {
             if (arg->record->id=="this") {
-                str += "__" + static_pointer_cast<ClassDeclNode>(parent)->getFullName();
+                str += "__" + arg->type->getFullName();
             } else {
                 str += "__" + arg->type->type->record->getFullName();
             }

@@ -124,6 +124,7 @@ AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
         }
 
         shared_ptr<ClassRecord> record = symbolTable->lookupClass(name);
+        classesStack.push(record);
 
         vector<shared_ptr<TypeNode>> extended = vector<shared_ptr<TypeNode>>();
         vector<shared_ptr<TypeNode>> implemented =
@@ -176,6 +177,7 @@ AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
                         static_pointer_cast<DestructorDeclNode>(n));
                 }
             }
+            classesStack.pop();
             symbolTable->exitScope();
         } else {
             Out::errorMessage(
@@ -355,7 +357,7 @@ AstBuilder::enterMethodDecl(shared_ptr<TypeNode> type,
         }
     }
     if (!staticMod) {
-        args.insert(args.begin(),make_shared<VarDeclNode>(nullptr, nullptr, symbolTable->lookupVar("this"), nullptr, nullptr));
+        args.insert(args.begin(),make_shared<VarDeclNode>(nullptr, make_shared<TypeNode>(make_shared<ClassRecordNode>(classesStack.top(), vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr), symbolTable->lookupVar("this"), nullptr, nullptr));
     }
 
     bool found = true;
