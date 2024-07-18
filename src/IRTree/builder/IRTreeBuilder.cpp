@@ -152,6 +152,12 @@ void IRTreeBuilder::enterClassDecl(shared_ptr<ClassDeclNode> node,
                 nullptr), true);
         }
         enterDestructor(node);
+    } else {
+        for (auto el : node->methods) {
+            for (auto el : node->methods) {
+                enterMethodPrototype(el);
+            }
+        }
     }
     classesStack.pop();
 }
@@ -167,8 +173,19 @@ void IRTreeBuilder::enterMethod(shared_ptr<MethodDeclNode> node) {
     if (node->body != nullptr) {
         body = enterBlock(node->body);
     }
-    tree->funcs.push_back(make_shared<IRFunction>(
-        node->getFullName(), node->returnType->getFullName(), args, body));
+    tree->funcs[node->getFullName()] = make_shared<IRFunction>(
+        node->getFullName(), node->returnType->getFullName(), args, body);
+}
+
+void IRTreeBuilder::enterMethodPrototype(shared_ptr<MethodDeclNode> node) {
+    vector<shared_ptr<IRVarDecl>> args{};
+
+    for (auto arg : node->args) {
+        args.push_back(make_shared<IRVarDecl>(arg->getFullName(),
+                                              arg->type->getFullName(), nullptr));
+    }
+    tree->funcs[node->getFullName()] = make_shared<IRFunction>(
+        node->getFullName(), node->returnType->getFullName(), args, nullptr);
 }
 
 void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
@@ -198,9 +215,8 @@ void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
         body->nodes.push_back(make_shared<IRReturn>(make_shared<IRVar>("this")));
     }
     auto currClass = classesStack.top();
-    tree->funcs.push_back(make_shared<IRFunction>(
-        "__spl__constructor__" + currClass->getFullName() + argsSpec, currClass->getFullName(),
-        args, body));
+    string name = "__spl__constructor__" + currClass->getFullName() + argsSpec;
+    tree->funcs[name] = make_shared<IRFunction>(name, currClass->getFullName(), args, body);
 }
 
 void IRTreeBuilder::enterDestructor(shared_ptr<ClassDeclNode> node) {
@@ -221,11 +237,11 @@ void IRTreeBuilder::enterDestructor(shared_ptr<ClassDeclNode> node) {
         }
     }
     auto currClass = classesStack.top();
-    tree->funcs.push_back(make_shared<IRFunction>(
-        "__spl__destructor__" + currClass->getFullName(), "void",
+    string name = "__spl__destructor__" + currClass->getFullName();
+    tree->funcs[name] = make_shared<IRFunction>(name, "void",
         vector<shared_ptr<IRVarDecl>>{
             make_shared<IRVarDecl>("this", currClass->getFullName(), nullptr)},
-        body));
+        body);
 }
 
 shared_ptr<IRBlock> IRTreeBuilder::enterBlock(shared_ptr<BlockNode> node) {

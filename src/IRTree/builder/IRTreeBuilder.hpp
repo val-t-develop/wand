@@ -44,6 +44,7 @@ public:
 
     void enterImports(Path f);
     void enterClassDecl(shared_ptr<ClassDeclNode> node, bool genMethods);
+    void enterMethodPrototype(shared_ptr<MethodDeclNode> node);
     void enterMethod(shared_ptr<MethodDeclNode> node);
     void enterConstructor(shared_ptr<ConstructorDeclNode> node, bool defaultConstrucctor);
     void enterDestructor(shared_ptr<ClassDeclNode> node);

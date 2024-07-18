@@ -100,10 +100,10 @@ void CodeGen::codeGen() {
         genGlobalVar(el);
     }
     for (auto el : tree->funcs) {
-        genFunctionPrototype(el);
+        genFunctionPrototype(el.second);
     }
     for (auto el : tree->funcs) {
-        genFunction(el);
+        genFunction(el.second);
     }
 }
 
