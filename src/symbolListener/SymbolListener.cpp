@@ -35,7 +35,7 @@ SymbolListener::SymbolListener(shared_ptr<SymbolTable> symbolTable,
 }
 
 void SymbolListener::processImport(vector<string> importName) {
-    shared_ptr<vector<Path>> toImport = make_shared<vector<Path>>();
+    vector<Path> toImport = vector<Path>();
     for (auto src : ArgsParser::src) {
         if (src.isFile()) {
             processImportFile(src, toImport, importName);
@@ -44,18 +44,18 @@ void SymbolListener::processImport(vector<string> importName) {
         }
     }
 
-    if (toImport->empty()) {
+    if (toImport.empty()) {
         Out::errorMessage(lexer, "Can not find import");
     } else {
-        for (auto p : *toImport) {
+        for (auto p : toImport) {
             Main::processFileToState(p, CU::State::ST);
             symbolTable->addImport(Main::CUs[p]->st);
         }
-        Main::currCUsStack.top()->importFiles[importName] = *toImport;
+        Main::currCUsStack.top()->importFiles[importName] = toImport;
     }
 }
 
-void SymbolListener::processImportFile(Path& src, shared_ptr<vector<Path>> toImport, vector<string> importName) {
+void SymbolListener::processImportFile(Path& src, vector<Path>& toImport, vector<string> importName) {
     vector<string> vec = split(src.getParent().getName(), "/");
     for (int i = 0; i < importName.size(); ++i) {
         if (importName[importName.size()-1-i]!=vec[vec.size()-1-i]) {
@@ -66,11 +66,16 @@ void SymbolListener::processImportFile(Path& src, shared_ptr<vector<Path>> toImp
         if (src.getName()==filePath.getName()) {
             return;
         }
-        toImport->push_back(src);
+        for (auto el : toImport) {
+            if (el.getName()==src.getName()) {
+                return;
+            }
+        }
+        toImport.push_back(src);
     }
 }
 
-void SymbolListener::processImportDir(Path& dir, shared_ptr<vector<Path>> toImport, vector<string> importName) {
+void SymbolListener::processImportDir(Path& dir, vector<Path>& toImport, vector<string> importName) {
     for (auto src : dir.getDirContent()) {
         if (src.isFile()) {
             processImportFile(src, toImport, importName);

@@ -75,7 +75,7 @@ void IRTreeBuilder::walk() {
                     }
                 }
             } else if (n->kind == Node::NodeKind::IMPORT_DECL_NODE) {
-                enterImports(p); // TODO
+                //enterImports(p); // TODO
             } else if (n->kind == Node::NodeKind::CLASS_DECL_NODE) {
                 enterClassDecl(static_pointer_cast<ClassDeclNode>(n), false);
             } else {

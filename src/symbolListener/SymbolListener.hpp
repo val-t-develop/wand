@@ -42,8 +42,8 @@ class SymbolListener {
                    Lexer lexer);
 
     void processImport(vector<string> importName);
-    void processImportFile(Path& src, shared_ptr<vector<Path>> toImport, vector<string> importName);
-    void processImportDir(Path& dir, shared_ptr<vector<Path>> toImport, vector<string> importName);
+    void processImportFile(Path& src, vector<Path>& toImport, vector<string> importName);
+    void processImportDir(Path& dir, vector<Path>& toImport, vector<string> importName);
     void walk();
     void enterPackage();
     void enterImport();
