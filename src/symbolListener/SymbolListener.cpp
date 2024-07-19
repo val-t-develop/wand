@@ -466,6 +466,7 @@ void SymbolListener::enterMethodDecl(string type, string id,
         // insert record into scope
         symbolTable->put(thisVar);
         thisVar->ir_name="this";
+        thisVar->typeRec=currentClass;
     }
 
     enterMethodArgs();
