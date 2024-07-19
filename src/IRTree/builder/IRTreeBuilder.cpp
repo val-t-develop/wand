@@ -409,7 +409,29 @@ IRTreeBuilder::enterLiteral(shared_ptr<ExpressionNode> node) {
 }
 
 shared_ptr<IRCall> IRTreeBuilder::enterCall(shared_ptr<MethodCallNode> node) {
-    // TODO find right record of similars
+    if (!node->record->similar.empty()) {
+        bool found = false;
+        for (auto el : node->record->similar) {
+            if (el->argsCount==node->args.size()) {
+                bool equal = true;
+                for (int i = 0; i < node->args.size(); ++i) {
+                    if (el->vars[i]->typeRec->getFullName()!=node->args[i]->getReturnType()->getFullName()) {
+                        equal=false;
+                    }
+                }
+                if (equal) {
+                    if (found) {
+                        Out::errorMessage("Few function canditates are possible");
+                    }
+                    node->record=el;
+                    found=true;
+                }
+            }
+        }
+        if (!found) {
+            Out::errorMessage("Can not find function with such arguments");
+        }
+    }
     vector<shared_ptr<IRExpression>> args{};
     for (auto el : node->args) {
         args.push_back(enterExpression(el));
