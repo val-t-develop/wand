@@ -340,12 +340,27 @@ IRTreeBuilder::enterExpression(shared_ptr<ExpressionNode> node) {
         // TODO
     } else if (node->kind == Node::NodeKind::ACCESS_NODE) {
         auto access = static_pointer_cast<AccessNode>(node);
+        auto access1 = make_shared<AccessNode>(node);
         auto new_access = make_shared<IRAccess>();
         for (auto el : access->access) {
             if (!el->isExpression()) {
                 Out::errorMessage("Can not generate expression");
             }
-            new_access->access.push_back(enterExpression(static_pointer_cast<ExpressionNode>(el)));
+            auto expr = static_pointer_cast<ExpressionNode>(el);
+            if (el->kind==Node::NodeKind::METHOD_CALL_NODE) {
+                auto call = static_pointer_cast<MethodCallNode>(expr);
+                if (!access1->access.empty()) {
+                    call->args.insert(call->args.begin(), access1);
+                    auto call_ir = enterCall(call);
+                    new_access->access=vector<shared_ptr<IRExpression>>();
+                    new_access->access.push_back(call_ir);
+                } else {
+                    new_access->access.push_back(enterCall(call));
+                }
+            } else {
+                new_access->access.push_back(enterExpression(expr));
+            }
+            access1->access.push_back(el);
         }
         return new_access;
     }

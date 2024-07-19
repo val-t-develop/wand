@@ -479,13 +479,7 @@ Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
                         helper->createLoad(utils->getType(val_type), getelementptr);
                 }
             } else if (access->access[i]->kind==IRNode::Kind::CALL) {
-                if (genRef) {
-                    isRef = false;
-                }
-                auto call = static_pointer_cast<IRCall>(access->access[i]);
-                call->args.insert(call->args.begin(), make_shared<IRValue>(val));
-                val = genCall(static_pointer_cast<IRCall>(access->access[i]));
-                val_type = utils->functionTypes[call->name];
+                Out::errorMessage("Something went wrorg when processing access!");
             }
         }
         return val;
