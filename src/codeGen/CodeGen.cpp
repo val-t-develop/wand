@@ -43,6 +43,7 @@
 #include <IRTree/node/statement/IRVarsDecl.hpp>
 #include <IRTree/node/statement/IRWhile.hpp>
 #include <IRTree/node/statement/expression/IRAccess.hpp>
+#include <IRTree/node/statement/expression/IRAlloc.hpp>
 #include <IRTree/node/statement/expression/IRValue.hpp>
 #include <IRTree/node/statement/expression/IRVar.hpp>
 #include <ast/node/statement/expression/literal/StringLiteralNode.hpp>
@@ -501,7 +502,9 @@ Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
     } else if (node->kind == IRNode::Kind::UN_OP) {
 
     } else if (node->kind == IRNode::Kind::ALLOC) {
-
+        Type *type = utils->getTypeNoPtr(static_pointer_cast<IRAlloc>(node)->type);
+        Value *sizeofIV = helper->createSizeof(type);
+        return helper->createCall("__spl__alloc", vector<Value *>{sizeofIV}, "heapallocatmp");
     } else if (node->kind == IRNode::Kind::FUNCTION_POINTER) {
 
     } else if (node->isLiteral()) {

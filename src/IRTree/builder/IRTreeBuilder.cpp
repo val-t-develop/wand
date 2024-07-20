@@ -202,6 +202,9 @@ void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
     if (node->body != nullptr) {
         body = enterBlock(node->body);
     }
+    if (defaultConstrucctor) {
+        body=make_shared<IRBlock>(vector<shared_ptr<IRStatement>>());
+    }
     vector<shared_ptr<IRStatement>> constructorHeader{};
     constructorHeader.push_back(make_shared<IRVarDecl>("this", classesStack.top()->getFullName(), make_shared<IRAlloc>(classesStack.top()->getFullName())));
     for (auto el : classesStack.top()->fields) {
