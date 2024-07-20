@@ -435,7 +435,12 @@ Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
         return genVarValue(static_pointer_cast<IRVar>(node), genRef);
     } else if (node->kind == IRNode::Kind::ACCESS) {
         auto access = static_pointer_cast<IRAccess>(node);
-        Value *val = genExpression(access->access[0], false);
+        Value *val;
+        if (access->access.size()==1) {
+            val = genExpression(access->access[0], genRef);
+        } else {
+            val = genExpression(access->access[0], false);
+        }
         string val_type;
         if (access->access[0]->kind==IRNode::Kind::VAR) {
             val_type = varTypes[static_pointer_cast<IRVar>(access->access[0])->name];
@@ -584,8 +589,77 @@ Value *CodeGen::genBinOp(shared_ptr<IRBinOp> node) {
             helper->createCall("__spl__addref", vector<Value *>{L, R, helper->getFunction("__spl__destructor__"+type)});
         }
         helper->createStore(R, L);
+        return R;
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::RIGHT_SHIFT_ASSIGN) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::LEFT_SHIFT_ASSIGN) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::BIT_OR_ASSIGN) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::XOR_ASSIGN) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::MOD_ASSIGN) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::BIT_AND_ASSIGN) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::DIV_ASSIGN) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::MUL_ASSIGN) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::SUB_ASSIGN) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::ADD_ASSIGN) {
+
     }
     auto L = genExpression(node->left, false);
     auto R = genExpression(node->right, false);
+    if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::OR) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::AND) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::BIT_OR) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::XOR) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::BIT_AND) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::EQUAL) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::NOT_EQUAL) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::LESS) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::GREATER) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::LESS_EQUAL) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::GREATER_EQUAL) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::INSTANCEOF) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::LEFT_SHIFT) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::RIGHT_SHIFT) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::ADD) {
+        if (helper->isFloatingPointValue(L) ||
+            helper->isFloatingPointValue(R)) {
+            return helper->createFPAdd(helper->castToDouble(L),
+                                       helper->castToDouble(R));
+        } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
+            return helper->createAdd(L, R);
+        } else {
+            Out::errorMessage("Can not add values: incorrect types");
+        }
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::SUB) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::MUL) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::DIV) {
+
+    } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::MOD) {
+
+    }
+    Out::errorMessage("BUG! Can not return value for binary operation");
     return nullptr;
 }
