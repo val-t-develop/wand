@@ -77,7 +77,7 @@ void __spl__destroy__gc() {
 }
 
 __attribute__((used))
-void *__spl__alloc(int32_t size) {
+void *__spl__alloc(int64_t size) {
     if (objects.size==objects.capacity) {
         objects.capacity*=2;
         objects.arr=(Object_t*)realloc(objects.arr, objects.capacity*sizeof(Object_t));

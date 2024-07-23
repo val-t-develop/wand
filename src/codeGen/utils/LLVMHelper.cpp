@@ -103,7 +103,7 @@ void LLVMHelper::build(raw_pwrite_stream &dest) {
     legacy::PassManager pass;
     auto FileType = CodeGenFileType::ObjectFile;
 
-    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType/*, false*/)) {
         errs() << "TheTargetMachine can't emit a file of this type";
     }
 
@@ -165,16 +165,22 @@ void LLVMHelper::createBr(BasicBlock *BB) { Builder->CreateBr(BB); }
 
 void LLVMHelper::createRet(Value *val) { Builder->CreateRet(val); }
 
+void LLVMHelper::createRet() { Builder->CreateRetVoid(); }
+
 Value *LLVMHelper::createCall(Function *func, vector<Value *> args,
                               string name) {
-    return Builder->CreateCall(func, args, name);
+    if (func->getReturnType()==getVoidType()) {
+        return Builder->CreateCall(func, args);
+    } else {
+        return Builder->CreateCall(func, args, name);
+    }
 }
 
 Value *LLVMHelper::createCall(string func, vector<Value *> args, string name) {
     Function *f = getFunction(func);
     if (!f)
         Out::errorMessage("Can not create call instruction for " + func);
-    return Builder->CreateCall(f, args, name);
+    return createCall(f, args, name);
 }
 
 Value *LLVMHelper::createLoad(Type *type, Value *ptr, string name) {

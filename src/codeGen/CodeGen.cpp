@@ -72,7 +72,7 @@ void CodeGen::codeGen() {
                                     helper->getVoidType(), vector<Type *>{});
     helper->createFunctionPrototype(
         "__spl__alloc", helper->getPointerType(helper->getVoidType()),
-        vector<Type *>{helper->getIntType(32)});
+        vector<Type *>{helper->getIntType(64)});
     helper->createFunctionPrototype(
         "__spl__destroyobj", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
@@ -223,7 +223,7 @@ void CodeGen::genFunction(shared_ptr<IRFunction> node) {
                                                 ret_ptr, "retloadtmp");
             helper->createRet(ret_val);
         } else {
-            helper->createRet(UndefValue::get(helper->getVoidType()));
+            helper->createRet();
         }
 
         verifyFunction(*TheFunction);

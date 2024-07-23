@@ -66,6 +66,7 @@ class LLVMHelper {
     void createStore(Value *val, Value *ptr);
     void createBr(BasicBlock *BB);
     void createRet(Value *val);
+    void createRet();
     Value *createCall(Function *func, vector<Value *> args = vector<Value *>(),
                       string name = "calltmp");
     Value *createCall(string func, vector<Value *> args = vector<Value *>(),
