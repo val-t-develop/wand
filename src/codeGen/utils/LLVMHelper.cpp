@@ -103,7 +103,7 @@ void LLVMHelper::build(raw_pwrite_stream &dest) {
     legacy::PassManager pass;
     auto FileType = CodeGenFileType::ObjectFile;
 
-    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType/*, false*/)) {
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType, false)) {
         errs() << "TheTargetMachine can't emit a file of this type";
     }
 

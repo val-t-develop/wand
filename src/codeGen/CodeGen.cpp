@@ -76,7 +76,7 @@ void CodeGen::codeGen() {
     helper->createFunctionPrototype(
         "__spl__destroyobj", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
-            helper->getPointerType(helper->getVoidType())});
+            helper->getPointerType(helper->getVoidType()), helper->getIntType(8)});
     helper->createFunctionPrototype(
         "__spl__destroyref", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
@@ -539,7 +539,7 @@ Value *CodeGen::genLiteral(shared_ptr<IRLiteral> node) {
     } else if (node->kind == IRNode::Kind::STRING_LITERAL) {
         Constant *c = helper->createConstantVar(
             helper->getArrayType(helper->getIntType(8),
-                                 node->strLiteral.size()),
+                                 node->strLiteral.size()+1),
             "__spl__str__literal",
             helper->getConstNullTerminatedString(node->strLiteral));
         auto v = helper->createCall(
