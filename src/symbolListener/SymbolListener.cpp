@@ -440,6 +440,7 @@ void SymbolListener::enterConstructorDecl(
 void SymbolListener::enterMethodDecl(string type, string id,
                                      vector<ModifiersNode::ModifierKind> mods) {
     currentMethod = make_shared<MethodRecord>(id, type);
+    currentMethod->similar.push_back(currentMethod);
     currentMethod->mods = mods;
     symbolTable->put(currentMethod);
 
