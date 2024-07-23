@@ -123,7 +123,7 @@ GlobalVariable *LLVMHelper::createGlobalVar(Type *type, string name) {
 
 GlobalVariable *LLVMHelper::createConstantVar(Type *type, string name, Constant *init) {
     return new GlobalVariable(*TheModule, type, true,
-                              GlobalValue::LinkageTypes::PrivateLinkage, init,
+                              GlobalValue::LinkageTypes::ExternalLinkage, init,
                               name);
 }
 
