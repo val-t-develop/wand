@@ -47,6 +47,7 @@
 #include <IRTree/node/statement/expression/IRValue.hpp>
 #include <IRTree/node/statement/expression/IRVar.hpp>
 #include <ast/node/statement/expression/literal/StringLiteralNode.hpp>
+#include <utils/UniqueNumber.hpp>
 
 CodeGen::DestructAfterStatement::DestructAfterStatement(Value *_val,
                                                         string _type,
@@ -549,7 +550,7 @@ Value *CodeGen::genLiteral(shared_ptr<IRLiteral> node) {
         Constant *c = helper->createConstantVar(
             helper->getArrayType(helper->getIntType(8),
                                  node->strLiteral.size()+1),
-            "__spl__str__literal",
+            "__spl__str__literal"+std::to_string(getNextUniqueNumber()),
             helper->getConstNullTerminatedString(node->strLiteral));
         auto v = helper->createCall(
             "__spl__constructor__String____StringLiteral", {c});
