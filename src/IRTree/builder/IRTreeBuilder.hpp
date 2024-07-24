@@ -38,6 +38,8 @@ public:
 
     vector<string> imported = vector<string>();
     stack<shared_ptr<ClassDeclNode>> classesStack = stack<shared_ptr<ClassDeclNode>>();
+    vector<string> NamedValues = vector<string>();
+    vector<string> GlobalNamedValues = vector<string>();
 
     IRTreeBuilder(shared_ptr<CompilationUnitNode> _cu, Path& _file);
     void walk();

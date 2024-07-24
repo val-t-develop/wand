@@ -134,6 +134,7 @@ void IRTreeBuilder::enterClassDecl(shared_ptr<ClassDeclNode> node,
         }
         if (isStatic) {
             tree->globalVars.push_back(make_shared<IRVarDecl>(el->getFullName(), el->type->getFullName(), nullptr));
+            GlobalNamedValues.push_back(el->getFullName());
         } else {
             Struct->fields.push_back(make_shared<IRVarDecl>(el->getFullName(), el->type->getFullName(), nullptr));
         }
@@ -166,9 +167,11 @@ void IRTreeBuilder::enterMethod(shared_ptr<MethodDeclNode> node) {
     vector<shared_ptr<IRVarDecl>> args{};
     shared_ptr<IRBlock> body = nullptr;
 
+    NamedValues.clear();
     for (auto arg : node->args) {
         args.push_back(make_shared<IRVarDecl>(arg->getFullName(),
                                               arg->type->getFullName(), nullptr));
+        NamedValues.push_back(arg->getFullName());
     }
     if (node->body != nullptr) {
         body = enterBlock(node->body);
@@ -257,9 +260,11 @@ shared_ptr<IRBlock> IRTreeBuilder::enterBlock(shared_ptr<BlockNode> node) {
             block->nodes.push_back(make_shared<IRReturn>(enterExpression(static_pointer_cast<ReturnNode>(el)->expression)));
         } else if (el->kind == Node::NodeKind::VAR_DECL_NODE) {
             auto varDeclNode = static_pointer_cast<VarDeclNode>(el);
+            NamedValues.push_back(varDeclNode->getFullName());
             block->nodes.push_back(make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName(), varDeclNode->init!=nullptr?enterExpression(varDeclNode->init):nullptr));
         } else if (el->kind == Node::NodeKind::VARS_DECL_NODE) {
             for (auto varDeclNode : static_pointer_cast<VarsDeclNode>(el)->decls) {
+                NamedValues.push_back(varDeclNode->getFullName());
                 block->nodes.push_back(make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName(), varDeclNode->init!=nullptr?enterExpression(varDeclNode->init):nullptr));
             }
         } else if (el->kind == Node::NodeKind::IF_ELSE_NODE) {
@@ -285,10 +290,12 @@ IRTreeBuilder::enterStatement(shared_ptr<StatementNode> el) {
             enterExpression(static_pointer_cast<ReturnNode>(el)->expression));
     } else if (el->kind == Node::NodeKind::VAR_DECL_NODE) {
         auto varDeclNode = static_pointer_cast<VarDeclNode>(el);
+        NamedValues.push_back(varDeclNode->getFullName());
         return make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName(), varDeclNode->init!=nullptr?enterExpression(varDeclNode->init):nullptr);
     } else if (el->kind == Node::NodeKind::VARS_DECL_NODE) {
         shared_ptr<IRVarsDecl> vars = make_shared<IRVarsDecl>();
         for (auto varDeclNode : static_pointer_cast<VarsDeclNode>(el)->decls) {
+            NamedValues.push_back(varDeclNode->getFullName());
             vars->vars.push_back(make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName(), varDeclNode->init!=nullptr?enterExpression(varDeclNode->init):nullptr));
         }
         return vars;
@@ -332,7 +339,38 @@ IRTreeBuilder::enterExpression(shared_ptr<ExpressionNode> node) {
     } else if (node->kind == Node::NodeKind::UNARY_OPERATOR_NODE) {
         // TODO
     } else if (node->kind == Node::NodeKind::VAR_RECORD_NODE) {
-        return make_shared<IRVar>(static_pointer_cast<VarRecordNode>(node)->getFullName());
+        bool exists = false;
+        string name = static_pointer_cast<VarRecordNode>(node)->getFullName();
+        for (auto el : NamedValues) {
+            if (el == name) {
+                exists = true;
+                break;
+            }
+        }
+        if (!exists) {
+            for (auto el : GlobalNamedValues) {
+                if (el == name) {
+                    exists = true;
+                    break;
+                }
+            }
+        }
+        if (exists) {
+            return make_shared<IRVar>(name);
+        } else {
+            for (auto el : classesStack.top()->fields) {
+                if (el->getFullName() == name) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (exists) {
+                auto access = make_shared<IRAccess>();
+                access->access.push_back(make_shared<IRVar>("this"));
+                access->access.push_back(make_shared<IRVar>(name));
+                return access;
+            }
+        }
     } else if (node->kind == Node::NodeKind::NEW_NODE) {
         return enterNew(static_pointer_cast<NewNode>(node));
     } else if (node->kind == Node::NodeKind::ARRAY_CREATION_NODE) {
@@ -359,6 +397,24 @@ IRTreeBuilder::enterExpression(shared_ptr<ExpressionNode> node) {
                     new_access->access.push_back(call_ir);
                 } else {
                     new_access->access.push_back(enterCall(call));
+                }
+            } else if (el->kind==Node::NodeKind::VAR_RECORD_NODE) {
+                auto rec = static_pointer_cast<VarRecordNode>(el);
+                if (new_access->access.empty()) {
+                    new_access->access.push_back(enterExpression(expr));
+                } else {
+                    bool found = false;
+                    for (auto f : access1->getReturnType()->fields) {
+                        if (f->getFullName()==rec->getFullName()) {
+                            found=true;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        new_access->access.push_back(make_shared<IRVar>(rec->getFullName()));
+                    } else {
+                        Out::errorMessage("Can not find field " + rec->getFullName() + " in class " + access1->getReturnType()->getFullName());
+                    }
                 }
             } else {
                 new_access->access.push_back(enterExpression(expr));

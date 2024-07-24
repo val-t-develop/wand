@@ -443,12 +443,19 @@ Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
             val = genExpression(access->access[0], false);
         }
         string val_type;
-        if (access->access[0]->kind==IRNode::Kind::VAR) {
-            val_type = varTypes[static_pointer_cast<IRVar>(access->access[0])->name];
-        } else if (access->access[0]->kind == IRNode::Kind::CALL) {
-            val_type = utils->functionTypes[static_pointer_cast<IRCall>(access->access[0])->name];
-        } else {
-            Out::errorMessage("BUG! Can not get expression kind!");
+        auto tmp_access = access;
+        while (true) {
+            if (tmp_access->access[0]->kind==IRNode::Kind::VAR) {
+                val_type = varTypes[static_pointer_cast<IRVar>(tmp_access->access[0])->name];
+            } else if (tmp_access->access[0]->kind==IRNode::Kind::ACCESS) {
+                tmp_access = static_pointer_cast<IRAccess>(tmp_access->access[0]);
+                continue;
+            } else if (tmp_access->access[0]->kind == IRNode::Kind::CALL) {
+                val_type = utils->functionTypes[static_pointer_cast<IRCall>(tmp_access->access[0])->name];
+            } else {
+                Out::errorMessage("BUG! Can not get expression kind!");
+            }
+            break;
         }
         // TODO array access
 
@@ -484,6 +491,8 @@ Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
                     val =
                         helper->createLoad(utils->getType(val_type), getelementptr);
                 }
+            } else if (access->access[i]->kind==IRNode::Kind::ACCESS) {
+                Out::errorMessage("Something went wrorg when processing access!");
             } else if (access->access[i]->kind==IRNode::Kind::CALL) {
                 Out::errorMessage("Something went wrorg when processing access!");
             }
