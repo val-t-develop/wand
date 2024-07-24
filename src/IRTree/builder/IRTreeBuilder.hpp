@@ -49,7 +49,9 @@ public:
     void enterMethodPrototype(shared_ptr<MethodDeclNode> node);
     void enterMethod(shared_ptr<MethodDeclNode> node);
     void enterConstructor(shared_ptr<ConstructorDeclNode> node, bool defaultConstrucctor);
+    void enterConstructorPrototype(shared_ptr<ConstructorDeclNode> node);
     void enterDestructor(shared_ptr<ClassDeclNode> node);
+    void enterDestructorPrototype(shared_ptr<ClassDeclNode> node);
 
     shared_ptr<IRBlock> enterBlock(shared_ptr<BlockNode> node);
     shared_ptr<IRStatement> enterStatement(shared_ptr<StatementNode> el);

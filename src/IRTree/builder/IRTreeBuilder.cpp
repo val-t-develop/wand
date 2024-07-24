@@ -159,6 +159,15 @@ void IRTreeBuilder::enterClassDecl(shared_ptr<ClassDeclNode> node,
                 enterMethodPrototype(el);
             }
         }
+        for (auto el : node->constructors) {
+            enterConstructorPrototype(el);
+        }
+        if (node->constructors.empty()) {
+            enterConstructorPrototype(make_shared<ConstructorDeclNode>(
+                nullptr, nullptr, vector<shared_ptr<VarDeclNode>>{}, nullptr,
+                nullptr));
+        }
+        enterDestructorPrototype(node);
     }
     classesStack.pop();
 }
@@ -225,6 +234,20 @@ void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
     tree->funcs[name] = make_shared<IRFunction>(name, currClass->getFullName(), args, body);
 }
 
+void IRTreeBuilder::enterConstructorPrototype(shared_ptr<ConstructorDeclNode> node) {
+    vector<shared_ptr<IRVarDecl>> args{};
+    string argsSpec = "";
+
+    for (auto arg : node->args) {
+        args.push_back(make_shared<IRVarDecl>(arg->getFullName(),
+                                              arg->type->getFullName(), nullptr));
+        argsSpec += "__" + arg->type->getFullName();
+    }
+    auto currClass = classesStack.top();
+    string name = "__spl__constructor__" + currClass->getFullName() + argsSpec;
+    tree->funcs[name] = make_shared<IRFunction>(name, currClass->getFullName(), args, nullptr);
+}
+
 void IRTreeBuilder::enterDestructor(shared_ptr<ClassDeclNode> node) {
     shared_ptr<IRBlock> body = nullptr;
     if (!node->destructors.empty()) {
@@ -248,6 +271,14 @@ void IRTreeBuilder::enterDestructor(shared_ptr<ClassDeclNode> node) {
         vector<shared_ptr<IRVarDecl>>{
             make_shared<IRVarDecl>("this", currClass->getFullName(), nullptr)},
         body);
+}
+
+void IRTreeBuilder::enterDestructorPrototype(shared_ptr<ClassDeclNode> node) {
+    auto currClass = classesStack.top();
+    string name = "__spl__destructor__" + currClass->getFullName();
+    tree->funcs[name] = make_shared<IRFunction>(name, "void",
+        vector<shared_ptr<IRVarDecl>>{
+            make_shared<IRVarDecl>("this", currClass->getFullName(), nullptr)}, nullptr);
 }
 
 shared_ptr<IRBlock> IRTreeBuilder::enterBlock(shared_ptr<BlockNode> node) {
