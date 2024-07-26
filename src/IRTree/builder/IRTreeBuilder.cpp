@@ -529,7 +529,7 @@ shared_ptr<IRCall> IRTreeBuilder::enterCall(shared_ptr<MethodCallNode> node) {
     return make_shared<IRCall>(node->getFullName(), args);
 }
 
-shared_ptr<IRBinOp>
+shared_ptr<IRExpression>
 IRTreeBuilder::enterBinOp(shared_ptr<BinaryOperatorNode> node) {
     auto L = enterExpression(node->left);
     auto R = enterExpression(node->right);
@@ -591,8 +591,13 @@ IRTreeBuilder::enterBinOp(shared_ptr<BinaryOperatorNode> node) {
                BinaryOperatorNode::BinaryOperatorKind::RIGHT_SHIFT) {
 
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ADD) {
-        return make_shared<IRBinOp>(L, R,
-                                    node->op); // TODO String concat with +
+        if (node->left->getReturnType()->getFullName()=="String") {
+            return make_shared<IRCall>("String.concat__spl__String__String__"+node->right->getReturnType()->getFullName(), vector<shared_ptr<IRExpression>>{L, R});
+        } else if (node->right->getReturnType()->getFullName()=="String") {
+            return make_shared<IRCall>("String.concat__spl__String__String__String", vector<shared_ptr<IRExpression>>{make_shared<IRCall>("__spl__constructor__String__"+node->left->getReturnType()->getFullName(), vector<shared_ptr<IRExpression>>{L}), R});
+        } else {
+            return make_shared<IRBinOp>(L, R, node->op);
+        }
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::SUB) {
         return make_shared<IRBinOp>(L, R, node->op);
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::MUL) {

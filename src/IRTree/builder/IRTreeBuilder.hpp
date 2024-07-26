@@ -58,7 +58,7 @@ public:
     shared_ptr<IRExpression> enterExpression(shared_ptr<ExpressionNode> node);
     shared_ptr<IRLiteral> enterLiteral(shared_ptr<ExpressionNode> node);
     shared_ptr<IRCall> enterCall(shared_ptr<MethodCallNode> node);
-    shared_ptr<IRBinOp> enterBinOp(shared_ptr<BinaryOperatorNode> node);
+    shared_ptr<IRExpression> enterBinOp(shared_ptr<BinaryOperatorNode> node);
     shared_ptr<IRCall> enterNew(shared_ptr<NewNode> node);
 
     static shared_ptr<IRExpression> getDefaultValue(string type);
