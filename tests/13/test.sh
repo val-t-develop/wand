@@ -16,18 +16,12 @@
 
 #  Valentyn Tymchyshyn (val.t.develop) (val.t.develo@gmail.com)
 #
-#  gitignore configuration file.
+#  Bash script for automated testing.
 
-builddir/
-build/
-res/test/
-res/exe
-.cache
-.vscode/
-.idea/
-compile_commands.json
-tests/tests.exe
-tests/*/exe
-tests/*/test.exe
-tests/*/test.result
-tests/*/log/
+#!/bin/bash
+mkdir log
+spl . -o ./exe &> log/build.log
+c++ -std=c++20 test.cpp -o test.exe > log/test.build.log
+./exe>log/exe.log
+echo $?>log/exe.code.log
+./test.exe
