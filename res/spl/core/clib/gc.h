@@ -92,13 +92,10 @@ void *__spl__alloc(int64_t size) {
 }
 
 __attribute__((used))
-void __spl__destroyobj(void *ptr, void (*destructor)(void*), int8_t decreaseRefs) {
+void __spl__destroyobj(void *ptr, void (*destructor)(void*)) {;
     //printf("destroyobj: %p - ", ptr);
     for (int32_t i = 0; i < objects.size; ++i) {
         if (objects.arr[i].obj_ptr==ptr) {
-            if (decreaseRefs) {
-                objects.arr[i].refs_count--;
-            }
             //printf("%d\n", objects.arr[i].refs_count);
             if (objects.arr[i].refs_count==0) {
                 destructor(ptr);

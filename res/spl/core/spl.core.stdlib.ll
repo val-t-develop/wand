@@ -21,7 +21,7 @@
 ; ModuleID = 'clib/lib.c'
 source_filename = "clib/lib.c"
 target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-suse-linux"
+target triple = "x86_64-redhat-linux-gnu"
 
 %struct.Objects = type { ptr, i32, i32 }
 %struct.Refs = type { ptr, i32, i32 }
@@ -72,7 +72,7 @@ define dso_local void @__spl__init__gc() #0 {
 }
 
 ; Function Attrs: nounwind allocsize(0)
-declare noalias ptr @malloc(i64 noundef) #1
+declare dso_local noalias ptr @malloc(i64 noundef) #1
 
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
 declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #2
@@ -103,7 +103,7 @@ define dso_local void @__spl__destroy__gc() #0 {
 }
 
 ; Function Attrs: nounwind
-declare void @free(ptr noundef) #3
+declare dso_local void @free(ptr noundef) #3
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local ptr @__spl__alloc(i64 noundef %0) #0 {
@@ -160,90 +160,72 @@ define dso_local ptr @__spl__alloc(i64 noundef %0) #0 {
 }
 
 ; Function Attrs: nounwind allocsize(1)
-declare ptr @realloc(ptr noundef, i64 noundef) #4
+declare dso_local ptr @realloc(ptr noundef, i64 noundef) #4
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__spl__destroyobj(ptr noundef %0, ptr noundef %1, i8 noundef signext %2) #0 {
+define dso_local void @__spl__destroyobj(ptr noundef %0, ptr noundef %1) #0 {
+  %3 = alloca ptr, align 8
   %4 = alloca ptr, align 8
-  %5 = alloca ptr, align 8
-  %6 = alloca i8, align 1
-  %7 = alloca i32, align 4
-  store ptr %0, ptr %4, align 8
-  store ptr %1, ptr %5, align 8
-  store i8 %2, ptr %6, align 1
-  store i32 0, ptr %7, align 4
-  br label %8
+  %5 = alloca i32, align 4
+  store ptr %0, ptr %3, align 8
+  store ptr %1, ptr %4, align 8
+  store i32 0, ptr %5, align 4
+  br label %6
 
-8:                                                ; preds = %51, %3
-  %9 = load i32, ptr %7, align 4
-  %10 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
-  %11 = icmp slt i32 %9, %10
-  br i1 %11, label %12, label %54
+6:                                                ; preds = %38, %2
+  %7 = load i32, ptr %5, align 4
+  %8 = load i32, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
+  %9 = icmp slt i32 %7, %8
+  br i1 %9, label %10, label %41
 
-12:                                               ; preds = %8
-  %13 = load ptr, ptr @objects, align 8
-  %14 = load i32, ptr %7, align 4
-  %15 = sext i32 %14 to i64
-  %16 = getelementptr inbounds %struct.Object, ptr %13, i64 %15
-  %17 = getelementptr inbounds %struct.Object, ptr %16, i32 0, i32 0
-  %18 = load ptr, ptr %17, align 8
-  %19 = load ptr, ptr %4, align 8
-  %20 = icmp eq ptr %18, %19
-  br i1 %20, label %21, label %50
+10:                                               ; preds = %6
+  %11 = load ptr, ptr @objects, align 8
+  %12 = load i32, ptr %5, align 4
+  %13 = sext i32 %12 to i64
+  %14 = getelementptr inbounds %struct.Object, ptr %11, i64 %13
+  %15 = getelementptr inbounds %struct.Object, ptr %14, i32 0, i32 0
+  %16 = load ptr, ptr %15, align 8
+  %17 = load ptr, ptr %3, align 8
+  %18 = icmp eq ptr %16, %17
+  br i1 %18, label %19, label %37
 
-21:                                               ; preds = %12
-  %22 = load i8, ptr %6, align 1
-  %23 = icmp ne i8 %22, 0
-  br i1 %23, label %24, label %32
+19:                                               ; preds = %10
+  %20 = load ptr, ptr @objects, align 8
+  %21 = load i32, ptr %5, align 4
+  %22 = sext i32 %21 to i64
+  %23 = getelementptr inbounds %struct.Object, ptr %20, i64 %22
+  %24 = getelementptr inbounds %struct.Object, ptr %23, i32 0, i32 1
+  %25 = load i32, ptr %24, align 8
+  %26 = icmp eq i32 %25, 0
+  br i1 %26, label %27, label %36
 
-24:                                               ; preds = %21
-  %25 = load ptr, ptr @objects, align 8
-  %26 = load i32, ptr %7, align 4
-  %27 = sext i32 %26 to i64
-  %28 = getelementptr inbounds %struct.Object, ptr %25, i64 %27
-  %29 = getelementptr inbounds %struct.Object, ptr %28, i32 0, i32 1
-  %30 = load i32, ptr %29, align 8
-  %31 = add nsw i32 %30, -1
-  store i32 %31, ptr %29, align 8
-  br label %32
+27:                                               ; preds = %19
+  %28 = load ptr, ptr %4, align 8
+  %29 = load ptr, ptr %3, align 8
+  call void %28(ptr noundef %29)
+  %30 = load ptr, ptr %3, align 8
+  call void @free(ptr noundef %30) #9
+  %31 = load ptr, ptr @objects, align 8
+  %32 = load i32, ptr %5, align 4
+  %33 = sext i32 %32 to i64
+  %34 = getelementptr inbounds %struct.Object, ptr %31, i64 %33
+  %35 = getelementptr inbounds %struct.Object, ptr %34, i32 0, i32 0
+  store ptr null, ptr %35, align 8
+  br label %36
 
-32:                                               ; preds = %24, %21
-  %33 = load ptr, ptr @objects, align 8
-  %34 = load i32, ptr %7, align 4
-  %35 = sext i32 %34 to i64
-  %36 = getelementptr inbounds %struct.Object, ptr %33, i64 %35
-  %37 = getelementptr inbounds %struct.Object, ptr %36, i32 0, i32 1
-  %38 = load i32, ptr %37, align 8
-  %39 = icmp eq i32 %38, 0
-  br i1 %39, label %40, label %49
+36:                                               ; preds = %27, %19
+  br label %37
 
-40:                                               ; preds = %32
-  %41 = load ptr, ptr %5, align 8
-  %42 = load ptr, ptr %4, align 8
-  call void %41(ptr noundef %42)
-  %43 = load ptr, ptr %4, align 8
-  call void @free(ptr noundef %43) #9
-  %44 = load ptr, ptr @objects, align 8
-  %45 = load i32, ptr %7, align 4
-  %46 = sext i32 %45 to i64
-  %47 = getelementptr inbounds %struct.Object, ptr %44, i64 %46
-  %48 = getelementptr inbounds %struct.Object, ptr %47, i32 0, i32 0
-  store ptr null, ptr %48, align 8
-  br label %49
+37:                                               ; preds = %36, %10
+  br label %38
 
-49:                                               ; preds = %40, %32
-  br label %50
+38:                                               ; preds = %37
+  %39 = load i32, ptr %5, align 4
+  %40 = add nsw i32 %39, 1
+  store i32 %40, ptr %5, align 4
+  br label %6, !llvm.loop !4
 
-50:                                               ; preds = %49, %12
-  br label %51
-
-51:                                               ; preds = %50
-  %52 = load i32, ptr %7, align 4
-  %53 = add nsw i32 %52, 1
-  store i32 %53, ptr %7, align 4
-  br label %8, !llvm.loop !6
-
-54:                                               ; preds = %8
+41:                                               ; preds = %6
   ret void
 }
 
@@ -363,7 +345,7 @@ define dso_local void @__spl__destroyref(ptr noundef %0, ptr noundef %1) #0 {
   %91 = load i32, ptr %5, align 4
   %92 = add nsw i32 %91, 1
   store i32 %92, ptr %5, align 4
-  br label %6, !llvm.loop !8
+  br label %6, !llvm.loop !6
 
 93:                                               ; preds = %6
   ret void
@@ -462,7 +444,7 @@ define dso_local void @__spl__addref(ptr noundef %0, ptr noundef %1, ptr noundef
   %66 = load i32, ptr %7, align 4
   %67 = add nsw i32 %66, 1
   store i32 %67, ptr %7, align 4
-  br label %10, !llvm.loop !9
+  br label %10, !llvm.loop !7
 
 68:                                               ; preds = %10
   %69 = call i32 (ptr, ...) @printf(ptr noundef @.str)
@@ -472,7 +454,7 @@ define dso_local void @__spl__addref(ptr noundef %0, ptr noundef %1, ptr noundef
   ret void
 }
 
-declare i32 @printf(ptr noundef, ...) #5
+declare dso_local i32 @printf(ptr noundef, ...) #5
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @__spl__write(ptr noundef %0, ptr noundef %1, ptr noundef %2) #0 {
@@ -525,7 +507,7 @@ define dso_local void @__spl__write(ptr noundef %0, ptr noundef %1, ptr noundef 
   %33 = load i32, ptr %8, align 4
   %34 = add nsw i32 %33, 1
   store i32 %34, ptr %8, align 4
-  br label %11, !llvm.loop !10
+  br label %11, !llvm.loop !8
 
 35:                                               ; preds = %11
   %36 = load i32, ptr %7, align 4
@@ -779,10 +761,10 @@ define dso_local ptr @__spl__constructor__String__byte(i8 noundef signext %0) #0
 }
 
 ; Function Attrs: nounwind
-declare i32 @snprintf(ptr noundef, i64 noundef, ptr noundef, ...) #3
+declare dso_local i32 @snprintf(ptr noundef, i64 noundef, ptr noundef, ...) #3
 
 ; Function Attrs: nounwind
-declare i32 @sprintf(ptr noundef, ptr noundef, ...) #3
+declare dso_local i32 @sprintf(ptr noundef, ptr noundef, ...) #3
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local ptr @__spl__constructor__String__short(i16 noundef signext %0) #0 {
@@ -1002,7 +984,7 @@ define dso_local ptr @__spl__constructor__String____StringLiteral(ptr noundef %0
 }
 
 ; Function Attrs: nounwind willreturn memory(read)
-declare i64 @strlen(ptr noundef) #7
+declare dso_local i64 @strlen(ptr noundef) #7
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @__spl__destructor__String(ptr noundef %0) #0 {
@@ -2077,17 +2059,15 @@ attributes #9 = { nounwind }
 attributes #10 = { nounwind allocsize(1) }
 attributes #11 = { nounwind willreturn memory(read) }
 
-!llvm.module.flags = !{!0, !1, !2, !3, !4}
-!llvm.ident = !{!5}
+!llvm.module.flags = !{!0, !1, !2}
+!llvm.ident = !{!3}
 
 !0 = !{i32 1, !"wchar_size", i32 4}
-!1 = !{i32 8, !"PIC Level", i32 2}
-!2 = !{i32 7, !"PIE Level", i32 2}
-!3 = !{i32 7, !"uwtable", i32 2}
-!4 = !{i32 7, !"frame-pointer", i32 2}
-!5 = !{!"clang version 18.1.8"}
-!6 = distinct !{!6, !7}
-!7 = !{!"llvm.loop.mustprogress"}
-!8 = distinct !{!8, !7}
-!9 = distinct !{!9, !7}
-!10 = distinct !{!10, !7}
+!1 = !{i32 7, !"uwtable", i32 2}
+!2 = !{i32 7, !"frame-pointer", i32 2}
+!3 = !{!"clang version 18.1.6 (Fedora 18.1.6-3.fc40)"}
+!4 = distinct !{!4, !5}
+!5 = !{!"llvm.loop.mustprogress"}
+!6 = distinct !{!6, !5}
+!7 = distinct !{!7, !5}
+!8 = distinct !{!8, !5}

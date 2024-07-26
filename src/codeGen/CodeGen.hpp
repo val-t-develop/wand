@@ -50,9 +50,8 @@ public:
     public:
       Value *val;
       string type;
-      bool decreaseRefs;
 
-      DestructAfterStatement(Value *_val, string _type, bool _decreaseRefs);
+      DestructAfterStatement(Value *_val, string _type);
     };
 
 

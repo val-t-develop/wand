@@ -50,8 +50,7 @@
 #include <utils/UniqueNumber.hpp>
 
 CodeGen::DestructAfterStatement::DestructAfterStatement(Value *_val,
-                                                        string _type,
-                                                        bool _decreaseRefs) : val(_val), type(_type), decreaseRefs(_decreaseRefs) {}
+                                                        string _type) : val(_val), type(_type) {}
 
 CodeGen::CodeGen(shared_ptr<IRTree> _tree, Path& _file) : tree(_tree), file(_file) {
     if (tree->moduleName=="spl.core") {
@@ -77,7 +76,7 @@ void CodeGen::codeGen() {
     helper->createFunctionPrototype(
         "__spl__destroyobj", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
-            helper->getPointerType(helper->getVoidType()), helper->getIntType(8)});
+            helper->getPointerType(helper->getVoidType())});
     helper->createFunctionPrototype(
         "__spl__destroyref", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
@@ -555,7 +554,7 @@ Value *CodeGen::genLiteral(shared_ptr<IRLiteral> node) {
         auto v = helper->createCall(
             "__spl__constructor__String____StringLiteral", {c});
         destructAfterStatement.push_back(
-            DestructAfterStatement(v, "String", false));
+            DestructAfterStatement(v, "String"));
         return v;
     }
 }
@@ -567,7 +566,7 @@ Value *CodeGen::genCall(shared_ptr<IRCall> node) {
     auto tmp = helper->createCall(node->name, args);
     if (tmp->getType()->isPointerTy()) {
         destructAfterStatement.push_back(DestructAfterStatement(
-            tmp, utils->functionTypes[node->name], true));
+            tmp, utils->functionTypes[node->name]));
     }
     return tmp;
 }

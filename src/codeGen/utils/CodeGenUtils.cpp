@@ -92,7 +92,7 @@ void CodeGenUtils::destructAfterStatement() {
     for(auto v : codeGen->destructAfterStatement) {
          helper->createCall(
          "__spl__destroyobj",
-         vector<Value *>{v.val, helper->getFunction("__spl__destructor__" +v.type), helper->getConstInt(8, v.decreaseRefs)});
+         vector<Value *>{v.val, helper->getFunction("__spl__destructor__" +v.type)});
     }
     codeGen->destructAfterStatement.clear();
 }
