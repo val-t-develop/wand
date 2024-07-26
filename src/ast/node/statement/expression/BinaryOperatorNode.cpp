@@ -93,7 +93,7 @@ shared_ptr<ClassRecord> BinaryOperatorNode::getReturnType() {
     } else if (op==BinaryOperatorKind::ADD && left->getReturnType()->getFullName()=="String") {
         return left->getReturnType();
     } else if (op==BinaryOperatorKind::ADD && right->getReturnType()->getFullName()=="String") {
-        return left->getReturnType();
+        return right->getReturnType();
     } else if (op==BinaryOperatorKind::ADD ||
         op==BinaryOperatorKind::SUB ||
         op==BinaryOperatorKind::MUL ||
