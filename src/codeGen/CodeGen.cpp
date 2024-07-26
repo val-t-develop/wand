@@ -82,6 +82,10 @@ void CodeGen::codeGen() {
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
             helper->getPointerType(helper->getVoidType())});
     helper->createFunctionPrototype(
+        "__spl__destroyref_not_delete", helper->getVoidType(),
+        vector<Type *>{helper->getPointerType(helper->getVoidType()),
+            helper->getPointerType(helper->getVoidType())});
+    helper->createFunctionPrototype(
         "__spl__addref", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
                        helper->getPointerType(helper->getVoidType()),
@@ -221,6 +225,12 @@ void CodeGen::genFunction(shared_ptr<IRFunction> node) {
         if (TheFunction->getReturnType() != helper->getVoidType()) {
             Value *ret_val = helper->createLoad(TheFunction->getReturnType(),
                                                 ret_ptr, "retloadtmp");
+            if (currFunction->type != "bool" && currFunction->type != "int" && currFunction->type != "byte" &&
+                currFunction->type != "short" && currFunction->type != "long" && currFunction->type != "float" &&
+                currFunction->type != "double" && currFunction->type != "char" && currFunction->type != "void") {
+                helper->createCall("__spl__destroyref_not_delete", vector<Value*>{ret_ptr, helper->getFunction("__spl__destructor__" +
+                                                    currFunction->type)});
+            }
             helper->createRet(ret_val);
         } else {
             helper->createRet();

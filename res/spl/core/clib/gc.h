@@ -125,6 +125,19 @@ void __spl__destroyref(void *ptr, void (*destructor)(void*)) {
 }
 
 __attribute__((used))
+void __spl__destroyref_not_delete(void *ptr, void (*destructor)(void*)) {
+    //printf("destroyref_not_delete: %p - ", ptr);
+    for (int32_t i = 0; i < refs.size; ++i) {
+        if (refs.arr[i].ref==ptr) {
+            objects.arr[refs.arr[i].ObjID].refs_count--;
+            //printf("%d\n", objects.arr[refs.arr[i].ObjID].refs_count);
+            refs.arr[i].ref=NULL;
+            refs.arr[i].ObjID=0;
+        }
+    }
+}
+
+__attribute__((used))
 void __spl__addref(void* ref, void* obj, void (*destructor)(void*)) {
     __spl__destroyref(ref, destructor);
     //printf("addref: %p - %p\n", ref, obj);

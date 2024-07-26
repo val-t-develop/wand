@@ -52,7 +52,7 @@ target triple = "x86_64-redhat-linux-gnu"
 @.str.18 = private unnamed_addr constant [4 x i8] c"%f\0A\00", align 1
 @.str.19 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
 @.str.20 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
-@llvm.compiler.used = appending global [46 x ptr] [ptr @__spl__init__gc, ptr @__spl__destroy__gc, ptr @__spl__alloc, ptr @__spl__destroyobj, ptr @__spl__destroyref, ptr @__spl__addref, ptr @__spl__write, ptr @__spl__constructor__String, ptr @__spl__constructor__String__String, ptr @__spl__constructor__String__char, ptr @__spl__constructor__String__bool, ptr @__spl__constructor__String__byte, ptr @__spl__constructor__String__short, ptr @__spl__constructor__String__int, ptr @__spl__constructor__String__long, ptr @__spl__constructor__String__float, ptr @__spl__constructor__String__double, ptr @__spl__constructor__String____StringLiteral, ptr @__spl__destructor__String, ptr @__String.concat__spl__void__String__String__String, ptr @__String.concat__spl__void__String__String__char, ptr @__String.concat__spl__void__String__String__bool, ptr @__String.concat__spl__void__String__String__byte, ptr @__String.concat__spl__void__String__String__short, ptr @__String.concat__spl__void__String__String__int, ptr @__String.concat__spl__void__String__String__long, ptr @__String.concat__spl__void__String__String__float, ptr @__String.concat__spl__void__String__String__double, ptr @System.out.print__spl__void__char, ptr @System.out.println__spl__void__char, ptr @System.out.print__spl__void__bool, ptr @System.out.println__spl__void__bool, ptr @System.out.print__spl__void__byte, ptr @System.out.println__spl__void__byte, ptr @System.out.print__spl__void__short, ptr @System.out.println__spl__void__short, ptr @System.out.print__spl__void__int, ptr @System.out.println__spl__void__int, ptr @System.out.print__spl__void__long, ptr @System.out.println__spl__void__long, ptr @System.out.print__spl__void__float, ptr @System.out.println__spl__void__float, ptr @System.out.print__spl__void__double, ptr @System.out.println__spl__void__double, ptr @System.out.print__spl__void__String, ptr @System.out.println__spl__void__String], section "llvm.metadata"
+@llvm.compiler.used = appending global [47 x ptr] [ptr @__spl__init__gc, ptr @__spl__destroy__gc, ptr @__spl__alloc, ptr @__spl__destroyobj, ptr @__spl__destroyref, ptr @__spl__destroyref_not_delete, ptr @__spl__addref, ptr @__spl__write, ptr @__spl__constructor__String, ptr @__spl__constructor__String__String, ptr @__spl__constructor__String__char, ptr @__spl__constructor__String__bool, ptr @__spl__constructor__String__byte, ptr @__spl__constructor__String__short, ptr @__spl__constructor__String__int, ptr @__spl__constructor__String__long, ptr @__spl__constructor__String__float, ptr @__spl__constructor__String__double, ptr @__spl__constructor__String____StringLiteral, ptr @__spl__destructor__String, ptr @__String.concat__spl__void__String__String__String, ptr @__String.concat__spl__void__String__String__char, ptr @__String.concat__spl__void__String__String__bool, ptr @__String.concat__spl__void__String__String__byte, ptr @__String.concat__spl__void__String__String__short, ptr @__String.concat__spl__void__String__String__int, ptr @__String.concat__spl__void__String__String__long, ptr @__String.concat__spl__void__String__String__float, ptr @__String.concat__spl__void__String__String__double, ptr @System.out.print__spl__void__char, ptr @System.out.println__spl__void__char, ptr @System.out.print__spl__void__bool, ptr @System.out.println__spl__void__bool, ptr @System.out.print__spl__void__byte, ptr @System.out.println__spl__void__byte, ptr @System.out.print__spl__void__short, ptr @System.out.println__spl__void__short, ptr @System.out.print__spl__void__int, ptr @System.out.println__spl__void__int, ptr @System.out.print__spl__void__long, ptr @System.out.println__spl__void__long, ptr @System.out.print__spl__void__float, ptr @System.out.println__spl__void__float, ptr @System.out.print__spl__void__double, ptr @System.out.println__spl__void__double, ptr @System.out.print__spl__void__String, ptr @System.out.println__spl__void__String], section "llvm.metadata"
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @__spl__init__gc() #0 {
@@ -352,6 +352,74 @@ define dso_local void @__spl__destroyref(ptr noundef %0, ptr noundef %1) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @__spl__destroyref_not_delete(ptr noundef %0, ptr noundef %1) #0 {
+  %3 = alloca ptr, align 8
+  %4 = alloca ptr, align 8
+  %5 = alloca i32, align 4
+  store ptr %0, ptr %3, align 8
+  store ptr %1, ptr %4, align 8
+  store i32 0, ptr %5, align 4
+  br label %6
+
+6:                                                ; preds = %43, %2
+  %7 = load i32, ptr %5, align 4
+  %8 = load i32, ptr getelementptr inbounds (%struct.Refs, ptr @refs, i32 0, i32 1), align 8
+  %9 = icmp slt i32 %7, %8
+  br i1 %9, label %10, label %46
+
+10:                                               ; preds = %6
+  %11 = load ptr, ptr @refs, align 8
+  %12 = load i32, ptr %5, align 4
+  %13 = sext i32 %12 to i64
+  %14 = getelementptr inbounds %struct.Ref, ptr %11, i64 %13
+  %15 = getelementptr inbounds %struct.Ref, ptr %14, i32 0, i32 0
+  %16 = load ptr, ptr %15, align 8
+  %17 = load ptr, ptr %3, align 8
+  %18 = icmp eq ptr %16, %17
+  br i1 %18, label %19, label %42
+
+19:                                               ; preds = %10
+  %20 = load ptr, ptr @objects, align 8
+  %21 = load ptr, ptr @refs, align 8
+  %22 = load i32, ptr %5, align 4
+  %23 = sext i32 %22 to i64
+  %24 = getelementptr inbounds %struct.Ref, ptr %21, i64 %23
+  %25 = getelementptr inbounds %struct.Ref, ptr %24, i32 0, i32 1
+  %26 = load i32, ptr %25, align 8
+  %27 = sext i32 %26 to i64
+  %28 = getelementptr inbounds %struct.Object, ptr %20, i64 %27
+  %29 = getelementptr inbounds %struct.Object, ptr %28, i32 0, i32 1
+  %30 = load i32, ptr %29, align 8
+  %31 = add nsw i32 %30, -1
+  store i32 %31, ptr %29, align 8
+  %32 = load ptr, ptr @refs, align 8
+  %33 = load i32, ptr %5, align 4
+  %34 = sext i32 %33 to i64
+  %35 = getelementptr inbounds %struct.Ref, ptr %32, i64 %34
+  %36 = getelementptr inbounds %struct.Ref, ptr %35, i32 0, i32 0
+  store ptr null, ptr %36, align 8
+  %37 = load ptr, ptr @refs, align 8
+  %38 = load i32, ptr %5, align 4
+  %39 = sext i32 %38 to i64
+  %40 = getelementptr inbounds %struct.Ref, ptr %37, i64 %39
+  %41 = getelementptr inbounds %struct.Ref, ptr %40, i32 0, i32 1
+  store i32 0, ptr %41, align 8
+  br label %42
+
+42:                                               ; preds = %19, %10
+  br label %43
+
+43:                                               ; preds = %42
+  %44 = load i32, ptr %5, align 4
+  %45 = add nsw i32 %44, 1
+  store i32 %45, ptr %5, align 4
+  br label %6, !llvm.loop !7
+
+46:                                               ; preds = %6
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
 define dso_local void @__spl__addref(ptr noundef %0, ptr noundef %1, ptr noundef %2) #0 {
   %4 = alloca ptr, align 8
   %5 = alloca ptr, align 8
@@ -444,7 +512,7 @@ define dso_local void @__spl__addref(ptr noundef %0, ptr noundef %1, ptr noundef
   %66 = load i32, ptr %7, align 4
   %67 = add nsw i32 %66, 1
   store i32 %67, ptr %7, align 4
-  br label %10, !llvm.loop !7
+  br label %10, !llvm.loop !8
 
 68:                                               ; preds = %10
   %69 = call i32 (ptr, ...) @printf(ptr noundef @.str)
@@ -507,7 +575,7 @@ define dso_local void @__spl__write(ptr noundef %0, ptr noundef %1, ptr noundef 
   %33 = load i32, ptr %8, align 4
   %34 = add nsw i32 %33, 1
   store i32 %34, ptr %8, align 4
-  br label %11, !llvm.loop !8
+  br label %11, !llvm.loop !9
 
 35:                                               ; preds = %11
   %36 = load i32, ptr %7, align 4
@@ -2075,3 +2143,4 @@ attributes #11 = { nounwind willreturn memory(read) }
 !6 = distinct !{!6, !5}
 !7 = distinct !{!7, !5}
 !8 = distinct !{!8, !5}
+!9 = distinct !{!9, !5}
