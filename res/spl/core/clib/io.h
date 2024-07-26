@@ -25,6 +25,7 @@
 #define IO_H
 
 #include <stdio.h>
+#include <stdbool.h>
 
 __attribute__((used))
 void System___out___print__spl__void__char(char a) {
@@ -37,7 +38,7 @@ void System___out___println__spl__void__char(char a) {
 }
 
 __attribute__((used))
-void System___out___print__spl__void__bool(int8_t a) {
+void System___out___print__spl__void__bool(bool a) {
     if (a) {
         printf("true");
     } else {
@@ -46,7 +47,7 @@ void System___out___print__spl__void__bool(int8_t a) {
 }
 
 __attribute__((used))
-void System___out___println__spl__void__bool(int8_t a) {
+void System___out___println__spl__void__bool(bool a) {
     if (a) {
         printf("true\n");
     } else {

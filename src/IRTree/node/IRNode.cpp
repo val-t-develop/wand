@@ -44,6 +44,7 @@ bool IRNode::isExpression() {
 bool IRNode::isLiteral() {
     if (kind==Kind::STRING_LITERAL ||
         kind==Kind::CHAR_LITERAL ||
+        kind==Kind::BOOL_LITERAL ||
         kind==Kind::BYTE_LITERAL ||
         kind==Kind::SHORT_LITERAL ||
         kind==Kind::INT_LITERAL ||

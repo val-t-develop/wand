@@ -26,6 +26,7 @@
 
 #include "gc.h"
 #include <stdio.h>
+#include <stdbool.h>
 
 typedef struct String_t {
     char* str;
@@ -65,7 +66,7 @@ String* __spl__constructor__String__char(char _a) {
 }
 
 __attribute__((used))
-String* __spl__constructor__String__bool(int8_t _a) {
+String* __spl__constructor__String__bool(bool _a) {
     String* obj = __spl__alloc(sizeof(String));
     if (_a) {
         obj->size = 4;
@@ -181,7 +182,7 @@ void __String___concat__spl__void__String__String__char(String* _this, String *_
 }
 
 __attribute__((used))
-void __String___concat__spl__void__String__String__bool(String* _this, String *_a, int8_t _b) {
+void __String___concat__spl__void__String__String__bool(String* _this, String *_a, bool _b) {
     if (_b) {
         _this->size = _a->size+4;
         if (_this->size != 0) {
