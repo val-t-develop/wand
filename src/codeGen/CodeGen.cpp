@@ -407,22 +407,21 @@ void CodeGen::genWhile(shared_ptr<IRWhile> node) {
     helper->createBr(beforeWhileBB);
     helper->activateBB(beforeWhileBB);
     bool beforeBr = genBlock(make_shared<IRBlock>(node->before));
-    if (!beforeBr) {
-        helper->createBr(whileBB);
-    }
-
-    Value *cond = genExpression(node->cond, false);
+    //if (!beforeBr) { // TODO
+    //    helper->createBr(whileBB);
+    //}
 
     helper->createBr(whileBB);
     helper->activateBB(whileBB);
 
+    Value *cond = genExpression(node->cond, false);
     helper->createIfElse(cond, whilebodyBB, whilecontBB);
 
     helper->activateBB(whilebodyBB);
 
     bool br = genBlock(make_shared<IRBlock>(vector<shared_ptr<IRStatement>>{node->body}));
     if (!br) {
-        helper->createBr(whilecontBB);
+        helper->createBr(whileBB);
     }
 
     helper->activateBB(whilecontBB);
@@ -646,17 +645,59 @@ Value *CodeGen::genBinOp(shared_ptr<IRBinOp> node) {
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::BIT_AND) {
 
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::EQUAL) {
-
+        if (helper->isFloatingPointValue(L) ||
+            helper->isFloatingPointValue(R)) {
+            return helper->createFPEQ(helper->castToDouble(L), helper->castToDouble(R));
+        } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
+            return helper->createEQ(L, R);
+        } else {
+            Out::errorMessage("Can not add values: incorrect types");
+        }
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::NOT_EQUAL) {
-
+        if (helper->isFloatingPointValue(L) ||
+            helper->isFloatingPointValue(R)) {
+            return helper->createFPNE(helper->castToDouble(L), helper->castToDouble(R));
+        } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
+            return helper->createNE(L, R);
+        } else {
+            Out::errorMessage("Can not add values: incorrect types");
+        }
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::LESS) {
-
+        if (helper->isFloatingPointValue(L) ||
+            helper->isFloatingPointValue(R)) {
+            return helper->createFPLT(helper->castToDouble(L), helper->castToDouble(R));
+        } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
+            return helper->createLT(L, R);
+        } else {
+            Out::errorMessage("Can not add values: incorrect types");
+        }
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::GREATER) {
-
+        if (helper->isFloatingPointValue(L) ||
+            helper->isFloatingPointValue(R)) {
+            return helper->createFPGT(helper->castToDouble(L), helper->castToDouble(R));
+        } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
+            return helper->createGT(L, R);
+        } else {
+            Out::errorMessage("Can not add values: incorrect types");
+        }
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::LESS_EQUAL) {
-
+        if (helper->isFloatingPointValue(L) ||
+            helper->isFloatingPointValue(R)) {
+            return helper->createFPLE(helper->castToDouble(L), helper->castToDouble(R));
+        } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
+            return helper->createLE(L, R);
+        } else {
+            Out::errorMessage("Can not add values: incorrect types");
+        }
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::GREATER_EQUAL) {
-
+        if (helper->isFloatingPointValue(L) ||
+            helper->isFloatingPointValue(R)) {
+            return helper->createFPGE(helper->castToDouble(L), helper->castToDouble(R));
+        } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
+            return helper->createGE(L, R);
+        } else {
+            Out::errorMessage("Can not add values: incorrect types");
+        }
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::INSTANCEOF) {
 
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::LEFT_SHIFT) {
@@ -666,19 +707,39 @@ Value *CodeGen::genBinOp(shared_ptr<IRBinOp> node) {
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::ADD) {
         if (helper->isFloatingPointValue(L) ||
             helper->isFloatingPointValue(R)) {
-            return helper->createFPAdd(helper->castToDouble(L),
-                                       helper->castToDouble(R));
+            return helper->createFPAdd(helper->castToDouble(L), helper->castToDouble(R));
         } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
             return helper->createAdd(L, R);
         } else {
             Out::errorMessage("Can not add values: incorrect types");
         }
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::SUB) {
-
+        if (helper->isFloatingPointValue(L) ||
+            helper->isFloatingPointValue(R)) {
+            return helper->createFPSub(helper->castToDouble(L), helper->castToDouble(R));
+        } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
+            return helper->createSub(L, R);
+        } else {
+            Out::errorMessage("Can not add values: incorrect types");
+        }
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::MUL) {
-
+        if (helper->isFloatingPointValue(L) ||
+            helper->isFloatingPointValue(R)) {
+            return helper->createFPMul(helper->castToDouble(L), helper->castToDouble(R));
+        } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
+            return helper->createMul(L, R);
+        } else {
+            Out::errorMessage("Can not add values: incorrect types");
+        }
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::DIV) {
-
+        if (helper->isFloatingPointValue(L) ||
+            helper->isFloatingPointValue(R)) {
+            return helper->createFPDiv(helper->castToDouble(L), helper->castToDouble(R));
+        } else if (helper->isIntValue(L) && helper->isIntValue(R)) {
+            return helper->createDiv(L, R);
+        } else {
+            Out::errorMessage("Can not add values: incorrect types");
+        }
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::MOD) {
 
     }

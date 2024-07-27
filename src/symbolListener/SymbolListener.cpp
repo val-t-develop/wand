@@ -1119,9 +1119,9 @@ string SymbolListener::enterAccessItem(bool arr) {
     string str = lexer.getCurrent()->str;
     lexer.goForward();
 
-    if (lexer.ifCurrTokenStartsWithLT()) {
-        str += enterGeneric();
-    }
+    //if (lexer.ifCurrTokenStartsWithLT()) {
+    //    str += enterGeneric();
+    //}
     if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
         str += lexer.getCurrent()->str;
         lexer.goForward();
