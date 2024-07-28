@@ -82,6 +82,7 @@ public:
     void genFunctionPrototype(shared_ptr<IRFunction> node);
     void genFunction(shared_ptr<IRFunction> node);
     bool genBlock(shared_ptr<IRBlock> node);
+    bool genStatement(shared_ptr<IRStatement> node);
     void genIfElse(shared_ptr<IRIfElse> node);
     void genWhile(shared_ptr<IRWhile> node);
     void genVarDecl(shared_ptr<IRVarDecl> node);

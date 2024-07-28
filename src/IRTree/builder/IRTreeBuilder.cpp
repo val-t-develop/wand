@@ -303,9 +303,10 @@ shared_ptr<IRBlock> IRTreeBuilder::enterBlock(shared_ptr<BlockNode> node) {
             block->nodes.push_back(make_shared<IRIfElse>(enterExpression(ifElseNode->condition), enterStatement(ifElseNode->thenNode), enterStatement(ifElseNode->elseNode)));
         } else if (el->kind == Node::NodeKind::WHILE_NODE) {
             auto whileNode = static_pointer_cast<WhileNode>(el);
-            block->nodes.push_back(make_shared<IRWhile>(vector<shared_ptr<IRStatement>>{}, enterExpression(whileNode->expression), enterStatement(whileNode->statement)));
+            block->nodes.push_back(make_shared<IRWhile>(nullptr, enterExpression(whileNode->expression), enterStatement(whileNode->statement), nullptr));
         } else if (el->kind == Node::NodeKind::FOR_NODE) {
-            // TODO for loop
+            auto forNode = static_pointer_cast<ForNode>(el);
+            block->nodes.push_back(make_shared<IRWhile>(enterStatement(forNode->init), enterExpression(forNode->condition), enterStatement(forNode->statement), enterStatement(forNode->update)));
         } else if (el->isExpression()) {
             block->nodes.push_back(enterExpression(static_pointer_cast<ExpressionNode>(el)));
         }
@@ -337,11 +338,13 @@ IRTreeBuilder::enterStatement(shared_ptr<StatementNode> el) {
                                      enterStatement(ifElseNode->elseNode));
     } else if (el->kind == Node::NodeKind::WHILE_NODE) {
         auto whileNode = static_pointer_cast<WhileNode>(el);
-        return make_shared<IRWhile>(vector<shared_ptr<IRStatement>>{},
+        return make_shared<IRWhile>(nullptr,
                                     enterExpression(whileNode->expression),
-                                    enterStatement(whileNode->statement));
+                                    enterStatement(whileNode->statement),
+                                    nullptr);
     } else if (el->kind == Node::NodeKind::FOR_NODE) {
-        // TODO for loop
+        auto forNode = static_pointer_cast<ForNode>(el);
+        return make_shared<IRWhile>(enterStatement(forNode->init), enterExpression(forNode->condition), enterStatement(forNode->statement), enterStatement(forNode->update));
     } else if (el->isExpression()) {
         return enterExpression(static_pointer_cast<ExpressionNode>(el));
     }

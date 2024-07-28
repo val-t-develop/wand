@@ -23,5 +23,5 @@
 
 #include "IRWhile.hpp"
 
-IRWhile::IRWhile(vector<shared_ptr<IRStatement>> _before,
-                 shared_ptr<IRExpression> _cond, shared_ptr<IRStatement> _body) : before(_before), cond(_cond), body(_body), IRStatement(Kind::WHILE) {}
+IRWhile::IRWhile(shared_ptr<IRStatement> _before,
+                 shared_ptr<IRExpression> _cond, shared_ptr<IRStatement> _body, shared_ptr<IRStatement> _update) : before(_before), cond(_cond), body(_body), update(_update), IRStatement(Kind::WHILE) {}
