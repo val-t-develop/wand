@@ -628,7 +628,7 @@ shared_ptr<BlockNode> AstBuilder::enterBlockStatement(bool enterScope) {
 
     if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
         lexer.goForward();
-        vector<shared_ptr<Node>> nodes = vector<shared_ptr<Node>>();
+        vector<shared_ptr<StatementNode>> nodes = vector<shared_ptr<StatementNode>>();
         while (true) {
             ParserUtils::skipSemicolons(lexer);
             if (lexer.getCurrent()->kind == Token::Kind::RBRACE) {

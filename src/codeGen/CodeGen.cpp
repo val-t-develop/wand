@@ -287,49 +287,9 @@ bool CodeGen::genBlock(shared_ptr<IRBlock> node) {
     bool ret = false;
     currBlockVars.push(vector<pair<Value *, string>>());
     for (auto item : node->nodes) {
-        if (item != nullptr) {
-            if (item->kind == IRNode::Kind::BLOCK) {
-                ret = genBlock(static_pointer_cast<IRBlock>(item));
-                utils->destructAfterStatement();
-                break;
-            } else if (item->kind == IRNode::Kind::RETURN) {
-                auto returnNode = static_pointer_cast<IRReturn>(item);
-                if (returnNode->val != nullptr) {
-                    Value *ptr =
-                        NamedValues[helper->getCurrFunction()->getName().str() +
-                                    "__spl__ret"];
-                    Value *val = genExpression(returnNode->val, false);
-                    if (val->getType()->isPointerTy()) {
-                        helper->createCall(
-                            "__spl__addref",
-                            vector<Value *>{
-                                ptr, val,
-                                helper->getFunction("__spl__destructor__" +
-                                                    currFunction->type)});
-                    }
-                    helper->createStore(val, ptr);
-                }
-                ret = true;
-                utils->destructAfterStatement();
-                break;
-            } else if (item->kind == IRNode::Kind::VAR_DECL) {
-                genVarDecl(static_pointer_cast<IRVarDecl>(item));
-                utils->destructAfterStatement();
-            } else if (item->kind == IRNode::Kind::VARS_DECL) {
-                for (auto el : static_pointer_cast<IRVarsDecl>(item)->vars) {
-                    genVarDecl(el);
-                }
-                utils->destructAfterStatement();
-            } else if (item->isExpression()) {
-                genExpression(static_pointer_cast<IRExpression>(item), false);
-                utils->destructAfterStatement();
-            } else if (item->kind == IRNode::Kind::IF_ELSE) {
-                genIfElse(static_pointer_cast<IRIfElse>(item));
-                utils->destructAfterStatement();
-            } else if (item->kind == IRNode::Kind::WHILE) {
-                genWhile(static_pointer_cast<IRWhile>(item));
-                utils->destructAfterStatement();
-            }
+        ret = genStatement(item, false);
+        if (ret) {
+            break;
         }
     }
 
@@ -352,7 +312,7 @@ bool CodeGen::genBlock(shared_ptr<IRBlock> node) {
     return ret;
 }
 
-bool CodeGen::genStatement(shared_ptr<IRStatement> node) {
+bool CodeGen::genStatement(shared_ptr<IRStatement> node, bool makeRet) {
     bool ret = false;
     if (node != nullptr) {
         if (node->kind == IRNode::Kind::BLOCK) {
@@ -396,8 +356,10 @@ bool CodeGen::genStatement(shared_ptr<IRStatement> node) {
             utils->destructAfterStatement();
         }
     }
-    if (ret) {
-        helper->createBr(retBB);
+    if (makeRet) {
+        if (ret) {
+            helper->createBr(retBB);
+        }
     }
     return ret;
 }
@@ -457,7 +419,7 @@ void CodeGen::genWhile(shared_ptr<IRWhile> node) {
     helper->createBr(beforeWhileBB);
     helper->activateBB(beforeWhileBB);
     if (node->before!=nullptr) {
-        genStatement(node->before);
+        genStatement(node->before, true);
     }
 
     helper->createBr(whileBB);
@@ -470,7 +432,7 @@ void CodeGen::genWhile(shared_ptr<IRWhile> node) {
 
     bool br = genBlock(make_shared<IRBlock>(vector<shared_ptr<IRStatement>>{node->body}));
     if (node->update!=nullptr) {
-        genStatement(node->update);
+        genStatement(node->update, true);
     }
     if (!br) {
         helper->createBr(whileBB);
