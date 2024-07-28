@@ -24,7 +24,7 @@
 #pragma once
 #include <IRTree/builder/IRTreeBuilder.hpp>
 #include <IRTree/node/statement/IRIfElse.hpp>
-#include <IRTree/node/statement/IRWhile.hpp>
+#include <IRTree/node/statement/IRLoop.hpp>
 #include <IRTree/node/statement/expression/IRVar.hpp>
 #include <codeGen/utils/CodeGenUtils.hpp>
 #include <codeGen/utils/LLVMHelper.hpp>
@@ -84,7 +84,7 @@ public:
     bool genBlock(shared_ptr<IRBlock> node);
     bool genStatement(shared_ptr<IRStatement> node, bool makeRet);
     void genIfElse(shared_ptr<IRIfElse> node);
-    void genWhile(shared_ptr<IRWhile> node);
+    void genLoop(shared_ptr<IRLoop> node);
     void genVarDecl(shared_ptr<IRVarDecl> node);
     Value *genExpression(shared_ptr<IRExpression> node, bool genRef);
     Value *genLiteral(shared_ptr<IRLiteral> node);

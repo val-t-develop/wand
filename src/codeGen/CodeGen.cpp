@@ -41,7 +41,7 @@
 #include <IRTree/node/statement/IRIfElse.hpp>
 #include <IRTree/node/statement/IRReturn.hpp>
 #include <IRTree/node/statement/IRVarsDecl.hpp>
-#include <IRTree/node/statement/IRWhile.hpp>
+#include <IRTree/node/statement/IRLoop.hpp>
 #include <IRTree/node/statement/expression/IRAccess.hpp>
 #include <IRTree/node/statement/expression/IRAlloc.hpp>
 #include <IRTree/node/statement/expression/IRValue.hpp>
@@ -351,8 +351,8 @@ bool CodeGen::genStatement(shared_ptr<IRStatement> node, bool makeRet) {
         } else if (node->kind == IRNode::Kind::IF_ELSE) {
             genIfElse(static_pointer_cast<IRIfElse>(node));
             utils->destructAfterStatement();
-        } else if (node->kind == IRNode::Kind::WHILE) {
-            genWhile(static_pointer_cast<IRWhile>(node));
+        } else if (node->kind == IRNode::Kind::LOOP) {
+            genLoop(static_pointer_cast<IRLoop>(node));
             utils->destructAfterStatement();
         }
     }
@@ -409,7 +409,7 @@ void CodeGen::genIfElse(shared_ptr<IRIfElse> node) {
     helper->activateBB(MergeBB);
 }
 
-void CodeGen::genWhile(shared_ptr<IRWhile> node) {
+void CodeGen::genLoop(shared_ptr<IRLoop> node) {
     Function *TheFunction = helper->getCurrFunction();
     BasicBlock *beforeWhileBB = helper->createBBinFunc("beforewhile", TheFunction);
     BasicBlock *whileBB = helper->createBBinFunc("while", TheFunction);

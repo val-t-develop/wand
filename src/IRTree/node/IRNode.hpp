@@ -36,7 +36,7 @@ public:
         RETURN,
         VAR_DECL,
         VARS_DECL,
-        WHILE,
+        LOOP,
 
         VALUE,
         VAR,

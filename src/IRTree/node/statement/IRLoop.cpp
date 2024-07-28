@@ -18,20 +18,10 @@
 /*
  *  Valentyn Tymchyshyn (val.t.develop) (val.t.develo@gmail.com)
  *
- *  IR tree part for while loop.
+ *  IR tree part for loop.
  */
 
-#pragma once
-#include "IRBlock.hpp"
-#include "IRStatement.hpp"
-#include "expression/IRExpression.hpp"
+#include "IRLoop.hpp"
 
-class IRWhile : public IRStatement {
-public:
-    shared_ptr<IRStatement> before;
-    shared_ptr<IRExpression> cond;
-    shared_ptr<IRStatement> body;
-    shared_ptr<IRStatement> update;
-
-    IRWhile(shared_ptr<IRStatement> _before, shared_ptr<IRExpression> _cond, shared_ptr<IRStatement> _body, shared_ptr<IRStatement> _update);
-};
+IRLoop::IRLoop(shared_ptr<IRStatement> _before,
+                 shared_ptr<IRExpression> _cond, shared_ptr<IRStatement> _body, shared_ptr<IRStatement> _update) : before(_before), cond(_cond), body(_body), update(_update), IRStatement(Kind::LOOP) {}

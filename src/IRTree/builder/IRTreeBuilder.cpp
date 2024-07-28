@@ -26,7 +26,7 @@
 #include <IRTree/node/statement/IRIfElse.hpp>
 #include <IRTree/node/statement/IRReturn.hpp>
 #include <IRTree/node/statement/IRVarsDecl.hpp>
-#include <IRTree/node/statement/IRWhile.hpp>
+#include <IRTree/node/statement/IRLoop.hpp>
 #include <IRTree/node/statement/expression/IRAccess.hpp>
 #include <IRTree/node/statement/expression/IRAlloc.hpp>
 #include <IRTree/node/statement/expression/IRFunc.hpp>
@@ -314,13 +314,13 @@ IRTreeBuilder::enterStatement(shared_ptr<StatementNode> el) {
                                      enterStatement(ifElseNode->elseNode));
     } else if (el->kind == Node::NodeKind::WHILE_NODE) {
         auto whileNode = static_pointer_cast<WhileNode>(el);
-        return make_shared<IRWhile>(nullptr,
+        return make_shared<IRLoop>(nullptr,
                                     enterExpression(whileNode->expression),
                                     enterStatement(whileNode->statement),
                                     nullptr);
     } else if (el->kind == Node::NodeKind::FOR_NODE) {
         auto forNode = static_pointer_cast<ForNode>(el);
-        return make_shared<IRWhile>(enterStatement(forNode->init), enterExpression(forNode->condition), enterStatement(forNode->statement), enterStatement(forNode->update));
+        return make_shared<IRLoop>(enterStatement(forNode->init), enterExpression(forNode->condition), enterStatement(forNode->statement), enterStatement(forNode->update));
     } else if (el->isExpression()) {
         return enterExpression(static_pointer_cast<ExpressionNode>(el));
     }
