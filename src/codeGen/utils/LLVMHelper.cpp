@@ -298,27 +298,27 @@ Value *LLVMHelper::createFPAdd(Value *lhs, Value *rhs, string name) {
 }
 
 Value *LLVMHelper::createSub(Value *lhs, Value *rhs, string name) {
-    Builder->CreateSub(lhs, rhs, name);
+    return Builder->CreateSub(lhs, rhs, name);
 }
 
 Value *LLVMHelper::createFPSub(Value *lhs, Value *rhs, string name) {
-    Builder->CreateFSub(lhs, rhs, name);
+    return Builder->CreateFSub(lhs, rhs, name);
 }
 
 Value *LLVMHelper::createMul(Value *lhs, Value *rhs, string name) {
-    Builder->CreateMul(lhs, rhs, name);
+    return Builder->CreateMul(lhs, rhs, name);
 }
 
 Value *LLVMHelper::createFPMul(Value *lhs, Value *rhs, string name) {
-    Builder->CreateFMul(lhs, rhs, name);
+    return Builder->CreateFMul(lhs, rhs, name);
 }
 
 Value *LLVMHelper::createDiv(Value *lhs, Value *rhs, string name) {
-    Builder->CreateSDiv(lhs, rhs, name);
+    return Builder->CreateSDiv(lhs, rhs, name);
 }
 
 Value *LLVMHelper::createFPDiv(Value *lhs, Value *rhs, string name) {
-    Builder->CreateFDiv(lhs, rhs, name);
+    return Builder->CreateFDiv(lhs, rhs, name);
 }
 
 bool LLVMHelper::isFloatValue(Value *val) {

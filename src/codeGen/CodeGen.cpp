@@ -448,7 +448,9 @@ void CodeGen::genVarDecl(shared_ptr<IRVarDecl> node) {
     varTypes[node->name] = node->type;
     currBlockVars.top().push_back(
         pair<Value *, string>(ptr, node->type));
-    genExpression(make_shared<IRBinOp>(make_shared<IRVar>(node->name), node->init, BinaryOperatorNode::BinaryOperatorKind::ASSIGN), false);
+    if (node->init!=nullptr) {
+        genExpression(make_shared<IRBinOp>(make_shared<IRVar>(node->name), node->init, BinaryOperatorNode::BinaryOperatorKind::ASSIGN), false);
+    }
 }
 
 Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
