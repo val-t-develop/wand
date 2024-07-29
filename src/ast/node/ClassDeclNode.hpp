@@ -40,7 +40,7 @@ class ClassDeclNode : public Node {
     shared_ptr<ModifiersNode> modifiers;
     ClassKind kind;
     shared_ptr<ClassRecord> record;
-    vector<shared_ptr<TypeNode>> extended = vector<shared_ptr<TypeNode>>();
+    shared_ptr<TypeNode> extended = shared_ptr<TypeNode>();
     vector<shared_ptr<TypeNode>> implemented = vector<shared_ptr<TypeNode>>();
     vector<shared_ptr<VarDeclNode>> fields = vector<shared_ptr<VarDeclNode>>();
     vector<shared_ptr<MethodDeclNode>> methods =
@@ -55,7 +55,7 @@ class ClassDeclNode : public Node {
     ClassDeclNode(shared_ptr<GenericNode> _generic,
                   shared_ptr<ModifiersNode> _modifiers, ClassKind _kind,
                   shared_ptr<ClassRecord> _record,
-                  vector<shared_ptr<TypeNode>> _extended,
+                  shared_ptr<TypeNode> _extended,
                   vector<shared_ptr<TypeNode>> _implemented,
                   vector<shared_ptr<VarDeclNode>> _fields,
                   vector<shared_ptr<MethodDeclNode>> _methods,

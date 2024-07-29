@@ -126,12 +126,13 @@ AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
         shared_ptr<ClassRecord> record = symbolTable->lookupClass(name);
         classesStack.push(record);
 
-        vector<shared_ptr<TypeNode>> extended = vector<shared_ptr<TypeNode>>();
+        shared_ptr<TypeNode> extended = nullptr;
         vector<shared_ptr<TypeNode>> implemented =
             vector<shared_ptr<TypeNode>>();
         if (lexer.getCurrent()->kind == Token::Kind::EXTENDS) {
             lexer.goForward();
-            extended = enterTypeList();
+            extended = enterType(false);
+            record->superClass=extended->type->record;
         }
         if (lexer.getCurrent()->kind == Token::Kind::IMPLEMENTS) {
             lexer.goForward();

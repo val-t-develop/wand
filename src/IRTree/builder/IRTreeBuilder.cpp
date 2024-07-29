@@ -123,6 +123,9 @@ void IRTreeBuilder::enterClassDecl(shared_ptr<ClassDeclNode> node,
     for (auto el : node->innerClasses) {
         enterClassDecl(el, genMethods);
     }
+    if (node->extended!=nullptr) {
+        Struct->fields.push_back(make_shared<IRVarDecl>("super", node->extended->getFullName(), nullptr));
+    }
 
     for (auto el : node->fields) {
         bool isStatic = false;
@@ -379,6 +382,23 @@ IRTreeBuilder::enterExpression(shared_ptr<ExpressionNode> node) {
                 access->access.push_back(make_shared<IRVar>("this"));
                 access->access.push_back(make_shared<IRVar>(name));
                 return access;
+            } else if (classesStack.top()->extended!=nullptr) {
+                shared_ptr<ClassRecord> curr = classesStack.top()->extended->getReturnType();
+                auto access = make_shared<IRAccess>();
+                access->access.push_back(make_shared<IRVar>("super"));
+                while (true) {
+                    for (auto el : curr->fields) {
+                        if (el->getFullName()==name) {
+                            access->access.push_back(make_shared<IRVar>(name));
+                            return access;
+                        }
+                    }
+                    curr = curr->superClass;
+                    if (curr==nullptr) {
+                        break;
+                    }
+                    access->access.push_back(make_shared<IRVar>("super"));
+                }
             }
         }
     } else if (node->kind == Node::NodeKind::NEW_NODE) {
@@ -422,6 +442,21 @@ IRTreeBuilder::enterExpression(shared_ptr<ExpressionNode> node) {
                     }
                     if (found) {
                         new_access->access.push_back(make_shared<IRVar>(rec->getFullName()));
+                    } else if (access1->getReturnType()->superClass!=nullptr) {
+                        shared_ptr<ClassRecord> curr = access1->getReturnType()->superClass;
+                        new_access->access.push_back(make_shared<IRVar>("super"));
+                        while (true) {
+                            for (auto el : curr->fields) {
+                                if (el->getFullName()==rec->getFullName()) {
+                                    new_access->access.push_back(make_shared<IRVar>(rec->getFullName()));
+                                }
+                            }
+                            curr = curr->superClass;
+                            if (curr==nullptr) {
+                                break;
+                            }
+                            new_access->access.push_back(make_shared<IRVar>("super"));
+                        }
                     } else {
                         Out::errorMessage("Can not find field " + rec->getFullName() + " in class " + access1->getReturnType()->getFullName());
                     }

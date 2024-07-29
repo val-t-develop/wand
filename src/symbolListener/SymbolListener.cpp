@@ -203,8 +203,7 @@ void SymbolListener::enterClassDecl() {
         currentClass->type = type;
     }
 
-    vector<string> superClasses = enterExtending();
-    newClass->superClass = superClasses.size() >= 1 ? superClasses[0] : "";
+    enterExtending();
 
     if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
         lexer.goForward();
@@ -1240,11 +1239,10 @@ void SymbolListener::enterArrayInitializer() {
     }
 }
 
-vector<string> SymbolListener::enterExtending() {
-    vector<string> superClasses{};
+void SymbolListener::enterExtending() {
     if (lexer.getCurrent()->kind == Token::Kind::EXTENDS) {
         lexer.goForward();
-        superClasses.push_back(enterType(true));
+        enterType(true);
         if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
             Out::errorMessage(
                 lexer, "Unexpected identifier ',' in " +
@@ -1253,7 +1251,7 @@ vector<string> SymbolListener::enterExtending() {
         } else if (lexer.getCurrent()->kind == Token::Kind::IMPLEMENTS) {
             lexer.goForward();
             while (true) {
-                superClasses.push_back(enterType(true));
+                enterType(true);
                 if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
                     lexer.goForward();
                 } else {
@@ -1264,7 +1262,7 @@ vector<string> SymbolListener::enterExtending() {
     } else if (lexer.getCurrent()->kind == Token::Kind::IMPLEMENTS) {
         lexer.goForward();
         while (true) {
-            superClasses.push_back(enterType(true));
+            enterType(true);
             if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
                 lexer.goForward();
             } else {
@@ -1272,7 +1270,6 @@ vector<string> SymbolListener::enterExtending() {
             }
         }
     }
-    return superClasses;
 }
 
 string SymbolListener::enterType(bool arr) {

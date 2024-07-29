@@ -33,7 +33,7 @@ class ClassRecord : public Record {
     vector<shared_ptr<VarRecord>> fields = vector<shared_ptr<VarRecord>>();
     vector<shared_ptr<ClassRecord>> innerClasses =
         vector<shared_ptr<ClassRecord>>();
-    string superClass = "";
+    shared_ptr<ClassRecord> superClass = nullptr;
 
     ClassRecord(string _id, string _type);
 

@@ -26,7 +26,7 @@
 ClassDeclNode::ClassDeclNode(
     shared_ptr<GenericNode> _generic, shared_ptr<ModifiersNode> _modifiers,
     ClassKind _kind, shared_ptr<ClassRecord> _record,
-    vector<shared_ptr<TypeNode>> _extended,
+    shared_ptr<TypeNode> _extended,
     vector<shared_ptr<TypeNode>> _implemented,
     vector<shared_ptr<VarDeclNode>> _fields,
     vector<shared_ptr<MethodDeclNode>> _methods,

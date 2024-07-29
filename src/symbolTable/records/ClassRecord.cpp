@@ -106,9 +106,12 @@ shared_ptr<Record> ClassRecord::get(string name) {
         return field;
     } else if (method != nullptr) {
         return method;
-    } else {
+    } else if (innerClass != nullptr) {
         return innerClass;
+    } else if (superClass!=nullptr) {
+        return superClass->get(name);
     }
+    return nullptr;
 }
 
 string ClassRecord::getFullName() {

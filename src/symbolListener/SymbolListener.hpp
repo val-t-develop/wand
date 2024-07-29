@@ -87,7 +87,7 @@ class SymbolListener {
     void enterArrayInitializer();
     // vector<string> enterTypeList();
     // void enterModifiers();
-    vector<string> enterExtending();
+    void enterExtending();
     string enterType(bool arr);
     vector<ModifiersNode::ModifierKind> enterModifiers();
 
