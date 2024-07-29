@@ -1,5 +1,5 @@
 /*  SPL - Simple Programming Language compiler
-*  Copyright (C) 2022  Valentyn Tymchyshyn
+*  Copyright (C) 2022-2024  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  */
 
 /*
- *  Valentyn Tymchyshyn (val.t.develop) (val.t.develo@gmail.com)
+ *  Valentyn Tymchyshyn (val.t.develop) (val.t.develop@gmail.com)
  *
  *  IR tree part for expression.
  */
