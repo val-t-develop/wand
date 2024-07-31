@@ -147,8 +147,7 @@ AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
             vector<shared_ptr<ClassDeclNode>>();
         vector<shared_ptr<ConstructorDeclNode>> constructors =
             vector<shared_ptr<ConstructorDeclNode>>();
-        vector<shared_ptr<DestructorDeclNode>> destructors =
-            vector<shared_ptr<DestructorDeclNode>>();
+        shared_ptr<DestructorDeclNode> destructor = nullptr;
 
         if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
             lexer.goForward();
@@ -174,8 +173,7 @@ AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
                         static_pointer_cast<ConstructorDeclNode>(n));
                 } else if (n->getKind() ==
                            Node::NodeKind::DESTRUCTOR_DECL_NODE) {
-                    destructors.push_back(
-                        static_pointer_cast<DestructorDeclNode>(n));
+                    destructor = static_pointer_cast<DestructorDeclNode>(n);
                 }
             }
             classesStack.pop();
@@ -190,7 +188,7 @@ AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
 
         return make_shared<ClassDeclNode>(
             generic, nullptr, kind, record, extended, implemented, fields,
-            methods, constructors, destructors, innerClasses, nullptr);
+            methods, constructors, destructor, innerClasses, nullptr);
     } else {
         Out::errorMessage(lexer, "Expected identifier, but found:\n\t" +
                                      lexer.getCurrent()->str + "\tin " +

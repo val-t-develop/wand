@@ -253,9 +253,9 @@ void IRTreeBuilder::enterConstructorPrototype(shared_ptr<ConstructorDeclNode> no
 
 void IRTreeBuilder::enterDestructor(shared_ptr<ClassDeclNode> node) {
     shared_ptr<IRBlock> body = nullptr;
-    if (!node->destructors.empty()) {
-        if (node->destructors[0]->body != nullptr) {
-            body = enterBlock(node->destructors[0]->body);
+    if (node->destructor!=nullptr) {
+        if (node->destructor->body != nullptr) {
+            body = enterBlock(node->destructor->body);
         }
     } else {
         body = make_shared<IRBlock>(vector<shared_ptr<IRStatement>>{});

@@ -70,8 +70,16 @@ bool MethodRecord::containArg(shared_ptr<VarRecord> var, int n) {
 
 string MethodRecord::getFullName() {
     if (ir_name == "") {
-        Out::errorMessage(
+        if (isDestructor) {
+            ir_name="__spl__destructor__"+next->ir_name;
+            return ir_name;
+        } else if (isConstructor) {
+            ir_name="__spl__constructor__"+next->ir_name;
+            return ir_name;
+        } else {
+            Out::errorMessage(
             "Internal error detected! Can not get ir_name of method " + id);
+        }
     }
     return ir_name;
 }
