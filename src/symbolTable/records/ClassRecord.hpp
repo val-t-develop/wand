@@ -47,6 +47,7 @@ class ClassRecord : public Record {
     shared_ptr<VarRecord> getField(string name);
     shared_ptr<ClassRecord> getInnerClass(string name);
     shared_ptr<Record> get(string name);
+    static shared_ptr<VarRecord> getSuperField(shared_ptr<ClassRecord> _this);
 
     string getFullName();
 };

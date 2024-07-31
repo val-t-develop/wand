@@ -421,10 +421,39 @@ IRTreeBuilder::enterExpression(shared_ptr<ExpressionNode> node) {
             if (el->kind==Node::NodeKind::METHOD_CALL_NODE) {
                 auto call = static_pointer_cast<MethodCallNode>(expr);
                 if (!access1->access.empty()) {
-                    call->args.insert(call->args.begin(), access1);
-                    auto call_ir = enterCall(call);
-                    new_access->access=vector<shared_ptr<IRExpression>>();
-                    new_access->access.push_back(call_ir);
+                    bool found = false;
+                    for (auto method : access1->getReturnType()->methods) {
+                        if (method->getFullName()==call->getFullName()) {
+                            found=true;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        call->args.insert(call->args.begin(), access1);
+                        auto call_ir = enterCall(call);
+                        new_access->access=vector<shared_ptr<IRExpression>>();
+                        new_access->access.push_back(call_ir);
+                    } else if (access1->getReturnType()->superClass!=nullptr) {
+                        shared_ptr<ClassRecord> curr = access1->getReturnType()->superClass;
+                        new_access->access.push_back(make_shared<IRVar>("super"));
+                        access1->access.push_back(make_shared<VarRecordNode>(ClassRecord::getSuperField(access1->getReturnType()), nullptr));
+                        while (true) {
+                            for (auto el1 : curr->methods) {
+                                if (el1->getFullName()==call->getFullName()) {
+                                    call->args.insert(call->args.begin(), access1);
+                                    auto call_ir = enterCall(call);
+                                    new_access->access=vector<shared_ptr<IRExpression>>();
+                                    new_access->access.push_back(call_ir);
+                                    break;
+                                }
+                            }
+                            curr = curr->superClass;
+                            if (curr==nullptr) {
+                                break;
+                            }
+                            new_access->access.push_back(make_shared<IRVar>("super"));
+                        }
+                    }
                 } else {
                     new_access->access.push_back(enterCall(call));
                 }
@@ -449,6 +478,7 @@ IRTreeBuilder::enterExpression(shared_ptr<ExpressionNode> node) {
                             for (auto el : curr->fields) {
                                 if (el->getFullName()==rec->getFullName()) {
                                     new_access->access.push_back(make_shared<IRVar>(rec->getFullName()));
+                                    break;
                                 }
                             }
                             curr = curr->superClass;

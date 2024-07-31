@@ -108,10 +108,17 @@ shared_ptr<Record> ClassRecord::get(string name) {
         return method;
     } else if (innerClass != nullptr) {
         return innerClass;
-    } else if (superClass!=nullptr) {
+    } else if (superClass != nullptr) {
         return superClass->get(name);
     }
     return nullptr;
+}
+
+shared_ptr<VarRecord> ClassRecord::getSuperField(shared_ptr<ClassRecord> _this) {
+    auto ret = make_shared<VarRecord>("super", _this->superClass->getFullName(), RecordKind::FIELD_RECORD);
+    ret->typeRec = _this->superClass;
+    ret->ir_name = "super";
+    return ret;
 }
 
 string ClassRecord::getFullName() {
