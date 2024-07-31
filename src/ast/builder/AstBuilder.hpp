@@ -92,6 +92,7 @@ class AstBuilder {
     shared_ptr<ExpressionNode> enterUnOpPrimary();
     shared_ptr<ExpressionNode> enterPrimary();
     shared_ptr<ExpressionNode> enterNew();
+    shared_ptr<ExpressionNode> enterSuper();
     shared_ptr<ExpressionNode> enterParenExpression();
     shared_ptr<AccessNode> enterAccessOrCall(bool arr = false);
     void enterAccessWithoutArray(shared_ptr<AccessNode> access);

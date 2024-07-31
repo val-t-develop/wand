@@ -556,6 +556,8 @@ shared_ptr<StatementNode> AstBuilder::enterNotVarStartement() {
     } else if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
         lexer.goForward();
         return nullptr;
+    } else if (lexer.getCurrent()->kind == Token::Kind::SUPER) {
+        return make_shared<BinaryOperatorNode>(make_shared<VarRecordNode>(ClassRecord::getSuperField(classesStack.top()), nullptr), enterSuper(), BinaryOperatorNode::BinaryOperatorKind::ASSIGN, nullptr);
     } else {
         return enterExpression();
     }
@@ -1094,6 +1096,45 @@ shared_ptr<ExpressionNode> AstBuilder::enterNew() {
     } else {
         return make_shared<NewNode>(type, args, isStatic, nullptr);
     }
+}
+
+shared_ptr<ExpressionNode> AstBuilder::enterSuper() {
+    lexer.goForward();
+
+    bool isStatic = false;
+    if (lexer.getCurrent()->kind == Token::Kind::STATIC) {
+        isStatic = true;
+        lexer.goForward();
+    }
+
+    shared_ptr<TypeNode> type = make_shared<TypeNode>(make_shared<ClassRecordNode>(classesStack.top()->superClass, vector<shared_ptr<AccessNode>>{}, nullptr), 0, nullptr);
+
+    vector<shared_ptr<ExpressionNode>> args =
+        vector<shared_ptr<ExpressionNode>>();
+
+    if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+        lexer.goForward();
+
+        while (true) {
+            if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+                lexer.goForward();
+                break;
+            }
+
+            args.push_back(enterExpression());
+
+            if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+                lexer.goForward();
+            } else if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {} else {
+                Out::errorMessage(
+                    lexer, "Expected ',', but found:\n\t" +
+                               lexer.getCurrent()->str + "\tin " +
+                               std::to_string(lexer.getCurrent()->line) + ":" +
+                               std::to_string(lexer.getCurrent()->pos));
+            }
+        }
+    }
+    return make_shared<NewNode>(type, args, isStatic, nullptr);
 }
 
 shared_ptr<ExpressionNode> AstBuilder::enterParenExpression() {

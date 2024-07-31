@@ -586,6 +586,30 @@ void SymbolListener::enterNotVarStatement() {
         enterForStatement();
     } else if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
         lexer.goForward();
+    } else if (lexer.getCurrent()->kind == Token::Kind::SUPER) {
+        lexer.goForward();
+        if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
+            lexer.goForward();
+
+            while (true) {
+                if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {
+                    lexer.goForward();
+                    break;
+                }
+
+                enterExpression();
+
+                if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
+                    lexer.goForward();
+                } else if (lexer.getCurrent()->kind == Token::Kind::RPAREN) {}else {
+                    Out::errorMessage(
+                        lexer, "Expected ',', but found:\n\t" +
+                                   lexer.getCurrent()->str + "\tin " +
+                                   std::to_string(lexer.getCurrent()->line) + ":" +
+                                   std::to_string(lexer.getCurrent()->pos));
+                }
+            }
+        }
     } else {
         enterExpression();
     }

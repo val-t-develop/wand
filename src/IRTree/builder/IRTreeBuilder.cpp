@@ -354,6 +354,12 @@ IRTreeBuilder::enterExpression(shared_ptr<ExpressionNode> node) {
     } else if (node->kind == Node::NodeKind::VAR_RECORD_NODE) {
         bool exists = false;
         string name = static_pointer_cast<VarRecordNode>(node)->getFullName();
+        if (name == "super") {
+            auto access = make_shared<IRAccess>();
+            access->access.push_back(make_shared<IRVar>("this"));
+            access->access.push_back(make_shared<IRVar>("super"));
+            return access;
+        }
         for (auto el : NamedValues) {
             if (el == name) {
                 exists = true;
