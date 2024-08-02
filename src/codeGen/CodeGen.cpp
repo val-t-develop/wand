@@ -39,11 +39,12 @@
 #include "llvm/TargetParser/Host.h"
 
 #include <IRTree/node/statement/IRIfElse.hpp>
+#include <IRTree/node/statement/IRLoop.hpp>
 #include <IRTree/node/statement/IRReturn.hpp>
 #include <IRTree/node/statement/IRVarsDecl.hpp>
-#include <IRTree/node/statement/IRLoop.hpp>
 #include <IRTree/node/statement/expression/IRAccess.hpp>
 #include <IRTree/node/statement/expression/IRAlloc.hpp>
+#include <IRTree/node/statement/expression/IRFunc.hpp>
 #include <IRTree/node/statement/expression/IRValue.hpp>
 #include <IRTree/node/statement/expression/IRVar.hpp>
 #include <ast/node/statement/expression/literal/StringLiteralNode.hpp>
@@ -540,7 +541,7 @@ Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
         Value *sizeofIV = helper->createSizeof(type);
         return helper->createCall("__spl__alloc", vector<Value *>{sizeofIV}, "heapallocatmp");
     } else if (node->kind == IRNode::Kind::FUNCTION_POINTER) {
-
+        return helper->getFunction(static_pointer_cast<IRFunc>(node)->name);
     } else if (node->isLiteral()) {
         if (genRef) {
             isRef = false;

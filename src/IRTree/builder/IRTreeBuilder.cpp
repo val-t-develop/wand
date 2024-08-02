@@ -222,6 +222,14 @@ void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
     }
     vector<shared_ptr<IRStatement>> constructorHeader{};
     constructorHeader.push_back(make_shared<IRVarDecl>("this", classesStack.top()->getFullName(), make_shared<IRAlloc>(classesStack.top()->getFullName())));
+    if (defaultConstrucctor) {
+        if (classesStack.top()->extended!=nullptr) {
+            auto access = make_shared<IRAccess>();
+            access->access.push_back(make_shared<IRVar>("this"));
+            access->access.push_back(make_shared<IRVar>("super"));
+            constructorHeader.push_back(make_shared<IRBinOp>(access, make_shared<IRCall>("__spl__constructor__"+classesStack.top()->extended->getFullName(), vector<shared_ptr<IRExpression>>{}), BinaryOperatorNode::BinaryOperatorKind::ASSIGN));
+        }
+    }
     for (auto el : classesStack.top()->fields) {
         auto access = make_shared<IRAccess>();
         access->access.push_back(make_shared<IRVar>("this"));
@@ -267,6 +275,12 @@ void IRTreeBuilder::enterDestructor(shared_ptr<ClassDeclNode> node) {
         if (el->type->type->record->type!="primitive") {
             body->nodes.push_back(make_shared<IRCall>("__spl__destroyref", vector<shared_ptr<IRExpression>>{access, make_shared<IRFunc>("__spl__destructor__"+el->type->getFullName())}));
         }
+    }
+    if (node->extended!=nullptr) {
+        auto access = make_shared<IRAccess>();
+        access->access.push_back(make_shared<IRVar>("this"));
+        access->access.push_back(make_shared<IRVar>("super"));
+        body->nodes.push_back(make_shared<IRCall>("__spl__destroyref", vector<shared_ptr<IRExpression>>{access, make_shared<IRFunc>("__spl__destructor__"+node->extended->getFullName())}));
     }
     auto currClass = classesStack.top();
     string name = "__spl__destructor__" + currClass->getFullName();
