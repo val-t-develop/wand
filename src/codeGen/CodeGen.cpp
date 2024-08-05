@@ -586,8 +586,14 @@ Value *CodeGen::genLiteral(shared_ptr<IRLiteral> node) {
 }
 Value *CodeGen::genCall(shared_ptr<IRCall> node) {
     vector<Value *> args = vector<Value *>();
-    for (auto arg : node->args) {
-        args.push_back(genExpression(arg, false));
+    if (node->name=="__spl__destroyref") {
+        for (auto arg : node->args) {
+            args.push_back(genExpression(arg, true));
+        }
+    } else {
+        for (auto arg : node->args) {
+            args.push_back(genExpression(arg, false));
+        }
     }
     auto tmp = helper->createCall(node->name, args);
     if (tmp->getType()->isPointerTy()) {
