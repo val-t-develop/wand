@@ -27,6 +27,9 @@
 vector<string> Main::obj_files = vector<string>();
 stack<CU *> Main::currCUsStack = stack<CU *>();
 map<Path, shared_ptr<CU>> Main::CUs = map<Path, shared_ptr<CU>>();
+bool Main::debug = false;
+bool Main::release = false;
+Main::OptLevel Main::optLevel = Main::OptLevel::O1;
 
 void Main::main(int argc, char **argv) {
     ArgsParser::parseArgs(argc, argv);

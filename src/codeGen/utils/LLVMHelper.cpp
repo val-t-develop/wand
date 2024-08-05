@@ -94,8 +94,16 @@ void LLVMHelper::runPasses() {
     PB.registerFunctionAnalyses(FAM);
     PB.registerLoopAnalyses(LAM);
     PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
-    ModulePassManager MPM =
+    ModulePassManager MPM;
+    if (Main::optLevel==Main::OptLevel::O0) {
+        PB.buildPerModuleDefaultPipeline(OptimizationLevel::O0);
+    } else if (Main::optLevel==Main::OptLevel::O1) {
+        PB.buildPerModuleDefaultPipeline(OptimizationLevel::O1);
+    } else if (Main::optLevel==Main::OptLevel::O2) {
         PB.buildPerModuleDefaultPipeline(OptimizationLevel::O2);
+    } else if (Main::optLevel==Main::OptLevel::O3) {
+        PB.buildPerModuleDefaultPipeline(OptimizationLevel::O3);
+    }
     MPM.run(*TheModule, MAM);
 }
 

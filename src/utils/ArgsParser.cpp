@@ -58,6 +58,18 @@ void ArgsParser::parseArgs(vector<string> args) {
             i++;
             arg = args[i];
             output = make_shared<Path>(arg);
+        } else if (arg=="-g" || arg=="-d") {
+            Main::debug=true;
+        } else if (arg=="-r") {
+            Main::release=true;
+        } else if (arg=="-o0") {
+            Main::optLevel=Main::OptLevel::O0;
+        } else if (arg=="-o1") {
+            Main::optLevel=Main::OptLevel::O1;
+        } else if (arg=="-o2") {
+            Main::optLevel=Main::OptLevel::O2;
+        } else if (arg=="-o3") {
+            Main::optLevel=Main::OptLevel::O3;
         } else if (arg=="show") {
             i++;
             arg = args[i];
@@ -71,5 +83,14 @@ void ArgsParser::parseArgs(vector<string> args) {
     if (src.empty()) {
         Out::printMessage("No input files.");
         exit(0);
+    }
+    if (Main::debug) {
+        Main::optLevel=Main::OptLevel::O0;
+    }
+    if (Main::release) {
+        Main::optLevel=Main::OptLevel::O3;
+    }
+    if (Main::release && Main::debug) {
+        Out::errorMessage("You can not use both debug flag (-d or -g) ang release flag (-r)");
     }
 }

@@ -58,10 +58,16 @@ class CU {
 };
 
 class Main {
-  public:
+public:
+    enum class OptLevel {
+      O0, O1, O2, O3
+    };
     static vector<string> obj_files;
     static stack<CU *> currCUsStack;
     static map<Path, shared_ptr<CU>> CUs;
+    static bool debug;
+    static bool release;
+    static OptLevel optLevel;
 
     static void main(int argc, char **argv);
     static void processDir(Path &dir);
