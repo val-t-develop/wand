@@ -62,7 +62,7 @@ CodeGen::CodeGen(shared_ptr<IRTree> _tree, Path& _file) : tree(_tree), file(_fil
         Main::currCUsStack.top()->linkingObj.push_back(o_file);
         system(string("clang " + ll_file.getName() + " -c -o " + o_file).c_str());
     }
-    helper = make_shared<LLVMHelper>(tree->moduleName);
+    helper = make_shared<LLVMHelper>(tree->moduleName, file.getName());
     utils = make_shared<CodeGenUtils>(this);
 }
 

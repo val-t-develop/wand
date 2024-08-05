@@ -35,6 +35,7 @@
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/Target/TargetMachine.h>
+#include "llvm/IR/DIBuilder.h"
 
 using namespace llvm;
 
@@ -44,9 +45,12 @@ class LLVMHelper {
     shared_ptr<IRBuilder<>> Builder;
     shared_ptr<Module> TheModule;
 
+    shared_ptr<DIBuilder> DBuilder;
+    DICompileUnit* DCU;
+
     TargetMachine *TheTargetMachine;
 
-    LLVMHelper(string moduleName);
+    LLVMHelper(string moduleName, string path);
 
     string getModuleName();
 

@@ -44,10 +44,15 @@
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/TargetParser/Host.h"
 
-LLVMHelper::LLVMHelper(string moduleName) {
+LLVMHelper::LLVMHelper(string moduleName, string path) {
     TheContext = make_shared<LLVMContext>();
     TheModule = make_shared<Module>(moduleName, *TheContext);
     Builder = make_shared<IRBuilder<>>(*TheContext);
+
+    if (Main::debug) {
+        DBuilder = make_shared<DIBuilder>(*TheModule);
+        DCU = DBuilder->createCompileUnit(dwarf::DW_LANG_C, DBuilder->createFile(path, "/"), "SPL Compiler", false, "", 0);
+    }
 }
 
 Type *LLVMHelper::getVoidType() { return Type::getVoidTy(*TheContext); }
@@ -78,6 +83,9 @@ void LLVMHelper::prepareBuild() {
         Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
 
     TheModule->setDataLayout(TheTargetMachine->createDataLayout());
+    if (Main::debug) {
+        DBuilder->finalize();
+    }
 }
 
 void LLVMHelper::printModule() { TheModule->print(errs(), nullptr); }
