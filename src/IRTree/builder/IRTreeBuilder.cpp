@@ -153,7 +153,7 @@ void IRTreeBuilder::enterClassDecl(shared_ptr<ClassDeclNode> node,
         if (node->constructors.empty()) {
             enterConstructor(make_shared<ConstructorDeclNode>(
                 nullptr, nullptr, vector<shared_ptr<VarDeclNode>>{}, nullptr,
-                nullptr), true);
+                nullptr, node->line, node->col), true);
         }
         enterDestructor(node);
     } else {
@@ -168,7 +168,7 @@ void IRTreeBuilder::enterClassDecl(shared_ptr<ClassDeclNode> node,
         if (node->constructors.empty()) {
             enterConstructorPrototype(make_shared<ConstructorDeclNode>(
                 nullptr, nullptr, vector<shared_ptr<VarDeclNode>>{}, nullptr,
-                nullptr));
+                nullptr, node->line, node->col));
         }
         enterDestructorPrototype(node);
     }

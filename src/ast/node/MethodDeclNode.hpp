@@ -40,7 +40,7 @@ class MethodDeclNode : public Node {
                    shared_ptr<TypeNode> _returnType,
                    shared_ptr<MethodRecord> _record,
                    vector<shared_ptr<VarDeclNode>> _args,
-                   shared_ptr<BlockNode> _body, shared_ptr<Node> _parent);
+                   shared_ptr<BlockNode> _body, shared_ptr<Node> _parent, int _l, int _c);
 
     string getFullName();
 };

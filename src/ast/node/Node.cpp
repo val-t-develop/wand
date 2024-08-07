@@ -99,3 +99,8 @@ bool Node::isLiteral() {
     }
     return false;
 }
+
+void Node::setPos(int _line, int _col) {
+    line=_line;
+    col=_col;
+}

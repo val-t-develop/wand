@@ -68,6 +68,8 @@ class Node {
     };
 
     NodeKind kind;
+    int line=0;
+    int col=0;
 
     shared_ptr<Node> parent;
     Node(shared_ptr<Node> _parent, NodeKind _kind);
@@ -77,4 +79,5 @@ class Node {
     bool isExpression();
     bool isAssignable();
     bool isLiteral();
+    void setPos(int _line, int _col=0);
 };

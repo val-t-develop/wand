@@ -26,8 +26,8 @@
 DestructorDeclNode::DestructorDeclNode(shared_ptr<ModifiersNode> _modifiers,
                                          shared_ptr<MethodRecord> _record,
                                          shared_ptr<BlockNode> _body,
-                                         shared_ptr<Node> _parent)
+                                         shared_ptr<Node> _parent, int _l, int _c)
     : Node(_parent, NodeKind::DESTRUCTOR_DECL_NODE), modifiers(_modifiers),
       record(_record), body(_body) {
-    // TODO
+    setPos(_l, _c);
 }

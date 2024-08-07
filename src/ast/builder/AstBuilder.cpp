@@ -111,6 +111,7 @@ shared_ptr<ClassDeclNode> AstBuilder::enterTypeDecl() {
 
 shared_ptr<ClassDeclNode>
 AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
+    int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
     lexer.goForward();
     if (lexer.getCurrent()->kind == Token::Kind::IDENTIFIER) {
         string name = lexer.getCurrent()->str;
@@ -188,7 +189,7 @@ AstBuilder::enterClassDecl(ClassDeclNode::ClassKind kind) {
 
         return make_shared<ClassDeclNode>(
             generic, nullptr, kind, record, extended, implemented, fields,
-            methods, constructors, destructor, innerClasses, nullptr);
+            methods, constructors, destructor, innerClasses, nullptr, l, c);
     } else {
         Out::errorMessage(lexer, "Expected identifier, but found:\n\t" +
                                      lexer.getCurrent()->str + "\tin " +
@@ -299,14 +300,16 @@ shared_ptr<ConstructorDeclNode> AstBuilder::enterConstructorDecl() {
     symbolTable->enterScope(nullptr);
     vector<shared_ptr<VarDeclNode>> args = enterMethodArgs();
     if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         shared_ptr<BlockNode> block = enterBlockStatement(false);
         symbolTable->exitScope();
         return make_shared<ConstructorDeclNode>(
-            make_shared<ModifiersNode>(nullptr), nullptr, args, block, nullptr);
+            make_shared<ModifiersNode>(nullptr), nullptr, args, block, nullptr, l, c);
     } else if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         symbolTable->exitScope();
         return make_shared<ConstructorDeclNode>(
-            make_shared<ModifiersNode>(nullptr), nullptr, args, nullptr, nullptr);
+            make_shared<ModifiersNode>(nullptr), nullptr, args, nullptr, nullptr, l, c);
     } else {
         Out::errorMessage(
             lexer, "Expected '{', but found:\n\t" + lexer.getCurrent()->str +
@@ -326,14 +329,16 @@ shared_ptr<DestructorDeclNode> AstBuilder::enterDestructorDecl() {
         lexer.goForward();
     }
     if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         shared_ptr<BlockNode> block = enterBlockStatement(false);
         symbolTable->exitScope();
         return make_shared<DestructorDeclNode>(
-            make_shared<ModifiersNode>(nullptr), nullptr, block, nullptr);
+            make_shared<ModifiersNode>(nullptr), nullptr, block, nullptr, l, c);
     } else if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         symbolTable->exitScope();
         return make_shared<DestructorDeclNode>(
-            make_shared<ModifiersNode>(nullptr), nullptr, nullptr, nullptr);
+            make_shared<ModifiersNode>(nullptr), nullptr, nullptr, nullptr, l, c);
     } else {
         Out::errorMessage(
             lexer, "Expected '{', but found:\n\t" + lexer.getCurrent()->str +
@@ -348,6 +353,7 @@ shared_ptr<MethodDeclNode>
 AstBuilder::enterMethodDecl(shared_ptr<TypeNode> type,
                             shared_ptr<MethodRecord> record, vector<ModifiersNode::ModifierKind> mods) {
     symbolTable->enterScope(nullptr);
+    int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
     vector<shared_ptr<VarDeclNode>> args = enterMethodArgs();
     bool staticMod = false;
     for (auto mod : mods) {
@@ -356,7 +362,7 @@ AstBuilder::enterMethodDecl(shared_ptr<TypeNode> type,
         }
     }
     if (!staticMod) {
-        args.insert(args.begin(),make_shared<VarDeclNode>(nullptr, make_shared<TypeNode>(make_shared<ClassRecordNode>(classesStack.top(), vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr), symbolTable->lookupVar("this"), nullptr, nullptr));
+        args.insert(args.begin(),make_shared<VarDeclNode>(nullptr, make_shared<TypeNode>(make_shared<ClassRecordNode>(classesStack.top(), vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr), symbolTable->lookupVar("this"), nullptr, nullptr, l, c));
     }
 
     bool found = true;
@@ -392,15 +398,17 @@ AstBuilder::enterMethodDecl(shared_ptr<TypeNode> type,
         }
     }
     if (lexer.getCurrent()->kind == Token::Kind::LBRACE) {
+        l = lexer.getCurrent()->line; c = lexer.getCurrent()->pos;
         shared_ptr<BlockNode> block = enterBlockStatement(false);
         symbolTable->exitScope();
         return make_shared<MethodDeclNode>(make_shared<ModifiersNode>(nullptr),
-                                           type, record, args, block, nullptr);
+                                           type, record, args, block, nullptr, l, c);
     } else if (lexer.getCurrent()->kind == Token::Kind::SEMICOLON) {
+        l = lexer.getCurrent()->line; c = lexer.getCurrent()->pos;
         symbolTable->exitScope();
         return make_shared<MethodDeclNode>(make_shared<ModifiersNode>(nullptr),
                                            type, record, args, nullptr,
-                                           nullptr);
+                                           nullptr, l, c);
     } else {
         Out::errorMessage(
             lexer, "Expected '{', but found:\n\t" + lexer.getCurrent()->str +
@@ -414,6 +422,7 @@ AstBuilder::enterMethodDecl(shared_ptr<TypeNode> type,
 shared_ptr<VarDeclNode>
 AstBuilder::enterFieldDecl(shared_ptr<TypeNode> type,
                            shared_ptr<VarRecord> record) {
+    int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
     int dims = 0;
 
     while (true) {
@@ -441,7 +450,7 @@ AstBuilder::enterFieldDecl(shared_ptr<TypeNode> type,
         lexer.goForward();
         init = enterExpression();
     }
-    return make_shared<VarDeclNode>(nullptr, type, record, init, nullptr);
+    return make_shared<VarDeclNode>(nullptr, type, record, init, nullptr, l, c);
 }
 
 vector<shared_ptr<VarDeclNode>> AstBuilder::enterMethodArgs() {
@@ -458,7 +467,7 @@ vector<shared_ptr<VarDeclNode>> AstBuilder::enterMethodArgs() {
             shared_ptr<VarRecord> record =
                 symbolTable->lookupVar(lexer.getCurrent()->str); // TODO
             lexer.goForward();
-
+            int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
             int dims = 0;
 
             while (true) {
@@ -484,7 +493,7 @@ vector<shared_ptr<VarDeclNode>> AstBuilder::enterMethodArgs() {
             record->typeRec = type->type->record;
 
             args.push_back(
-                make_shared<VarDeclNode>(mods, type, record, nullptr, nullptr));
+                make_shared<VarDeclNode>(mods, type, record, nullptr, nullptr, l, c));
         } else {
             Out::errorMessage(
                 lexer, "Expected identifier, but found:\n\t" +
@@ -572,6 +581,7 @@ AstBuilder::enterLocalVarDecl(shared_ptr<ModifiersNode> mods) {
             shared_ptr<VarRecord> record =
                 symbolTable->lookupVar(lexer.getCurrent()->str);
             lexer.goForward();
+            int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
 
             int dims = 0;
 
@@ -603,7 +613,7 @@ AstBuilder::enterLocalVarDecl(shared_ptr<ModifiersNode> mods) {
                 init = enterExpression();
             }
             decls.push_back(
-                make_shared<VarDeclNode>(mods, type, record, init, nullptr));
+                make_shared<VarDeclNode>(mods, type, record, init, nullptr, l, c));
 
             if (lexer.getCurrent()->kind == Token::Kind::COMMA) {
                 lexer.goForward();
@@ -619,7 +629,7 @@ AstBuilder::enterLocalVarDecl(shared_ptr<ModifiersNode> mods) {
         }
     }
 
-    return make_shared<VarsDeclNode>(decls, nullptr);
+    return make_shared<VarsDeclNode>(decls, nullptr, decls[0]->line, decls[0]->col);
 }
 
 shared_ptr<BlockNode> AstBuilder::enterBlockStatement(bool enterScope) {

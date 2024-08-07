@@ -27,9 +27,11 @@ VarDeclNode::VarDeclNode(shared_ptr<ModifiersNode> _modifiers,
                          shared_ptr<TypeNode> _type,
                          shared_ptr<VarRecord> _record,
                          shared_ptr<ExpressionNode> _init,
-                         shared_ptr<Node> _parent)
+                         shared_ptr<Node> _parent, int _l, int _c)
     : StatementNode(_parent, NodeKind::VAR_DECL_NODE), modifiers(_modifiers),
-      type(_type), record(_record), init(_init) {}
+      type(_type), record(_record), init(_init) {
+    setPos(_l, _c);
+}
 
 string VarDeclNode::getFullName() {
     if (record->ir_name == "") {

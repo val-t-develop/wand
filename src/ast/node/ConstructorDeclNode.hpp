@@ -38,5 +38,5 @@ class ConstructorDeclNode : public Node {
     ConstructorDeclNode(shared_ptr<ModifiersNode> _modifiers,
                         shared_ptr<MethodRecord> _record,
                         vector<shared_ptr<VarDeclNode>> _args,
-                        shared_ptr<BlockNode> _body, shared_ptr<Node> _parent);
+                        shared_ptr<BlockNode> _body, shared_ptr<Node> _parent, int _l, int _c);
 };

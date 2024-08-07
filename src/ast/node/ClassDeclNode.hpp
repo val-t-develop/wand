@@ -61,7 +61,7 @@ class ClassDeclNode : public Node {
                   vector<shared_ptr<ConstructorDeclNode>> _constructors,
                   shared_ptr<DestructorDeclNode> _destructor,
                   vector<shared_ptr<ClassDeclNode>> _innerClasses,
-                  shared_ptr<Node> _parent);
+                  shared_ptr<Node> _parent, int _l, int _c);
 
     string getFullName();
 };

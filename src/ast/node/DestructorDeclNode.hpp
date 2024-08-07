@@ -36,5 +36,5 @@ class DestructorDeclNode : public Node {
 
     DestructorDeclNode(shared_ptr<ModifiersNode> _modifiers,
                         shared_ptr<MethodRecord> _record,
-                        shared_ptr<BlockNode> _body, shared_ptr<Node> _parent);
+                        shared_ptr<BlockNode> _body, shared_ptr<Node> _parent, int _l, int _c);
 };
