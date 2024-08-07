@@ -42,18 +42,18 @@ bool IRNode::isExpression() {
 }
 
 bool IRNode::isLiteral() {
-    if (kind==Kind::STRING_LITERAL ||
-        kind==Kind::CHAR_LITERAL ||
-        kind==Kind::BOOL_LITERAL ||
-        kind==Kind::BYTE_LITERAL ||
-        kind==Kind::SHORT_LITERAL ||
-        kind==Kind::INT_LITERAL ||
-        kind==Kind::LONG_LITERAL ||
-        kind==Kind::FLOAT_LITERAL ||
-        kind==Kind::DOUBLE_LITERAL ||
-        kind==Kind::NULL_LITERAL) {
+    if (kind == Kind::STRING_LITERAL || kind == Kind::CHAR_LITERAL ||
+        kind == Kind::BOOL_LITERAL || kind == Kind::BYTE_LITERAL ||
+        kind == Kind::SHORT_LITERAL || kind == Kind::INT_LITERAL ||
+        kind == Kind::LONG_LITERAL || kind == Kind::FLOAT_LITERAL ||
+        kind == Kind::DOUBLE_LITERAL || kind == Kind::NULL_LITERAL) {
         return true;
     } else {
         return false;
     }
+}
+
+void IRNode::setPos(int _line, int _col) {
+    line=_line;
+    col=_col;
 }

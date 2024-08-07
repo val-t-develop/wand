@@ -33,5 +33,5 @@ public:
     string type;
     shared_ptr<IRExpression> init;
 
-    IRVarDecl(string _name, string _type, shared_ptr<IRExpression> _init);
+    IRVarDecl(string _name, string _type, shared_ptr<IRExpression> _init, int _l, int _c);
 };

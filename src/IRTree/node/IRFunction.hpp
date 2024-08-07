@@ -33,5 +33,5 @@ public:
     vector<shared_ptr<IRVarDecl>> args;
     shared_ptr<IRBlock> body;
 
-    IRFunction(string _name, string _type, vector<shared_ptr<IRVarDecl>> _args, shared_ptr<IRBlock> _body);
+    IRFunction(string _name, string _type, vector<shared_ptr<IRVarDecl>> _args, shared_ptr<IRBlock> _body, int _l, int _c);
 };

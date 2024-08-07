@@ -25,4 +25,6 @@
 
 IRFunction::IRFunction(string _name, string _type,
                        vector<shared_ptr<IRVarDecl>> _args,
-                       shared_ptr<IRBlock> _body) : name(_name), type(_type), args(_args), body(_body), IRNode(Kind::FUNCTION) {}
+                       shared_ptr<IRBlock> _body, int _l, int _c) : name(_name), type(_type), args(_args), body(_body), IRNode(Kind::FUNCTION) {
+    setPos(_l, _c);
+}

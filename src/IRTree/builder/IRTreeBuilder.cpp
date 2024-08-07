@@ -124,7 +124,7 @@ void IRTreeBuilder::enterClassDecl(shared_ptr<ClassDeclNode> node,
         enterClassDecl(el, genMethods);
     }
     if (node->extended!=nullptr) {
-        Struct->fields.push_back(make_shared<IRVarDecl>("super", node->extended->getFullName(), nullptr));
+        Struct->fields.push_back(make_shared<IRVarDecl>("super", node->extended->getFullName(), nullptr, node->line, node->col));
     }
 
     for (auto el : node->fields) {
@@ -136,10 +136,10 @@ void IRTreeBuilder::enterClassDecl(shared_ptr<ClassDeclNode> node,
             }
         }
         if (isStatic) {
-            tree->globalVars.push_back(make_shared<IRVarDecl>(el->getFullName(), el->type->getFullName(), nullptr));
+            tree->globalVars.push_back(make_shared<IRVarDecl>(el->getFullName(), el->type->getFullName(), nullptr, el->line, el->col));
             GlobalNamedValues.push_back(el->getFullName());
         } else {
-            Struct->fields.push_back(make_shared<IRVarDecl>(el->getFullName(), el->type->getFullName(), nullptr));
+            Struct->fields.push_back(make_shared<IRVarDecl>(el->getFullName(), el->type->getFullName(), nullptr, el->line, el->col));
         }
     }
     tree->structs.push_back(Struct);
@@ -182,14 +182,14 @@ void IRTreeBuilder::enterMethod(shared_ptr<MethodDeclNode> node) {
     NamedValues.clear();
     for (auto arg : node->args) {
         args.push_back(make_shared<IRVarDecl>(arg->getFullName(),
-                                              arg->type->getFullName(), nullptr));
+                                              arg->type->getFullName(), nullptr, arg->line, arg->col));
         NamedValues.push_back(arg->getFullName());
     }
     if (node->body != nullptr) {
         body = enterBlock(node->body);
     }
     tree->funcs[node->getFullName()] = make_shared<IRFunction>(
-        node->getFullName(), node->returnType->getFullName(), args, body);
+        node->getFullName(), node->returnType->getFullName(), args, body, node->line, node->col);
 }
 
 void IRTreeBuilder::enterMethodPrototype(shared_ptr<MethodDeclNode> node) {
@@ -197,10 +197,10 @@ void IRTreeBuilder::enterMethodPrototype(shared_ptr<MethodDeclNode> node) {
 
     for (auto arg : node->args) {
         args.push_back(make_shared<IRVarDecl>(arg->getFullName(),
-                                              arg->type->getFullName(), nullptr));
+                                              arg->type->getFullName(), nullptr, arg->line, arg->col));
     }
     tree->funcs[node->getFullName()] = make_shared<IRFunction>(
-        node->getFullName(), node->returnType->getFullName(), args, nullptr);
+        node->getFullName(), node->returnType->getFullName(), args, nullptr, node->line, node->col);
 }
 
 void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
@@ -211,7 +211,7 @@ void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
 
     for (auto arg : node->args) {
         args.push_back(make_shared<IRVarDecl>(arg->getFullName(),
-                                              arg->type->getFullName(), nullptr));
+                                              arg->type->getFullName(), nullptr, arg->line, arg->col));
         argsSpec += "__" + arg->type->getFullName();
     }
     if (node->body != nullptr) {
@@ -221,7 +221,7 @@ void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
         body=make_shared<IRBlock>(vector<shared_ptr<IRStatement>>());
     }
     vector<shared_ptr<IRStatement>> constructorHeader{};
-    constructorHeader.push_back(make_shared<IRVarDecl>("this", classesStack.top()->getFullName(), make_shared<IRAlloc>(classesStack.top()->getFullName())));
+    constructorHeader.push_back(make_shared<IRVarDecl>("this", classesStack.top()->getFullName(), make_shared<IRAlloc>(classesStack.top()->getFullName()), node->line, node->col));
     if (defaultConstrucctor) {
         if (classesStack.top()->extended!=nullptr) {
             auto access = make_shared<IRAccess>();
@@ -242,7 +242,7 @@ void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
     }
     auto currClass = classesStack.top();
     string name = "__spl__constructor__" + currClass->getFullName() + argsSpec;
-    tree->funcs[name] = make_shared<IRFunction>(name, currClass->getFullName(), args, body);
+    tree->funcs[name] = make_shared<IRFunction>(name, currClass->getFullName(), args, body, node->line, node->col);
 }
 
 void IRTreeBuilder::enterConstructorPrototype(shared_ptr<ConstructorDeclNode> node) {
@@ -251,17 +251,20 @@ void IRTreeBuilder::enterConstructorPrototype(shared_ptr<ConstructorDeclNode> no
 
     for (auto arg : node->args) {
         args.push_back(make_shared<IRVarDecl>(arg->getFullName(),
-                                              arg->type->getFullName(), nullptr));
+                                              arg->type->getFullName(), nullptr, arg->line, arg->col));
         argsSpec += "__" + arg->type->getFullName();
     }
     auto currClass = classesStack.top();
     string name = "__spl__constructor__" + currClass->getFullName() + argsSpec;
-    tree->funcs[name] = make_shared<IRFunction>(name, currClass->getFullName(), args, nullptr);
+    tree->funcs[name] = make_shared<IRFunction>(name, currClass->getFullName(), args, nullptr, node->line, node->col);
 }
 
 void IRTreeBuilder::enterDestructor(shared_ptr<ClassDeclNode> node) {
     shared_ptr<IRBlock> body = nullptr;
+    int l = node->line, c = node->col;
     if (node->destructor!=nullptr) {
+        l=node->destructor->line;
+        c=node->destructor->col;
         if (node->destructor->body != nullptr) {
             body = enterBlock(node->destructor->body);
         }
@@ -286,16 +289,21 @@ void IRTreeBuilder::enterDestructor(shared_ptr<ClassDeclNode> node) {
     string name = "__spl__destructor__" + currClass->getFullName();
     tree->funcs[name] = make_shared<IRFunction>(name, "void",
         vector<shared_ptr<IRVarDecl>>{
-            make_shared<IRVarDecl>("this", currClass->getFullName(), nullptr)},
-        body);
+            make_shared<IRVarDecl>("this", currClass->getFullName(), nullptr, l, c)},
+        body, l, c);
 }
 
 void IRTreeBuilder::enterDestructorPrototype(shared_ptr<ClassDeclNode> node) {
+    int l = node->line, c = node->col;
+    if (node->destructor!=nullptr) {
+        l=node->destructor->line;
+        c=node->destructor->col;
+    }
     auto currClass = classesStack.top();
     string name = "__spl__destructor__" + currClass->getFullName();
     tree->funcs[name] = make_shared<IRFunction>(name, "void",
         vector<shared_ptr<IRVarDecl>>{
-            make_shared<IRVarDecl>("this", currClass->getFullName(), nullptr)}, nullptr);
+            make_shared<IRVarDecl>("this", currClass->getFullName(), nullptr, l, c)}, nullptr, l, c);
 }
 
 shared_ptr<IRBlock> IRTreeBuilder::enterBlock(shared_ptr<BlockNode> node) {
@@ -316,12 +324,12 @@ IRTreeBuilder::enterStatement(shared_ptr<StatementNode> el) {
     } else if (el->kind == Node::NodeKind::VAR_DECL_NODE) {
         auto varDeclNode = static_pointer_cast<VarDeclNode>(el);
         NamedValues.push_back(varDeclNode->getFullName());
-        return make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName(), varDeclNode->init!=nullptr?enterExpression(varDeclNode->init):nullptr);
+        return make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName(), varDeclNode->init!=nullptr?enterExpression(varDeclNode->init):nullptr, varDeclNode->line, varDeclNode->col);
     } else if (el->kind == Node::NodeKind::VARS_DECL_NODE) {
         shared_ptr<IRVarsDecl> vars = make_shared<IRVarsDecl>();
         for (auto varDeclNode : static_pointer_cast<VarsDeclNode>(el)->decls) {
             NamedValues.push_back(varDeclNode->getFullName());
-            vars->vars.push_back(make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName(), varDeclNode->init!=nullptr?enterExpression(varDeclNode->init):nullptr));
+            vars->vars.push_back(make_shared<IRVarDecl>(varDeclNode->getFullName(), varDeclNode->type->getFullName(), varDeclNode->init!=nullptr?enterExpression(varDeclNode->init):nullptr, varDeclNode->line, varDeclNode->col));
         }
         return vars;
     } else if (el->kind == Node::NodeKind::IF_ELSE_NODE) {

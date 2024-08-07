@@ -60,9 +60,11 @@ public:
     };
 
     Kind kind = Kind::NONE;
+    int line = 0, col = 0;
 
     IRNode(Kind _kind);
 
     bool isExpression();
     bool isLiteral();
+    void setPos(int _line, int _col);
 };

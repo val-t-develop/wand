@@ -23,4 +23,6 @@
 
 #include "IRVarDecl.hpp"
 
-IRVarDecl::IRVarDecl(string _name, string _type, shared_ptr<IRExpression> _init) : name(_name), type(_type), init(_init), IRStatement(Kind::VAR_DECL) {}
+IRVarDecl::IRVarDecl(string _name, string _type, shared_ptr<IRExpression> _init, int _l, int _c) : name(_name), type(_type), init(_init), IRStatement(Kind::VAR_DECL) {
+    setPos(_l, _c);
+}
