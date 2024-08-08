@@ -22,6 +22,7 @@
  */
 
 #pragma once
+#include "llvm/IR/DIBuilder.h"
 #include <ast/builder/AstBuilder.hpp>
 #include <llvm/ADT/APFloat.h>
 #include <llvm/ADT/STLExtras.h>
@@ -35,12 +36,14 @@
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/Target/TargetMachine.h>
-#include "llvm/IR/DIBuilder.h"
+
+#include <IRTree/node/IRFunction.hpp>
 
 using namespace llvm;
 
 class LLVMHelper {
-  public:
+public:
+    map<string, DIType*> DTypes;
     shared_ptr<LLVMContext> TheContext;
     shared_ptr<IRBuilder<>> Builder;
     shared_ptr<Module> TheModule;
@@ -53,12 +56,12 @@ class LLVMHelper {
     LLVMHelper(string moduleName, string path);
 
     string getModuleName();
-
+    void createDTypes();
     StructType *createStructType(string name);
     GlobalVariable *createGlobalVar(Type *type, string name);
     GlobalVariable *createConstantVar(Type *type, string name, Constant *init);
     Function *createFunctionPrototype(string name, Type *ret,
-                                      vector<Type *> args);
+                                      vector<Type *> args, shared_ptr<IRFunction> node, int line, int col);
     Function *getFunction(string name);
 
     BasicBlock *createBBinFunc(string name, Function *func);

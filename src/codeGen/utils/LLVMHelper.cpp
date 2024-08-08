@@ -127,6 +127,18 @@ void LLVMHelper::build(raw_pwrite_stream &dest) {
     dest.flush();
 }
 
+void LLVMHelper::createDTypes() {
+    DTypes["bool"] = DBuilder->createBasicType("bool", 8, dwarf::DW_ATE_signed);
+    DTypes["char"] = DBuilder->createBasicType("char", 8, dwarf::DW_ATE_signed_char);
+    DTypes["byte"] = DBuilder->createBasicType("byte", 8, dwarf::DW_ATE_signed);
+    DTypes["short"] = DBuilder->createBasicType("short", 16, dwarf::DW_ATE_signed);
+    DTypes["int"] = DBuilder->createBasicType("int", 32, dwarf::DW_ATE_signed);
+    DTypes["long"] = DBuilder->createBasicType("long", 64, dwarf::DW_ATE_signed);
+    DTypes["float"] = DBuilder->createBasicType("float", getFloatType()->getPrimitiveSizeInBits(), dwarf::DW_ATE_float);
+    DTypes["double"] = DBuilder->createBasicType("double", getDoubleType()->getPrimitiveSizeInBits(), dwarf::DW_ATE_float);
+    DTypes["void"] = DBuilder->createBasicType("void", 0, dwarf::DW_ATE_address);
+}
+
 StructType *LLVMHelper::createStructType(string name) {
     return StructType::create(*TheContext, name);
 }
@@ -152,12 +164,26 @@ Function *LLVMHelper::getFunction(string name) {
 }
 
 Function *LLVMHelper::createFunctionPrototype(string name, Type *ret,
-                                              vector<Type *> args) {
+                                              vector<Type *> args, shared_ptr<IRFunction> node, int line, int col) {
     Function *f = getFunction(name);
     if (!f) {
         FunctionType *ft = FunctionType::get(ret, args, false);
         return Function::Create(ft, Function::ExternalLinkage, name,
                                 *TheModule);
+    }
+    if (DBuilder!=nullptr && node!=nullptr) {
+        vector<Metadata*> tys{};
+        tys.push_back(DTypes[node->type]);
+        for (auto el : node->args) {
+            tys.push_back(DTypes[el->type]);
+        }
+        DISubprogram *SP = DBuilder->createFunction(
+            DCU->getFile(), name, name, DCU->getFile(), line,
+            DBuilder->createSubroutineType(DBuilder->getOrCreateTypeArray(tys)),
+            col,
+            DINode::FlagPrototyped,
+            DISubprogram::SPFlagDefinition);
+        f->setSubprogram(SP);
     }
     return f;
 }

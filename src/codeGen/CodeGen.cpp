@@ -67,35 +67,38 @@ CodeGen::CodeGen(shared_ptr<IRTree> _tree, Path& _file) : tree(_tree), file(_fil
 }
 
 void CodeGen::codeGen() {
+    if (Main::debug) {
+        helper->createDTypes();
+    }
     helper->createFunctionPrototype("__spl__init__gc", helper->getVoidType(),
-                                    vector<Type *>{});
+                                    vector<Type *>{}, nullptr, 0, 0);
     helper->createFunctionPrototype("__spl__destroy__gc",
-                                    helper->getVoidType(), vector<Type *>{});
+                                    helper->getVoidType(), vector<Type *>{}, nullptr, 0, 0);
     helper->createFunctionPrototype(
         "__spl__alloc", helper->getPointerType(helper->getVoidType()),
-        vector<Type *>{helper->getIntType(64)});
+        vector<Type *>{helper->getIntType(64)}, nullptr, 0, 0);
     helper->createFunctionPrototype(
         "__spl__destroyobj", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
-            helper->getPointerType(helper->getVoidType())});
+            helper->getPointerType(helper->getVoidType())}, nullptr, 0, 0);
     helper->createFunctionPrototype(
         "__spl__destroyref", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
-            helper->getPointerType(helper->getVoidType())});
+            helper->getPointerType(helper->getVoidType())}, nullptr, 0, 0);
     helper->createFunctionPrototype(
         "__spl__destroyref_not_delete", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
-            helper->getPointerType(helper->getVoidType())});
+            helper->getPointerType(helper->getVoidType())}, nullptr, 0, 0);
     helper->createFunctionPrototype(
         "__spl__addref", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
                        helper->getPointerType(helper->getVoidType()),
-                       helper->getPointerType(helper->getVoidType())});
+                       helper->getPointerType(helper->getVoidType())}, nullptr, 0, 0);
     helper->createFunctionPrototype(
         "__spl__write", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
                        helper->getPointerType(helper->getVoidType()),
-                       helper->getPointerType(helper->getVoidType())});
+                       helper->getPointerType(helper->getVoidType())}, nullptr, 0, 0);
     for (auto el : tree->structs) {
         genStructType(el);
     }
@@ -173,7 +176,7 @@ void CodeGen::genFunctionPrototype(shared_ptr<IRFunction> node) {
         auto arg = node->args[i];
         args_types.push_back(utils->getType(arg->type));
     }
-    helper->createFunctionPrototype(node->name, utils->getType(node->type), args_types);
+    helper->createFunctionPrototype(node->name, utils->getType(node->type), args_types, node, node->line, node->col);
 }
 
 void CodeGen::genFunction(shared_ptr<IRFunction> node) {
@@ -246,7 +249,7 @@ void CodeGen::genFunction(shared_ptr<IRFunction> node) {
                         Function *MainFunction =
                             helper->createFunctionPrototype(
                                 "main", helper->getIntType(32),
-                                vector<Type *>());
+                                vector<Type *>(), nullptr, 0, 0);
 
                         if (!MainFunction) {
                             return;
