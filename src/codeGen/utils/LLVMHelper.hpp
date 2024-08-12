@@ -38,6 +38,7 @@
 #include <llvm/Target/TargetMachine.h>
 
 #include <IRTree/node/IRFunction.hpp>
+#include <IRTree/node/IRStruct.hpp>
 
 using namespace llvm;
 
@@ -48,8 +49,8 @@ public:
     shared_ptr<IRBuilder<>> Builder;
     shared_ptr<Module> TheModule;
 
-    shared_ptr<DIBuilder> DBuilder;
-    DICompileUnit* DCU;
+    shared_ptr<DIBuilder> DBuilder = nullptr;
+    DICompileUnit* DCU = nullptr;
 
     TargetMachine *TheTargetMachine;
 
@@ -57,7 +58,7 @@ public:
 
     string getModuleName();
     void createDTypes();
-    StructType *createStructType(string name);
+    StructType *createStructType(shared_ptr<IRStruct> node);
     GlobalVariable *createGlobalVar(Type *type, string name);
     GlobalVariable *createConstantVar(Type *type, string name, Constant *init);
     Function *createFunctionPrototype(string name, Type *ret,

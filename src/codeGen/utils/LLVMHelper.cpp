@@ -139,8 +139,11 @@ void LLVMHelper::createDTypes() {
     DTypes["void"] = DBuilder->createBasicType("void", 0, dwarf::DW_ATE_address);
 }
 
-StructType *LLVMHelper::createStructType(string name) {
-    return StructType::create(*TheContext, name);
+StructType *LLVMHelper::createStructType(shared_ptr<IRStruct> node) {
+    if (DBuilder!=nullptr) {
+        DTypes[node->name] = DBuilder->createReplaceableCompositeType(dwarf::DW_TAG_structure_type, node->name, DCU->getFile(), DCU->getFile(), node->line);
+    }
+    return StructType::create(*TheContext, node->name);
 }
 
 GlobalVariable *LLVMHelper::createGlobalVar(Type *type, string name) {
@@ -168,7 +171,7 @@ Function *LLVMHelper::createFunctionPrototype(string name, Type *ret,
     Function *f = getFunction(name);
     if (!f) {
         FunctionType *ft = FunctionType::get(ret, args, false);
-        return Function::Create(ft, Function::ExternalLinkage, name,
+        f = Function::Create(ft, Function::ExternalLinkage, name,
                                 *TheModule);
     }
     if (DBuilder!=nullptr && node!=nullptr) {

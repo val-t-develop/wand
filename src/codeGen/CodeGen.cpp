@@ -117,8 +117,8 @@ void CodeGen::codeGen() {
 }
 
 void CodeGen::build() {
-    helper->printModule();
     helper->prepareBuild();
+    helper->printModule();
     helper->runPasses();
     system(string("mkdir -p .spl_compilation"+file.getParent().getName()).c_str());
     string Filename = ".spl_compilation"+file.getName()+".o";
@@ -134,19 +134,44 @@ void CodeGen::build() {
 }
 
 void CodeGen::genStructType(shared_ptr<IRStruct> node) {
-    StructType *structType = helper->createStructType(node->name);
+    StructType *structType = helper->createStructType(node);
     utils->classesTypes.insert({node->name, structType});
 }
 
 void CodeGen::genStruct(shared_ptr<IRStruct> node) {
     vector<Type *> types = vector<Type *>();
-
+    vector<Metadata*> Dtypes = vector<Metadata*>();
+    int offset = 0;
     for (auto var : node->fields) {
         types.push_back(utils->getType(var->type));
+        int size = 0;
+        if (var->type=="bool") {
+            size=8;
+        } else if (var->type=="char") {
+            size=8;
+        } else if (var->type=="byte") {
+            size=8;
+        } else if (var->type=="short") {
+            size=16;
+        } else if (var->type=="int") {
+            size=32;
+        } else if (var->type=="long") {
+            size=64;
+        } else if (var->type=="float") {
+            size=helper->getFloatType()->getPrimitiveSizeInBits();
+        } else if (var->type=="double") {
+            size=helper->getDoubleType()->getPrimitiveSizeInBits();
+        } else {
+            size=helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits();
+        }
+        Dtypes.push_back(helper->DBuilder->createMemberType(helper->DCU->getFile(), var->name, helper->DCU->getFile(), var->line, size, size, offset, DINode::FlagPublic, helper->DBuilder->createPointerType(helper->DTypes[var->type], helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits(), helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits())));
+        offset+=size;
         varTypes[var->name] = var->type;
     }
-
     string fullName = node->name;
+    auto tmp = helper->DBuilder->createStructType(helper->DCU->getFile(), fullName, helper->DCU->getFile(), node->line, helper->DTypes[fullName]->getSizeInBits(), helper->DTypes[fullName]->getSizeInBits(), DINode::FlagPublic, nullptr, helper->DBuilder->getOrCreateArray(Dtypes));
+    helper->DTypes[fullName]->replaceAllUsesWith(tmp);
+    helper->DTypes[fullName] = tmp;
 
     StructType *structType;
     if (utils->classesTypes.contains(fullName)) {
