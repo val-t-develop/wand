@@ -62,7 +62,7 @@ public:
     GlobalVariable *createGlobalVar(Type *type, string name);
     GlobalVariable *createConstantVar(Type *type, string name, Constant *init);
     Function *createFunctionPrototype(string name, Type *ret,
-                                      vector<Type *> args, shared_ptr<IRFunction> node, int line, int col);
+                                      vector<Type *> args);
     Function *getFunction(string name);
 
     BasicBlock *createBBinFunc(string name, Function *func);

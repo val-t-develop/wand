@@ -167,26 +167,12 @@ Function *LLVMHelper::getFunction(string name) {
 }
 
 Function *LLVMHelper::createFunctionPrototype(string name, Type *ret,
-                                              vector<Type *> args, shared_ptr<IRFunction> node, int line, int col) {
+                                              vector<Type *> args) {
     Function *f = getFunction(name);
     if (!f) {
         FunctionType *ft = FunctionType::get(ret, args, false);
         f = Function::Create(ft, Function::ExternalLinkage, name,
                                 *TheModule);
-    }
-    if (DBuilder!=nullptr && node!=nullptr) {
-        vector<Metadata*> tys{};
-        tys.push_back(DTypes[node->type]);
-        for (auto el : node->args) {
-            tys.push_back(DTypes[el->type]);
-        }
-        DISubprogram *SP = DBuilder->createFunction(
-            DCU->getFile(), name, name, DCU->getFile(), line,
-            DBuilder->createSubroutineType(DBuilder->getOrCreateTypeArray(tys)),
-            col,
-            DINode::FlagPrototyped,
-            DISubprogram::SPFlagDefinition);
-        f->setSubprogram(SP);
     }
     return f;
 }
