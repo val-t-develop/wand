@@ -489,6 +489,16 @@ void CodeGen::genLoop(shared_ptr<IRLoop> node) {
 void CodeGen::genVarDecl(shared_ptr<IRVarDecl> node) {
     Value *ptr =
         helper->createAlloca(utils->getType(node->type), nullptr, node->name);
+    DIType* Dtype;
+    if (node->type=="bool" || node->type=="char" || node->type=="byte" || node->type=="short" || node->type=="int" || node->type=="long" || node->type=="float" || node->type=="double") {
+        Dtype=helper->DTypes[node->type];
+    } else {
+        Dtype=helper->DBuilder->createPointerType(helper->DTypes[node->name], helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits(), helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits());
+    }
+    if (Main::debug) {
+        DILocalVariable *DVar = helper->DBuilder->createAutoVariable(helper->Builder->GetInsertBlock()->getParent()->getSubprogram(), "my_var", helper->DCU->getFile(), 1, Dtype);
+        helper->DBuilder->insertDeclare(ptr, DVar, helper->DBuilder->createExpression(), DILocation::get(*helper->TheContext, node->line, node->col, helper->Builder->GetInsertBlock()->getParent()->getSubprogram()), helper->Builder->GetInsertBlock());
+    }
     NamedValues[node->name] = ptr;
     varTypes[node->name] = node->type;
     currBlockVars.top().push_back(
