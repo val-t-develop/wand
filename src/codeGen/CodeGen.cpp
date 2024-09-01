@@ -144,34 +144,39 @@ void CodeGen::genStruct(shared_ptr<IRStruct> node) {
     int offset = 0;
     for (auto var : node->fields) {
         types.push_back(utils->getType(var->type));
-        int size = 0;
-        if (var->type=="bool") {
-            size=8;
-        } else if (var->type=="char") {
-            size=8;
-        } else if (var->type=="byte") {
-            size=8;
-        } else if (var->type=="short") {
-            size=16;
-        } else if (var->type=="int") {
-            size=32;
-        } else if (var->type=="long") {
-            size=64;
-        } else if (var->type=="float") {
-            size=helper->getFloatType()->getPrimitiveSizeInBits();
-        } else if (var->type=="double") {
-            size=helper->getDoubleType()->getPrimitiveSizeInBits();
-        } else {
-            size=helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits();
+        if (Main::debug) {
+            int size = 0;
+            if (var->type=="bool") {
+                size=8;
+            } else if (var->type=="char") {
+                size=8;
+            } else if (var->type=="byte") {
+                size=8;
+            } else if (var->type=="short") {
+                size=16;
+            } else if (var->type=="int") {
+                size=32;
+            } else if (var->type=="long") {
+                size=64;
+            } else if (var->type=="float") {
+                size=helper->getFloatType()->getPrimitiveSizeInBits();
+            } else if (var->type=="double") {
+                size=helper->getDoubleType()->getPrimitiveSizeInBits();
+            } else {
+                size=helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits();
+            }
+            Dtypes.push_back(helper->DBuilder->createMemberType(helper->DCU->getFile(), var->name, helper->DCU->getFile(), var->line, size, size, offset, DINode::FlagPublic, helper->DBuilder->createPointerType(helper->DTypes[var->type], helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits(), helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits())));
+            offset+=size;
         }
-        Dtypes.push_back(helper->DBuilder->createMemberType(helper->DCU->getFile(), var->name, helper->DCU->getFile(), var->line, size, size, offset, DINode::FlagPublic, helper->DBuilder->createPointerType(helper->DTypes[var->type], helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits(), helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits())));
-        offset+=size;
         varTypes[var->name] = var->type;
     }
     string fullName = node->name;
-    auto tmp = helper->DBuilder->createStructType(helper->DCU->getFile(), fullName, helper->DCU->getFile(), node->line, helper->DTypes[fullName]->getSizeInBits(), helper->DTypes[fullName]->getSizeInBits(), DINode::FlagPublic, nullptr, helper->DBuilder->getOrCreateArray(Dtypes));
-    helper->DTypes[fullName]->replaceAllUsesWith(tmp);
-    helper->DTypes[fullName] = tmp;
+    if (Main::debug) {
+        auto tmp = helper->DBuilder->createStructType(helper->DCU->getFile(), fullName, helper->DCU->getFile(), node->line, helper->DTypes[fullName]->getSizeInBits(), helper->DTypes[fullName]->getSizeInBits(), DINode::FlagPublic, nullptr, helper->DBuilder->getOrCreateArray(Dtypes));
+        helper->DTypes[fullName]->replaceAllUsesWith(tmp);
+        helper->DTypes[fullName] = tmp;
+    }
+
 
     StructType *structType;
     if (utils->classesTypes.contains(fullName)) {
@@ -494,13 +499,14 @@ void CodeGen::genVarDecl(shared_ptr<IRVarDecl> node) {
     helper->setDebugLocation(node->line, node->col);
     Value *ptr =
         helper->createAlloca(utils->getType(node->type), nullptr, node->name);
-    DIType* Dtype;
-    if (node->type=="bool" || node->type=="char" || node->type=="byte" || node->type=="short" || node->type=="int" || node->type=="long" || node->type=="float" || node->type=="double") {
-        Dtype=helper->DTypes[node->type];
-    } else {
-        Dtype=helper->DBuilder->createPointerType(helper->DTypes[node->name], helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits(), helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits());
-    }
+
     if (Main::debug) {
+        DIType* Dtype;
+        if (node->type=="bool" || node->type=="char" || node->type=="byte" || node->type=="short" || node->type=="int" || node->type=="long" || node->type=="float" || node->type=="double") {
+            Dtype=helper->DTypes[node->type];
+        } else {
+            Dtype=helper->DBuilder->createPointerType(helper->DTypes[node->name], helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits(), helper->getPointerType(helper->getVoidType(), 0)->getPrimitiveSizeInBits());
+        }
         DILocalVariable *DVar = helper->DBuilder->createAutoVariable(helper->Builder->GetInsertBlock()->getParent()->getSubprogram(), "my_var", helper->DCU->getFile(), 1, Dtype);
         helper->DBuilder->insertDeclare(ptr, DVar, helper->DBuilder->createExpression(), DILocation::get(*helper->TheContext, node->line, node->col, helper->Builder->GetInsertBlock()->getParent()->getSubprogram()), helper->Builder->GetInsertBlock());
     }

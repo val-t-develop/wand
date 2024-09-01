@@ -383,5 +383,7 @@ ArrayType *LLVMHelper::getArrayType(Type *type, uint64_t n) {
 }
 
 void LLVMHelper::setDebugLocation(int line, int col) {
-    Builder->SetCurrentDebugLocation(DILocation::get(*TheContext, line, col, Builder->GetInsertBlock()->getParent()->getSubprogram()));
+    if (DBuilder!=nullptr) {
+        Builder->SetCurrentDebugLocation(DILocation::get(*TheContext, line, col, Builder->GetInsertBlock()->getParent()->getSubprogram()));
+    }
 }
