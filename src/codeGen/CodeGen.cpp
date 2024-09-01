@@ -329,6 +329,7 @@ void CodeGen::genFunction(shared_ptr<IRFunction> node) {
 }
 
 bool CodeGen::genBlock(shared_ptr<IRBlock> node) {
+    helper->setDebugLocation(node->line, node->col);
     bool ret = false;
     currBlockVars.push(vector<pair<Value *, string>>());
     for (auto item : node->nodes) {
@@ -365,6 +366,7 @@ bool CodeGen::genStatement(shared_ptr<IRStatement> node, bool makeRet) {
             utils->destructAfterStatement();
         } else if (node->kind == IRNode::Kind::RETURN) {
             auto returnNode = static_pointer_cast<IRReturn>(node);
+            helper->setDebugLocation(returnNode->line, returnNode->col);
             if (returnNode->val != nullptr) {
                 Value *ptr =
                     NamedValues[helper->getCurrFunction()->getName().str() +
@@ -410,6 +412,7 @@ bool CodeGen::genStatement(shared_ptr<IRStatement> node, bool makeRet) {
 }
 
 void CodeGen::genIfElse(shared_ptr<IRIfElse> node) {
+    helper->setDebugLocation(node->line, node->col);
     Value *cond = genExpression(node->cond, false);
 
     Function *TheFunction = helper->getCurrFunction();
@@ -455,6 +458,7 @@ void CodeGen::genIfElse(shared_ptr<IRIfElse> node) {
 }
 
 void CodeGen::genLoop(shared_ptr<IRLoop> node) {
+    helper->setDebugLocation(node->line, node->col);
     Function *TheFunction = helper->getCurrFunction();
     BasicBlock *beforeWhileBB = helper->createBBinFunc("beforewhile", TheFunction);
     BasicBlock *whileBB = helper->createBBinFunc("while", TheFunction);
@@ -487,6 +491,7 @@ void CodeGen::genLoop(shared_ptr<IRLoop> node) {
 }
 
 void CodeGen::genVarDecl(shared_ptr<IRVarDecl> node) {
+    helper->setDebugLocation(node->line, node->col);
     Value *ptr =
         helper->createAlloca(utils->getType(node->type), nullptr, node->name);
     DIType* Dtype;
@@ -541,6 +546,7 @@ Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
 
         for (int i = 1; i < access->access.size(); ++i) {
             if (access->access[i]->kind==IRNode::Kind::VAR) {
+                helper->setDebugLocation(access->access[i]->line, access->access[i]->col);
                 int n = -1;
                 shared_ptr<IRStruct> Struct;
                 for (auto el : tree->structs) {
@@ -591,10 +597,12 @@ Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
     } else if (node->kind == IRNode::Kind::UN_OP) {
 
     } else if (node->kind == IRNode::Kind::ALLOC) {
+        helper->setDebugLocation(static_pointer_cast<IRAlloc>(node)->line, static_pointer_cast<IRAlloc>(node)->col);
         Type *type = utils->getTypeNoPtr(static_pointer_cast<IRAlloc>(node)->type);
         Value *sizeofIV = helper->createSizeof(type);
         return helper->createCall("__spl__alloc", vector<Value *>{sizeofIV}, "heapallocatmp");
     } else if (node->kind == IRNode::Kind::FUNCTION_POINTER) {
+        helper->setDebugLocation(static_pointer_cast<IRFunc>(node)->line, static_pointer_cast<IRFunc>(node)->col);
         return helper->getFunction(static_pointer_cast<IRFunc>(node)->name);
     } else if (node->isLiteral()) {
         if (genRef) {
@@ -606,6 +614,7 @@ Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
 }
 
 Value *CodeGen::genLiteral(shared_ptr<IRLiteral> node) {
+    helper->setDebugLocation(node->line, node->col);
     if (node->kind == IRNode::Kind::CHAR_LITERAL) {
         return helper->getConstInt(8, node->strLiteral[0]);
     } else if (node->kind == IRNode::Kind::BOOL_LITERAL) {
@@ -649,6 +658,7 @@ Value *CodeGen::genCall(shared_ptr<IRCall> node) {
             args.push_back(genExpression(arg, false));
         }
     }
+    helper->setDebugLocation(node->line, node->col);
     auto tmp = helper->createCall(node->name, args);
     if (tmp->getType()->isPointerTy()) {
         destructAfterStatement.push_back(DestructAfterStatement(
@@ -658,6 +668,7 @@ Value *CodeGen::genCall(shared_ptr<IRCall> node) {
 }
 
 Value *CodeGen::genVarValue(shared_ptr<IRVar> node, bool genRef) {
+    helper->setDebugLocation(node->line, node->col);
     Value *ptr = NamedValues[node->name];
     if (ptr == nullptr) {
         ptr = GlobalNamedValues[node->name];
@@ -675,6 +686,7 @@ Value *CodeGen::genBinOp(shared_ptr<IRBinOp> node) {
     if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::ASSIGN) {
         auto L = genExpression(node->left, true);
         auto R = genExpression(node->right, false);
+        helper->setDebugLocation(node->line, node->col);
         string type = node->left->getReturnType(this);
         if (type!="char"&&
             type!="bool"&&
@@ -711,6 +723,7 @@ Value *CodeGen::genBinOp(shared_ptr<IRBinOp> node) {
     }
     auto L = genExpression(node->left, false);
     auto R = genExpression(node->right, false);
+    helper->setDebugLocation(node->line, node->col);
     if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::OR) {
 
     } else if (node->opKind==BinaryOperatorNode::BinaryOperatorKind::AND) {

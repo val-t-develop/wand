@@ -135,4 +135,6 @@ public:
     void prepareBuild();
     void runPasses();
     void build(raw_pwrite_stream &dest);
+
+    void setDebugLocation(int line, int col);
 };

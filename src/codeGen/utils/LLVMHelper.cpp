@@ -381,3 +381,7 @@ string LLVMHelper::getModuleName() { return string(TheModule->getName()); }
 ArrayType *LLVMHelper::getArrayType(Type *type, uint64_t n) {
     return ArrayType::get(type, n);
 }
+
+void LLVMHelper::setDebugLocation(int line, int col) {
+    Builder->SetCurrentDebugLocation(DILocation::get(*TheContext, line, col, Builder->GetInsertBlock()->getParent()->getSubprogram()));
+}
