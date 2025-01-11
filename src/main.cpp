@@ -84,7 +84,7 @@ void Main::processDir(Path &dir) {
 }
 
 void Main::processFile(Path &file) {
-    Out::printMessage("Processing file: " + file.getName());
+    //Out::printMessage("Processing file: " + file.getName());
     processFileToState(file, CU::State::CODE_GEN);
 }
 
@@ -94,7 +94,7 @@ void Main::processFileToState(Path &file, CU::State state) {
     } else {
         string fullName = file.getName();
         if (!validSplFile(fullName)) {
-            Out::printMessage("Only generate .spl files valid");
+            //Out::printMessage("Only generate .spl files valid");
             return;
         }
         string name = fullName.substr(0, fullName.find("."));

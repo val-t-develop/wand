@@ -118,7 +118,13 @@ void CodeGen::codeGen() {
 
 void CodeGen::build() {
     helper->prepareBuild();
-    helper->printModule();
+    if (ArgsParser::emit_llvm!=nullptr) {
+        system(string("mkdir -p "+ArgsParser::emit_llvm->getName()+file.getParent().getName()).c_str());
+        string fn(ArgsParser::emit_llvm->getName()+file.getName()+".ll");
+        std::error_code ec{};
+        raw_fd_ostream os(fn, ec, sys::fs::CD_OpenAlways);
+        helper->printModule(os);
+    }
     helper->runPasses();
     system(string("mkdir -p .spl_compilation"+file.getParent().getName()).c_str());
     string Filename = ".spl_compilation"+file.getName()+".o";

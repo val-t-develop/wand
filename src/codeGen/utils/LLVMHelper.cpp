@@ -88,7 +88,7 @@ void LLVMHelper::prepareBuild() {
     }
 }
 
-void LLVMHelper::printModule() { TheModule->print(errs(), nullptr); }
+void LLVMHelper::printModule(raw_ostream& stream) { TheModule->print(stream, nullptr); }
 
 void LLVMHelper::runPasses() {
     // Create the analysis managers.

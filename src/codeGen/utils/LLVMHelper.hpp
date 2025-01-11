@@ -131,7 +131,7 @@ public:
 
     Value *createSizeof(Type *type);
 
-    void printModule();
+    void printModule(raw_ostream& stream);
     void prepareBuild();
     void runPasses();
     void build(raw_pwrite_stream &dest);

@@ -29,6 +29,7 @@ class ArgsParser {
   public:
     static shared_ptr<Path> output;
     static vector<Path> src;
+    static shared_ptr<Path> emit_llvm;
 
     static void parseArgs(int argc, char **argv);
     static void parseArgs(vector<string> args);
