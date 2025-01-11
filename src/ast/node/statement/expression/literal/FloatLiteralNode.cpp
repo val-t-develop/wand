@@ -24,8 +24,8 @@
 #include "FloatLiteralNode.hpp"
 
 FloatLiteralNode::FloatLiteralNode(long double _value, bool _doubleVal, shared_ptr<ClassRecord> _floatTypeRec, shared_ptr<ClassRecord> _doubleTypeRec,
-                                   shared_ptr<Node> _parent)
-    : ExpressionNode(_parent, NodeKind::FLOAT_LITERAL_NODE), value(_value),
+                                   shared_ptr<Node> _parent, int _line, int _col)
+    : ExpressionNode(_parent, NodeKind::FLOAT_LITERAL_NODE, _line, _col), value(_value),
       doubleVal(_doubleVal), floatTypeRec(_floatTypeRec), doubleTypeRec(_doubleTypeRec) {}
 
 shared_ptr<ClassRecord> FloatLiteralNode::getReturnType() {

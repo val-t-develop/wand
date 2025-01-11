@@ -27,6 +27,6 @@
 
 class AssignableNode : public ExpressionNode {
   public:
-    AssignableNode(shared_ptr<Node> _parent, NodeKind _kind);
+    AssignableNode(shared_ptr<Node> _parent, NodeKind _kind, int _line, int _col);
     shared_ptr<ClassRecord> getReturnType() override;
 };

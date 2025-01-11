@@ -72,7 +72,7 @@ class Node {
     int col=0;
 
     shared_ptr<Node> parent;
-    Node(shared_ptr<Node> _parent, NodeKind _kind);
+    Node(shared_ptr<Node> _parent, NodeKind _kind, int _line=0, int _col=0);
 
     NodeKind getKind();
     bool isStatement();

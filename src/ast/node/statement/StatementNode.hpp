@@ -26,5 +26,5 @@
 
 class StatementNode : public Node {
   public:
-    StatementNode(shared_ptr<Node> _parent, NodeKind _kind);
+    StatementNode(shared_ptr<Node> _parent, NodeKind _kind, int _line=0, int _col=0);
 };

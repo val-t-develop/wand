@@ -29,6 +29,6 @@ public:
     string name;
     vector<shared_ptr<IRExpression>> args;
 
-    IRCall(string _name, vector<shared_ptr<IRExpression>> _args);
+    IRCall(string _name, vector<shared_ptr<IRExpression>> _args, int _line, int _col);
     string getReturnType(CodeGen* codeGen) override;
 };

@@ -25,8 +25,8 @@
 
 NewNode::NewNode(shared_ptr<TypeNode> _type,
                  vector<shared_ptr<ExpressionNode>> _args, bool _isStatic,
-                 shared_ptr<Node> _parent)
-    : ExpressionNode(_parent, NodeKind::NEW_NODE), type(_type), args(_args),
+                 shared_ptr<Node> _parent, int _line, int _col)
+    : ExpressionNode(_parent, NodeKind::NEW_NODE, _line, _col), type(_type), args(_args),
       isStatic(_isStatic) {}
 
 shared_ptr<ClassRecord> NewNode::getReturnType() { return nullptr; }

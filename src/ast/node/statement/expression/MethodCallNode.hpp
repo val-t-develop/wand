@@ -33,7 +33,7 @@ class MethodCallNode : public ExpressionNode {
 
     MethodCallNode(shared_ptr<MethodRecord> _record,
                    vector<shared_ptr<ExpressionNode>> _args,
-                   shared_ptr<Node> _parent);
+                   shared_ptr<Node> _parent, int _line, int _col);
     shared_ptr<ClassRecord> getReturnType() override;
 
     string getFullName();

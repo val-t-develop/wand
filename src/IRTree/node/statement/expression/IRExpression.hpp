@@ -27,6 +27,6 @@ class CodeGen;
 
 class IRExpression : public IRStatement {
 public:
-    IRExpression(Kind _kind);
+    IRExpression(Kind _kind, int _line, int _col);
     virtual string getReturnType(CodeGen* codeGen) = 0;
 };

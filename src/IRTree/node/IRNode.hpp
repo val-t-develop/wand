@@ -62,7 +62,7 @@ public:
     Kind kind = Kind::NONE;
     int line = 0, col = 0;
 
-    IRNode(Kind _kind);
+    IRNode(Kind _kind, int _line=0, int _col=0);
 
     bool isExpression();
     bool isLiteral();

@@ -24,8 +24,8 @@
 #include "ArrayInitializerNode.hpp"
 
 ArrayInitializerNode::ArrayInitializerNode(
-    vector<shared_ptr<ExpressionNode>> _nodes, shared_ptr<Node> _parent)
-    : ExpressionNode(_parent, NodeKind::ARRAY_INITIALIZER_NODE), nodes(_nodes) {
+    vector<shared_ptr<ExpressionNode>> _nodes, shared_ptr<Node> _parent, int _line, int _col)
+    : ExpressionNode(_parent, NodeKind::ARRAY_INITIALIZER_NODE, _line, _col), nodes(_nodes) {
 }
 
 shared_ptr<ClassRecord> ArrayInitializerNode::getReturnType() {

@@ -23,7 +23,7 @@
 
 #include "IRAlloc.hpp"
 
-IRAlloc::IRAlloc(string _type) : type(_type), IRExpression(Kind::ALLOC) {}
+IRAlloc::IRAlloc(string _type, int _line, int _col) : type(_type), IRExpression(Kind::ALLOC, _line, _col) {}
 
 
 string IRAlloc::getReturnType(CodeGen* codeGen) {

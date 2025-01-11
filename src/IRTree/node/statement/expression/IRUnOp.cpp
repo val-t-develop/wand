@@ -23,8 +23,8 @@
 
 #include "IRUnOp.hpp"
 
-IRUnOp::IRUnOp(shared_ptr<IRExpression> _val, string _op, bool _isPre)
-    : val(_val), op(_op), isPre(_isPre), IRExpression(Kind::UN_OP) {}
+IRUnOp::IRUnOp(shared_ptr<IRExpression> _val, string _op, bool _isPre, int _line, int _col)
+    : val(_val), op(_op), isPre(_isPre), IRExpression(Kind::UN_OP, _line, _col) {}
 
 string IRUnOp::getReturnType(CodeGen* codeGen) {
     return val->getReturnType(codeGen);

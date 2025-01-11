@@ -23,7 +23,7 @@
 
 #include "AssignableNode.hpp"
 
-AssignableNode::AssignableNode(shared_ptr<Node> _parent, NodeKind _kind)
-    : ExpressionNode(_parent, _kind) {}
+AssignableNode::AssignableNode(shared_ptr<Node> _parent, NodeKind _kind, int _line, int _col)
+    : ExpressionNode(_parent, _kind, _line, _col) {}
 
 shared_ptr<ClassRecord> AssignableNode::getReturnType() { return nullptr; }

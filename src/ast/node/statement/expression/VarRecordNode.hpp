@@ -30,7 +30,7 @@ class VarRecordNode : public ExpressionNode {
   public:
     shared_ptr<VarRecord> record;
 
-    VarRecordNode(shared_ptr<VarRecord> _record, shared_ptr<Node> _parent);
+    VarRecordNode(shared_ptr<VarRecord> _record, shared_ptr<Node> _parent, int _line, int _col);
 
     shared_ptr<ClassRecord> getReturnType() override;
 

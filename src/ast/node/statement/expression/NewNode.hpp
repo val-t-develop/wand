@@ -36,6 +36,6 @@ class NewNode : public ExpressionNode {
 
     NewNode(shared_ptr<TypeNode> _type,
             vector<shared_ptr<ExpressionNode>> _args, bool _isStatic,
-            shared_ptr<Node> _parent);
+            shared_ptr<Node> _parent, int _line, int _col);
     shared_ptr<ClassRecord> getReturnType() override;
 };

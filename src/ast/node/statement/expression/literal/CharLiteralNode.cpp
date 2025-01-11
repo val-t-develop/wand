@@ -23,7 +23,7 @@
 
 #include "CharLiteralNode.hpp"
 
-CharLiteralNode::CharLiteralNode(string _str, shared_ptr<ClassRecord> _typeRec, shared_ptr<Node> _parent)
-    : ExpressionNode(_parent, NodeKind::CHAR_LITERAL_NODE), typeRec(_typeRec), str(_str) {}
+CharLiteralNode::CharLiteralNode(string _str, shared_ptr<ClassRecord> _typeRec, shared_ptr<Node> _parent, int _line, int _col)
+    : ExpressionNode(_parent, NodeKind::CHAR_LITERAL_NODE, _line, _col), typeRec(_typeRec), str(_str) {}
 
 shared_ptr<ClassRecord> CharLiteralNode::getReturnType() { return typeRec; }

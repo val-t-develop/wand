@@ -32,7 +32,7 @@ class FloatLiteralNode : public ExpressionNode {
   shared_ptr<ClassRecord> floatTypeRec, doubleTypeRec;
 
     FloatLiteralNode(long double _value, bool _doubleVal, shared_ptr<ClassRecord> _floatTypeRec, shared_ptr<ClassRecord> _doubleTypeRec,
-                     shared_ptr<Node> _parent);
+                     shared_ptr<Node> _parent, int _line, int _col);
 
     shared_ptr<ClassRecord> getReturnType() override;
 };

@@ -28,7 +28,7 @@ class IRAlloc : public IRExpression {
 public:
     string type;
 
-    IRAlloc(string _type);
+    IRAlloc(string _type, int _line, int _col);
 
     string getReturnType(CodeGen* codeGen) override;
 };

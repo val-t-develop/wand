@@ -23,7 +23,7 @@
 
 #include "IRAccess.hpp"
 
-IRAccess::IRAccess() : IRExpression(Kind::ACCESS) {}
+IRAccess::IRAccess() : IRExpression(Kind::ACCESS, 0, 0) {}
 
 string IRAccess::getReturnType(CodeGen* codeGen) {
     return access[access.size()-1]->getReturnType(codeGen);

@@ -33,7 +33,7 @@ class ClassRecordNode : public ExpressionNode {
 
     ClassRecordNode(shared_ptr<ClassRecord> _record,
                     vector<shared_ptr<AccessNode>> _typeArgs,
-                    shared_ptr<Node> _parent);
+                    shared_ptr<Node> _parent, int _line, int _col);
 
     shared_ptr<ClassRecord> getReturnType() override;
 

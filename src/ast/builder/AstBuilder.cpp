@@ -228,11 +228,11 @@ shared_ptr<GenericNode> AstBuilder::enterGenericDecl() {
 
 shared_ptr<ClassRecordNode> AstBuilder::enterGenericTypeDecl() {
     if (lexer.getCurrent()->kind == Token::Kind::IDENTIFIER) {
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         shared_ptr<ClassRecord> record =
             symbolTable->lookupClass(lexer.getCurrent()->str);
         lexer.goForward();
-        return make_shared<ClassRecordNode>(
-            record, vector<shared_ptr<AccessNode>>(), nullptr);
+        return make_shared<ClassRecordNode>(record, vector<shared_ptr<AccessNode>>(), nullptr, l, c);
     } else {
         Out::errorMessage(lexer, "Expected identifier, but found:\n\t" +
                                      lexer.getCurrent()->str + "\tin " +
@@ -362,7 +362,7 @@ AstBuilder::enterMethodDecl(shared_ptr<TypeNode> type,
         }
     }
     if (!staticMod) {
-        args.insert(args.begin(),make_shared<VarDeclNode>(nullptr, make_shared<TypeNode>(make_shared<ClassRecordNode>(classesStack.top(), vector<shared_ptr<AccessNode>>(), nullptr), 0, nullptr), symbolTable->lookupVar("this"), nullptr, nullptr, l, c));
+        args.insert(args.begin(),make_shared<VarDeclNode>(nullptr, make_shared<TypeNode>(make_shared<ClassRecordNode>(classesStack.top(), vector<shared_ptr<AccessNode>>(), nullptr, -1, -1), 0, nullptr, -1, -1), symbolTable->lookupVar("this"), nullptr, nullptr, l, c));
     }
 
     bool found = true;
@@ -566,7 +566,8 @@ shared_ptr<StatementNode> AstBuilder::enterNotVarStartement() {
         lexer.goForward();
         return nullptr;
     } else if (lexer.getCurrent()->kind == Token::Kind::SUPER) {
-        return make_shared<BinaryOperatorNode>(make_shared<VarRecordNode>(ClassRecord::getSuperField(classesStack.top()), nullptr), enterSuper(), BinaryOperatorNode::BinaryOperatorKind::ASSIGN, nullptr);
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
+        return make_shared<BinaryOperatorNode>(make_shared<VarRecordNode>(ClassRecord::getSuperField(classesStack.top()), nullptr, l, c), enterSuper(), BinaryOperatorNode::BinaryOperatorKind::ASSIGN, nullptr, l, c);
     } else {
         return enterExpression();
     }
@@ -896,6 +897,7 @@ AstBuilder::enterBinOpRHS(int exprPrec, shared_ptr<ExpressionNode> LHS) {
         if (tokPrec < exprPrec)
             return LHS;
 
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         string binOp = lexer.getCurrent()->str;
         lexer.goForward();
 
@@ -910,8 +912,7 @@ AstBuilder::enterBinOpRHS(int exprPrec, shared_ptr<ExpressionNode> LHS) {
                 return nullptr;
         }
 
-        LHS = make_shared<BinaryOperatorNode>(
-            LHS, RHS, BinaryOperatorNode::operatorKinds.at(binOp), nullptr);
+        LHS = make_shared<BinaryOperatorNode>(LHS, RHS, BinaryOperatorNode::operatorKinds.at(binOp), nullptr, l, c);
     }
 }
 
@@ -924,7 +925,7 @@ shared_ptr<ExpressionNode> AstBuilder::enterUnOpPrimary() {
     int tilde = 0;
     int plus = 0;
     int minus = 0;
-
+    int l = lexer.getCurrent()->line;
     while (true) {
         if (lexer.getCurrent()->kind == Token::Kind::INC) {
             preInc++;
@@ -964,31 +965,31 @@ shared_ptr<ExpressionNode> AstBuilder::enterUnOpPrimary() {
     }
 
     for (int i = preInc; i > 0; i--) {
-        primary = make_shared<UnaryOperatorNode>(true, "++", primary, nullptr);
+        primary = make_shared<UnaryOperatorNode>(true, "++", primary, nullptr, l, 0);
     }
     for (int i = preDec; i > 0; i--) {
-        primary = make_shared<UnaryOperatorNode>(true, "--", primary, nullptr);
+        primary = make_shared<UnaryOperatorNode>(true, "--", primary, nullptr, l, 0);
     }
 
     for (int i = plus; i > 0; i--) {
-        primary = make_shared<UnaryOperatorNode>(true, "+", primary, nullptr);
+        primary = make_shared<UnaryOperatorNode>(true, "+", primary, nullptr, l, 0);
     }
     for (int i = minus; i > 0; i--) {
-        primary = make_shared<UnaryOperatorNode>(true, "-", primary, nullptr);
+        primary = make_shared<UnaryOperatorNode>(true, "-", primary, nullptr, l, 0);
     }
 
     for (int i = bang; i > 0; i--) {
-        primary = make_shared<UnaryOperatorNode>(true, "!", primary, nullptr);
+        primary = make_shared<UnaryOperatorNode>(true, "!", primary, nullptr, l, 0);
     }
     for (int i = tilde; i > 0; i--) {
-        primary = make_shared<UnaryOperatorNode>(true, "~", primary, nullptr);
+        primary = make_shared<UnaryOperatorNode>(true, "~", primary, nullptr, l, 0);
     }
 
     for (int i = postInc; i > 0; i--) {
-        primary = make_shared<UnaryOperatorNode>(false, "++", primary, nullptr);
+        primary = make_shared<UnaryOperatorNode>(false, "++", primary, nullptr, l, 0);
     }
     for (int i = postDec; i > 0; i--) {
-        primary = make_shared<UnaryOperatorNode>(false, "--", primary, nullptr);
+        primary = make_shared<UnaryOperatorNode>(false, "--", primary, nullptr, l, 0);
     }
     return primary;
 }
@@ -1023,6 +1024,7 @@ shared_ptr<ExpressionNode> AstBuilder::enterPrimary() {
 }
 
 shared_ptr<ExpressionNode> AstBuilder::enterNew() {
+    int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
     lexer.goForward();
 
     bool isStatic = false;
@@ -1102,13 +1104,14 @@ shared_ptr<ExpressionNode> AstBuilder::enterNew() {
 
     if (arr) {
         return make_shared<ArrayCreationNode>(type, args, arrayInitializer,
-                                              isStatic, nullptr);
+                                              isStatic, nullptr, l, c);
     } else {
-        return make_shared<NewNode>(type, args, isStatic, nullptr);
+        return make_shared<NewNode>(type, args, isStatic, nullptr, l, c);
     }
 }
 
 shared_ptr<ExpressionNode> AstBuilder::enterSuper() {
+    int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
     lexer.goForward();
 
     bool isStatic = false;
@@ -1117,7 +1120,7 @@ shared_ptr<ExpressionNode> AstBuilder::enterSuper() {
         lexer.goForward();
     }
 
-    shared_ptr<TypeNode> type = make_shared<TypeNode>(make_shared<ClassRecordNode>(classesStack.top()->superClass, vector<shared_ptr<AccessNode>>{}, nullptr), 0, nullptr);
+    shared_ptr<TypeNode> type = make_shared<TypeNode>(make_shared<ClassRecordNode>(classesStack.top()->superClass, vector<shared_ptr<AccessNode>>{}, nullptr, l, c), 0, nullptr, l, c);
 
     vector<shared_ptr<ExpressionNode>> args =
         vector<shared_ptr<ExpressionNode>>();
@@ -1144,7 +1147,7 @@ shared_ptr<ExpressionNode> AstBuilder::enterSuper() {
             }
         }
     }
-    return make_shared<NewNode>(type, args, isStatic, nullptr);
+    return make_shared<NewNode>(type, args, isStatic, nullptr, l, c);
 }
 
 shared_ptr<ExpressionNode> AstBuilder::enterParenExpression() {
@@ -1165,14 +1168,14 @@ shared_ptr<ExpressionNode> AstBuilder::enterParenExpression() {
 }
 
 shared_ptr<AccessNode> AstBuilder::enterAccessOrCall(bool arr) {
-    shared_ptr<AccessNode> access = make_shared<AccessNode>(nullptr);
+    shared_ptr<AccessNode> access = make_shared<AccessNode>(nullptr, 0, 0);
     while (true) {
         enterAccessWithoutArray(access);
         if (arr) {
             if (lexer.getCurrent()->kind == Token::Kind::LBRACKET) {
+                int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
                 shared_ptr<ArrayAccessNode> arrayAccessNode =
-                    make_shared<ArrayAccessNode>(
-                        access, vector<shared_ptr<ExpressionNode>>{}, nullptr);
+                    make_shared<ArrayAccessNode>(access, vector<shared_ptr<ExpressionNode>>{}, nullptr, l, c);
                 while (true) {
                     lexer.goForward();
                     arrayAccessNode->indexes.push_back(enterExpression());
@@ -1181,7 +1184,7 @@ shared_ptr<AccessNode> AstBuilder::enterAccessOrCall(bool arr) {
                         break;
                     }
                 }
-                access = make_shared<AccessNode>(nullptr);
+                access = make_shared<AccessNode>(nullptr, 0, 0);
                 access->access.push_back(arrayAccessNode);
             } else {
                 break;
@@ -1203,19 +1206,19 @@ void AstBuilder::enterAccessWithoutArray(shared_ptr<AccessNode> access) {
 
     Record::RecordKind kind = Record::RecordKind::UNUSED;
     if (varRecord != nullptr) {
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         kind = varRecord->kind;
         access->access.push_back(
-            make_shared<VarRecordNode>(varRecord, nullptr));
+            make_shared<VarRecordNode>(varRecord, nullptr, l, c));
     } else if (classRecord != nullptr) {
         access->access.push_back(make_shared<ClassRecordNode>(
-            classRecord, vector<shared_ptr<AccessNode>>{}, nullptr));
+            classRecord, vector<shared_ptr<AccessNode>>{}, nullptr, 0, 0));
         kind = classRecord->kind;
     } else if (methodRecord != nullptr) {
         kind = methodRecord->kind;
-
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         // TODO method reference
-        shared_ptr<MethodCallNode> call = make_shared<MethodCallNode>(
-            methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr);
+        shared_ptr<MethodCallNode> call = make_shared<MethodCallNode>(methodRecord, vector<shared_ptr<ExpressionNode>>(), nullptr, l, c);
         if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
             lexer.goForward();
         } else {
@@ -1271,7 +1274,7 @@ void AstBuilder::enterAccessWithoutArray(shared_ptr<AccessNode> access) {
                 shared_ptr<VarRecord> field =
                     static_pointer_cast<VarRecord>(new_record);
                 shared_ptr<VarRecordNode> fieldNode =
-                    make_shared<VarRecordNode>(field, nullptr);
+                    make_shared<VarRecordNode>(field, nullptr, 0, 0);
                 access->access.push_back(fieldNode);
             } else if (new_kind == Record::RecordKind::METHOD_RECORD) {
                 shared_ptr<MethodRecord> new_methodRecord =
@@ -1298,15 +1301,16 @@ void AstBuilder::enterAccessWithoutArray(shared_ptr<AccessNode> access) {
                 shared_ptr<VarRecord> field =
                     static_pointer_cast<VarRecord>(new_record);
                 shared_ptr<VarRecordNode> fieldNode =
-                    make_shared<VarRecordNode>(field, nullptr);
+                    make_shared<VarRecordNode>(field, nullptr, 0, 0);
                 access->access.push_back(fieldNode);
             } else if (new_kind == Record::RecordKind::METHOD_RECORD) {
                 shared_ptr<MethodRecord> new_methodRecord =
                     static_pointer_cast<MethodRecord>(new_record);
+                int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
                 // TODO method reference
                 shared_ptr<MethodCallNode> call = make_shared<MethodCallNode>(
                     new_methodRecord, vector<shared_ptr<ExpressionNode>>(),
-                    nullptr);
+                    nullptr, l, c);
                 if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
                     lexer.goForward();
                 } else {
@@ -1364,7 +1368,7 @@ void AstBuilder::enterAccessWithoutArray(shared_ptr<AccessNode> access) {
                 shared_ptr<VarRecord> field =
                     static_pointer_cast<VarRecord>(new_record);
                 shared_ptr<VarRecordNode> fieldNode =
-                    make_shared<VarRecordNode>(field, nullptr);
+                    make_shared<VarRecordNode>(field, nullptr, 0, 0);
                 access->access.push_back(fieldNode);
             } else if (new_kind == Record::RecordKind::METHOD_RECORD) {
                 shared_ptr<MethodRecord> new_methodRecord =
@@ -1392,7 +1396,7 @@ void AstBuilder::enterAccessWithoutArray(shared_ptr<AccessNode> access) {
                 shared_ptr<VarRecord> field =
                     static_pointer_cast<VarRecord>(new_record);
                 shared_ptr<VarRecordNode> fieldNode =
-                    make_shared<VarRecordNode>(field, nullptr);
+                    make_shared<VarRecordNode>(field, nullptr, 0, 0);
                 access->access[access->access.size() - 1] = fieldNode;
             } else if (new_kind == Record::RecordKind::METHOD_RECORD) {
                 shared_ptr<MethodRecord> new_methodRecord =
@@ -1405,7 +1409,7 @@ void AstBuilder::enterAccessWithoutArray(shared_ptr<AccessNode> access) {
                     static_pointer_cast<ClassRecord>(new_record);
                 shared_ptr<ClassRecordNode> classNode =
                     make_shared<ClassRecordNode>(
-                        classRec, vector<shared_ptr<AccessNode>>(), nullptr);
+                        classRec, vector<shared_ptr<AccessNode>>(), nullptr, 0, 0);
                 access->access[access->access.size() - 1] = classNode;
             } else if (new_kind == Record::RecordKind::UNUSED) {
                 Out::errorMessage("Error: using of unused record!");
@@ -1446,50 +1450,60 @@ void AstBuilder::enterGeneric(shared_ptr<ClassRecordNode> classRecordNode) {
 shared_ptr<ExpressionNode> AstBuilder::enterLiteral() {
     if (lexer.getCurrent()->kind == Token::Kind::BOOL_LITERAL) {
         if (lexer.getCurrent()->str == "true") {
+            int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
             lexer.goForward();
-            return make_shared<BoolLiteralNode>(true, symbolTable->lookupClass("bool"), nullptr);
+            return make_shared<BoolLiteralNode>(true, symbolTable->lookupClass("bool"), nullptr, l, c);
         } else {
+            int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
             lexer.goForward();
-            return make_shared<BoolLiteralNode>(false, symbolTable->lookupClass("bool"), nullptr);
+            return make_shared<BoolLiteralNode>(false, symbolTable->lookupClass("bool"), nullptr, l, c);
         }
     } else if (lexer.getCurrent()->kind == Token::Kind::CHAR_LITERAL) {
         string str = lexer.getCurrent()->str;
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         lexer.goForward();
-        return make_shared<CharLiteralNode>(str, symbolTable->lookupClass("char"), nullptr);
+        return make_shared<CharLiteralNode>(str, symbolTable->lookupClass("char"), nullptr, l, c);
     } else if (lexer.getCurrent()->kind == Token::Kind::STRING_LITERAL) {
         string str = lexer.getCurrent()->str;
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         lexer.goForward();
-        return make_shared<StringLiteralNode>(str, symbolTable->lookupClass("String"), nullptr);
+        return make_shared<StringLiteralNode>(str, symbolTable->lookupClass("String"), nullptr, l, c);
     } else if (lexer.getCurrent()->kind == Token::Kind::DEC_FLOAT_LITERAL ||
                lexer.getCurrent()->kind == Token::Kind::HEX_FLOAT_LITERAL ||
                lexer.getCurrent()->kind == Token::Kind::DEC_DOUBLE_LITERAL ||
                lexer.getCurrent()->kind == Token::Kind::HEX_DOUBLE_LITERAL) {
         long double val = ParserUtils::parseDouble(lexer.getCurrent()->str);
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         lexer.goForward();
-        return make_shared<FloatLiteralNode>(val, true, symbolTable->lookupClass("float"), symbolTable->lookupClass("double"), nullptr);
+        return make_shared<FloatLiteralNode>(val, true, symbolTable->lookupClass("float"), symbolTable->lookupClass("double"), nullptr, l, c);
     } else if (lexer.getCurrent()->kind == Token::Kind::DEC_BYTE_LITERAL ||
                lexer.getCurrent()->kind == Token::Kind::HEX_BYTE_LITERAL) {
         int64_t val = ParserUtils::parseLong(lexer.getCurrent()->str);
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         lexer.goForward();
-        return make_shared<IntLiteralNode>(val, IntLiteralNode::Type::BYTE, symbolTable->lookupClass("byte"), nullptr);
+        return make_shared<IntLiteralNode>(val, IntLiteralNode::Type::BYTE, symbolTable->lookupClass("byte"), nullptr, l, c);
     } else if (lexer.getCurrent()->kind == Token::Kind::DEC_SHORT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::HEX_SHORT_LITERAL) {
         int64_t val = ParserUtils::parseLong(lexer.getCurrent()->str);
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         lexer.goForward();
-        return make_shared<IntLiteralNode>(val, IntLiteralNode::Type::SHORT, symbolTable->lookupClass("short"), nullptr);
+        return make_shared<IntLiteralNode>(val, IntLiteralNode::Type::SHORT, symbolTable->lookupClass("short"), nullptr, l, c);
     } else if (lexer.getCurrent()->kind == Token::Kind::DEC_INT_LITERAL ||
         lexer.getCurrent()->kind == Token::Kind::HEX_INT_LITERAL) {
         int64_t val = ParserUtils::parseLong(lexer.getCurrent()->str);
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         lexer.goForward();
-        return make_shared<IntLiteralNode>(val, IntLiteralNode::Type::INT, symbolTable->lookupClass("int"), nullptr);
+        return make_shared<IntLiteralNode>(val, IntLiteralNode::Type::INT, symbolTable->lookupClass("int"), nullptr, l, c);
     } else if (lexer.getCurrent()->kind == Token::Kind::DEC_LONG_LITERAL ||
                lexer.getCurrent()->kind == Token::Kind::HEX_LONG_LITERAL) {
         int64_t val = ParserUtils::parseLong(lexer.getCurrent()->str);
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         lexer.goForward();
-        return make_shared<IntLiteralNode>(val, IntLiteralNode::Type::LONG, symbolTable->lookupClass("long"), nullptr);
+        return make_shared<IntLiteralNode>(val, IntLiteralNode::Type::LONG, symbolTable->lookupClass("long"), nullptr, l, c);
     } else if (lexer.getCurrent()->kind == Token::Kind::NULL_LITERAL) {
+        int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
         lexer.goForward();
-        return make_shared<NullLiteralNode>(nullptr);
+        return make_shared<NullLiteralNode>(nullptr, l, c);
     }
     return nullptr;
 }
@@ -1497,7 +1511,7 @@ shared_ptr<ExpressionNode> AstBuilder::enterLiteral() {
 shared_ptr<ArrayInitializerNode> AstBuilder::enterArrayInitializer() {
     vector<shared_ptr<ExpressionNode>> init =
         vector<shared_ptr<ExpressionNode>>();
-
+    int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
     lexer.goForward();
     while (true) {
         if (lexer.getCurrent()->kind == Token::Kind::RBRACE) {
@@ -1516,7 +1530,7 @@ shared_ptr<ArrayInitializerNode> AstBuilder::enterArrayInitializer() {
                            ":" + std::to_string(lexer.getCurrent()->pos));
         }
     }
-    return make_shared<ArrayInitializerNode>(init, nullptr);
+    return make_shared<ArrayInitializerNode>(init, nullptr, l, c);
 }
 
 shared_ptr<TypeNode> AstBuilder::enterType(bool arr) {
@@ -1546,7 +1560,7 @@ shared_ptr<TypeNode> AstBuilder::enterType(bool arr) {
     }
     return make_shared<TypeNode>(
         static_pointer_cast<ClassRecordNode>(type->access[0]), dims,
-        nullptr);
+        nullptr, 0, 0);
 }
 
 vector<shared_ptr<TypeNode>> AstBuilder::enterTypeList() {
@@ -1576,9 +1590,10 @@ shared_ptr<ModifiersNode> AstBuilder::enterModifiers() {
 }
 
 shared_ptr<MethodCallNode> AstBuilder::enterMethodCall(shared_ptr<MethodRecord> methodRecord) {
+    int l = lexer.getCurrent()->line, c = lexer.getCurrent()->pos;
     shared_ptr<MethodCallNode> call = make_shared<MethodCallNode>(
                     methodRecord, vector<shared_ptr<ExpressionNode>>(),
-                    nullptr);
+                    nullptr, l, c);
     if (lexer.getCurrent()->kind == Token::Kind::LPAREN) {
         lexer.goForward();
     } else {

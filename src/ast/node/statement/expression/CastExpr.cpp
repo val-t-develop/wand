@@ -25,8 +25,8 @@
 
 CastExpression::CastExpression(shared_ptr<TypeNode> _type,
                                shared_ptr<ExpressionNode> _expression,
-                               shared_ptr<Node> _parent)
-    : ExpressionNode(_parent, NodeKind::CAST_NODE), type(_type),
+                               shared_ptr<Node> _parent, int _line, int _col)
+    : ExpressionNode(_parent, NodeKind::CAST_NODE, _line, _col), type(_type),
       expression(_expression) {}
 
 shared_ptr<ClassRecord> CastExpression::getReturnType() { return nullptr; }

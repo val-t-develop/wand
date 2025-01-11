@@ -26,5 +26,5 @@
 
 class IRStatement : public IRNode {
 public:
-    IRStatement(Kind _kind);
+    IRStatement(Kind _kind, int _line=0, int _col=0);
 };

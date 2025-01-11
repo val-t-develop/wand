@@ -38,6 +38,6 @@ class ArrayCreationNode : public ExpressionNode {
     ArrayCreationNode(shared_ptr<TypeNode> _type,
                       vector<shared_ptr<ExpressionNode>> _dims,
                       shared_ptr<ArrayInitializerNode> _init, bool _isStatic,
-                      shared_ptr<Node> _parent);
+                      shared_ptr<Node> _parent, int _line, int _col);
     shared_ptr<ClassRecord> getReturnType() override;
 };

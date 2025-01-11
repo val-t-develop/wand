@@ -33,7 +33,7 @@ class CastExpression : public ExpressionNode {
 
     CastExpression(shared_ptr<TypeNode> _type,
                    shared_ptr<ExpressionNode> _expression,
-                   shared_ptr<Node> _parent);
+                   shared_ptr<Node> _parent, int _line, int _col);
 
     shared_ptr<ClassRecord> getReturnType() override;
 };

@@ -30,6 +30,6 @@ class BoolLiteralNode : public ExpressionNode {
     bool value;
     shared_ptr<ClassRecord> typeRec;
 
-    BoolLiteralNode(bool _value, shared_ptr<ClassRecord> _typeRec, shared_ptr<Node> _parent);
+    BoolLiteralNode(bool _value, shared_ptr<ClassRecord> _typeRec, shared_ptr<Node> _parent, int _line, int _col);
     shared_ptr<ClassRecord> getReturnType() override;
 };

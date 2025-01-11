@@ -23,4 +23,4 @@
 
 #include "IRExpression.hpp"
 
-IRExpression::IRExpression(Kind _kind) : IRStatement(_kind) {}
+IRExpression::IRExpression(Kind _kind, int _line, int _col) : IRStatement(_kind, _line, _col) {}

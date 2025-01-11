@@ -32,6 +32,6 @@ public:
     shared_ptr<IRExpression> right;
     BinaryOperatorNode::BinaryOperatorKind opKind;
 
-    IRBinOp(shared_ptr<IRExpression> _left, shared_ptr<IRExpression> _right, BinaryOperatorNode::BinaryOperatorKind _opKind);
+    IRBinOp(shared_ptr<IRExpression> _left, shared_ptr<IRExpression> _right, BinaryOperatorNode::BinaryOperatorKind _opKind, int _line, int _col);
     string getReturnType(CodeGen* codeGen) override;
 };

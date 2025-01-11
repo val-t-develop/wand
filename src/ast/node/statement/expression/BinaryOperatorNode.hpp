@@ -70,7 +70,7 @@ class BinaryOperatorNode : public ExpressionNode {
 
     BinaryOperatorNode(shared_ptr<ExpressionNode> _left,
                        shared_ptr<ExpressionNode> _right,
-                       BinaryOperatorKind _op, shared_ptr<Node> _parent);
+                       BinaryOperatorKind _op, shared_ptr<Node> _parent, int _line, int _col);
 
     shared_ptr<ClassRecord> getReturnType() override;
 };

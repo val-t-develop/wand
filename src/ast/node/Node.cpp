@@ -24,8 +24,8 @@
 #include "Node.hpp"
 #include <ast/node/AccessNode.hpp>
 
-Node::Node(shared_ptr<Node> _parent, NodeKind _kind)
-    : kind(_kind), parent(_parent) {}
+Node::Node(shared_ptr<Node> _parent, NodeKind _kind, int _line, int _col)
+    : kind(_kind), parent(_parent), line(_line), col(_col) {}
 
 Node::NodeKind Node::getKind() { return kind; }
 bool Node::isStatement() {

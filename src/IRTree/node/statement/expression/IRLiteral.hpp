@@ -31,7 +31,7 @@ public:
     bool boolLiteral = false;
     double doubleLiteral = 0.0;
 
-    IRLiteral(Kind _kind);
+    IRLiteral(Kind _kind, int _line, int _col);
 
     string getReturnType(CodeGen* codeGen) override;
 };

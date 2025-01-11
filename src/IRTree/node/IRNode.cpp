@@ -23,7 +23,7 @@
 
 #include "IRNode.hpp"
 
-IRNode::IRNode(Kind _kind) : kind(_kind) {}
+IRNode::IRNode(Kind _kind, int _line, int _col) : kind(_kind), line(_line), col(_col) {}
 
 bool IRNode::isExpression() {
     if (kind==Kind::VALUE ||

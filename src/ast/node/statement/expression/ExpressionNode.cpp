@@ -23,5 +23,5 @@
 
 #include "ExpressionNode.hpp"
 
-ExpressionNode::ExpressionNode(shared_ptr<Node> _parent, NodeKind _kind)
-    : StatementNode(_parent, _kind) {}
+ExpressionNode::ExpressionNode(shared_ptr<Node> _parent, NodeKind _kind, int _line, int _col)
+    : StatementNode(_parent, _kind, _line, _col) {}

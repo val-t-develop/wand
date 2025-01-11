@@ -23,7 +23,7 @@
 
 #include "IRLiteral.hpp"
 
-IRLiteral::IRLiteral(Kind _kind) : IRExpression(_kind) {}
+IRLiteral::IRLiteral(Kind _kind, int _line, int _col) : IRExpression(_kind, _line, _col) {}
 
 string IRLiteral::getReturnType(CodeGen* codeGen) {
     if (kind==Kind::STRING_LITERAL) {

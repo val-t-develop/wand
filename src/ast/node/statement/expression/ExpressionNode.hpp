@@ -28,7 +28,7 @@
 
 class ExpressionNode : public StatementNode {
   public:
-    ExpressionNode(shared_ptr<Node> _parent, NodeKind _kind);
+    ExpressionNode(shared_ptr<Node> _parent, NodeKind _kind, int _line, int _col);
     virtual shared_ptr<ClassRecord> getReturnType() = 0;
     virtual ~ExpressionNode() = default;
 };

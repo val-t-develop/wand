@@ -24,8 +24,8 @@
 #include "TypeNode.hpp"
 
 TypeNode::TypeNode(shared_ptr<ClassRecordNode> _type, int _dims,
-                   shared_ptr<Node> _parent)
-    : ExpressionNode(_parent, NodeKind::TYPE_NODE), type(_type), dims(_dims) {}
+                   shared_ptr<Node> _parent, int _line, int _col)
+    : ExpressionNode(_parent, NodeKind::TYPE_NODE, _line, _col), type(_type), dims(_dims) {}
 
 shared_ptr<ClassRecord> TypeNode::getReturnType() {
     return type->getReturnType();

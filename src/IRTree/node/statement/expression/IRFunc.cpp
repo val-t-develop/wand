@@ -24,6 +24,6 @@
 #include "IRFunc.hpp"
 
 IRFunc::IRFunc(string _name)
-    : name(_name), IRExpression(Kind::FUNCTION_POINTER) {}
+    : name(_name), IRExpression(Kind::FUNCTION_POINTER, 0, 0) {}
 
 string IRFunc::getReturnType(CodeGen* codeGen) {return "__spl__function_pointer";}

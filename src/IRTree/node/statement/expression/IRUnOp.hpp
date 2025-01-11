@@ -30,7 +30,7 @@ public:
     string op;
     bool isPre;
 
-    IRUnOp(shared_ptr<IRExpression> _val, string _op, bool _isPre);
+    IRUnOp(shared_ptr<IRExpression> _val, string _op, bool _isPre, int _line, int _col);
 
     string getReturnType(CodeGen* codeGen) override;
 };

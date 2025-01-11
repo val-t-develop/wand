@@ -6,7 +6,7 @@
 
 #include <utils/Out.hpp>
 
-IRValue::IRValue(llvm::Value *_val) : val(_val), IRExpression(Kind::VALUE) {}
+IRValue::IRValue(llvm::Value *_val) : val(_val), IRExpression(Kind::VALUE, 0, 0) {}
 
 string IRValue::getReturnType(CodeGen* codeGen) {
     Out::errorMessage("Can not get type of value");

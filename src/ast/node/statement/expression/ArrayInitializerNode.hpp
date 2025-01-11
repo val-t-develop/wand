@@ -31,6 +31,6 @@ class ArrayInitializerNode : public ExpressionNode {
         vector<shared_ptr<ExpressionNode>>();
 
     ArrayInitializerNode(vector<shared_ptr<ExpressionNode>> _nodes,
-                         shared_ptr<Node> _parent);
+                         shared_ptr<Node> _parent, int _line, int _col);
     shared_ptr<ClassRecord> getReturnType() override;
 };

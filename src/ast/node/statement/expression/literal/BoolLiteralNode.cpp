@@ -23,7 +23,7 @@
 
 #include "BoolLiteralNode.hpp"
 
-BoolLiteralNode::BoolLiteralNode(bool _value, shared_ptr<ClassRecord> _typeRec, shared_ptr<Node> _parent)
-    : ExpressionNode(_parent, NodeKind::BOOL_LITERAL_NODE), typeRec(_typeRec), value(_value) {}
+BoolLiteralNode::BoolLiteralNode(bool _value, shared_ptr<ClassRecord> _typeRec, shared_ptr<Node> _parent, int _line, int _col)
+    : ExpressionNode(_parent, NodeKind::BOOL_LITERAL_NODE, _line, _col), typeRec(_typeRec), value(_value) {}
 
 shared_ptr<ClassRecord> BoolLiteralNode::getReturnType() { return typeRec; }

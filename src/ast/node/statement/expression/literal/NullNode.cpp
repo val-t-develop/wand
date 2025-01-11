@@ -23,7 +23,7 @@
 
 #include "NullNode.hpp"
 
-NullLiteralNode::NullLiteralNode(shared_ptr<Node> _parent)
-    : ExpressionNode(_parent, NodeKind::NULL_LITERAL_NODE) {}
+NullLiteralNode::NullLiteralNode(shared_ptr<Node> _parent, int _line, int _col)
+    : ExpressionNode(_parent, NodeKind::NULL_LITERAL_NODE, _line, _col) {}
 
 shared_ptr<ClassRecord> NullLiteralNode::getReturnType() { return nullptr; }

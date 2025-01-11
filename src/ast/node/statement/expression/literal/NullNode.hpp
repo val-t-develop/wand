@@ -27,6 +27,6 @@
 
 class NullLiteralNode : public ExpressionNode {
   public:
-    NullLiteralNode(shared_ptr<Node> _parent);
+    NullLiteralNode(shared_ptr<Node> _parent, int _line, int _col);
     shared_ptr<ClassRecord> getReturnType() override;
 };

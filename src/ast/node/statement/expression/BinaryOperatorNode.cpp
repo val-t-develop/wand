@@ -59,8 +59,8 @@ const map<string, BinaryOperatorNode::BinaryOperatorKind>
 BinaryOperatorNode::BinaryOperatorNode(shared_ptr<ExpressionNode> _left,
                                        shared_ptr<ExpressionNode> _right,
                                        BinaryOperatorKind _op,
-                                       shared_ptr<Node> _parent)
-    : ExpressionNode(_parent, NodeKind::BINARY_OPERATOR_NODE), left(_left),
+                                       shared_ptr<Node> _parent, int _line, int _col)
+    : ExpressionNode(_parent, NodeKind::BINARY_OPERATOR_NODE, _line, _col), left(_left),
       right(_right), op(_op) {}
 
 shared_ptr<ClassRecord> BinaryOperatorNode::getReturnType() {

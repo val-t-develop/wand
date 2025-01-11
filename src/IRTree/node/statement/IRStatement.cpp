@@ -23,4 +23,4 @@
 
 #include "IRStatement.hpp"
 
-IRStatement::IRStatement(Kind _kind) : IRNode(_kind) {}
+IRStatement::IRStatement(Kind _kind, int _line, int _col) : IRNode(_kind, _line, _col) {}

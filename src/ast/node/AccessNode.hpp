@@ -29,7 +29,7 @@ class AccessNode : public ExpressionNode {
   public:
     vector<shared_ptr<Node>> access = vector<shared_ptr<Node>>();
 
-    AccessNode(shared_ptr<Node> _parent);
+    AccessNode(shared_ptr<Node> _parent, int _line, int _col);
 
     shared_ptr<ClassRecord> getReturnType() override;
 };
