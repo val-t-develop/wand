@@ -1,5 +1,5 @@
-/*  SPL - Simple Programming Language compiler
- *  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+/*  WAND - Wand Programming Language compiler
+ *  Copyright (C) 2022-2025  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -72,6 +72,6 @@ public:
     static void main(int argc, char **argv);
     static void processDir(Path &dir);
     static void processFile(Path &file);
-    static bool validSplFile(const string &name);
+    static bool validWandFile(const string &name);
     static void processFileToState(Path &file, CU::State state);
 };

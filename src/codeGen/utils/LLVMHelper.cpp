@@ -1,5 +1,5 @@
-/*  SPL - Simple Programming Language compiler
- *  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+/*  WAND - Wand Programming Language compiler
+ *  Copyright (C) 2022-2025  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ LLVMHelper::LLVMHelper(string moduleName, string path) {
 
     if (Main::debug) {
         DBuilder = make_shared<DIBuilder>(*TheModule);
-        DCU = DBuilder->createCompileUnit(dwarf::DW_LANG_C, DBuilder->createFile(path, "/"), "SPL Compiler", false, "", 0);
+        DCU = DBuilder->createCompileUnit(dwarf::DW_LANG_C, DBuilder->createFile(path, "/"), "WAND Compiler", false, "", 0);
     }
 }
 

@@ -1,5 +1,5 @@
-//  SPL - Simple Programming Language compiler
-//  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+//  WAND - Wand Programming Language compiler
+//  Copyright (C) 2022-2025  Valentyn Tymchyshyn
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
 
 //  Valentyn Tymchyshyn (val.t.develop) (val.t.develop@gmail.com)
 //
-//  IO realization in standard library of spl.
+//  IO realization in standard library of wand.
 
-package spl.core;
+package wand.core;
 
 class System {
     class out {

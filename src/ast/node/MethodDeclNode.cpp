@@ -1,5 +1,5 @@
-/*  SPL - Simple Programming Language compiler
- *  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+/*  WAND - Wand Programming Language compiler
+ *  Copyright (C) 2022-2025  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ string MethodDeclNode::getFullName() {
         }
         str += record->id;
 
-        str += "__spl__" + returnType->type->record->getFullName();
+        str += "__wand__" + returnType->type->record->getFullName();
         for (auto arg : args) {
             if (arg->record->id=="this") {
                 str += "__" + arg->type->getFullName();

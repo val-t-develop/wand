@@ -1,5 +1,5 @@
-#  SPL - Simple Programming Language compiler
-#  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+#  WAND - Wand Programming Language compiler
+#  Copyright (C) 2022-2025  Valentyn Tymchyshyn
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,10 +16,10 @@
 
 #  Valentyn Tymchyshyn (val.t.develop) (val.t.develop@gmail.com)
 #
-#  Meson.build file for SPL compiler.
+#  Meson.build file for WAND compiler.
 #  USE Makefile to compile the project.
 
-project('spl', 'cpp', default_options : 'cpp_std=c++20')
+project('wand', 'cpp', default_options : 'cpp_std=c++20')
 add_project_arguments('-W', '-Wall', '-Wextra', '-Wpedantic', '-g', language : 'cpp')
 
 llvm_dep = dependency('llvm', version : '>18.0.0')
@@ -111,4 +111,4 @@ src_files = ['src/main.cpp', 'src/main.hpp', 'src/License.hpp',
     'src/codeGen/utils/CodeGenUtils.cpp', 'src/codeGen/utils/CodeGenUtils.hpp',
     'src/codeGen/utils/LLVMHelper.cpp', 'src/codeGen/utils/LLVMHelper.hpp']
 
-executable('spl', src_files, dependencies : llvm_dep, include_directories : incdir)
+executable('wand', src_files, dependencies : llvm_dep, include_directories : incdir)

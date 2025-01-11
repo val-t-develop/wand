@@ -1,5 +1,5 @@
-/*  SPL - Simple Programming Language compiler
- *  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+/*  WAND - Wand Programming Language compiler
+ *  Copyright (C) 2022-2025  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -56,13 +56,13 @@ void SymbolListener::processImport(vector<string> importName) {
 }
 
 void SymbolListener::processImportFile(Path& src, vector<Path>& toImport, vector<string> importName) {
-    vector<string> vec = split(src.getParent().getName(), "/");
+    vector<string> vec = wandit(src.getParent().getName(), "/");
     for (int i = 0; i < importName.size(); ++i) {
         if (importName[importName.size()-1-i]!=vec[vec.size()-1-i]) {
             return;
         }
     }
-    if (src.getFilename().ends_with(".spl")) {
+    if (src.getFilename().ends_with(".wand")) {
         if (src.getName()==filePath.getName()) {
             return;
         }
@@ -122,7 +122,7 @@ void SymbolListener::enterPackage() {
         }
         srcDir = path;
 
-        vector<string> importName = {"spl", "core"};
+        vector<string> importName = {"wand", "core"};
         processImport(importName);
     }
 }
@@ -335,7 +335,7 @@ void SymbolListener::enterDestructorDecl(
                                      ":" +
                                      std::to_string(lexer.getCurrent()->pos));
     }
-    string type = "__destructor", id = "__spl__destructor__"+lexer.getCurrent()->str;
+    string type = "__destructor", id = "__wand__destructor__"+lexer.getCurrent()->str;
 
     currentMethod = make_shared<MethodRecord>(id, type);
     currentMethod->isDestructor = true;

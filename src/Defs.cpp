@@ -1,5 +1,5 @@
-/*  SPL - Simple Programming Language compiler
- *  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+/*  WAND - Wand Programming Language compiler
+ *  Copyright (C) 2022-2025  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 #include "Defs.hpp"
 
-vector<string> split(string s, string delimiter) {
+vector<string> wandit(string s, string delimiter) {
     size_t pos_start = 0, pos_end, delim_len = delimiter.length();
     string token;
     vector<string> res;

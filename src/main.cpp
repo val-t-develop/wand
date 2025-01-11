@@ -1,5 +1,5 @@
-/*  SPL - Simple Programming Language compiler
- *  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+/*  WAND - Wand Programming Language compiler
+ *  Copyright (C) 2022-2025  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ Main::OptLevel Main::optLevel = Main::OptLevel::O1;
 
 void Main::main(int argc, char **argv) {
     ArgsParser::parseArgs(argc, argv);
-    ArgsParser::src.push_back(Path("/usr/include/spl"));
+    ArgsParser::src.push_back(Path("/usr/include/wand"));
     for (Path file : ArgsParser::src) {
         if (file.isFile()) {
             processFile(file);
@@ -70,7 +70,7 @@ void Main::main(int argc, char **argv) {
         rm += " " + obj;
     }
     system(rm.c_str());
-    system("rm -rd .spl_compilation");
+    system("rm -rd .wand_compilation");
 }
 
 void Main::processDir(Path &dir) {
@@ -93,8 +93,8 @@ void Main::processFileToState(Path &file, CU::State state) {
         CUs[file]->completeToState(state);
     } else {
         string fullName = file.getName();
-        if (!validSplFile(fullName)) {
-            //Out::printMessage("Only generate .spl files valid");
+        if (!validWandFile(fullName)) {
+            //Out::printMessage("Only generate .wand files valid");
             return;
         }
         string name = fullName.substr(0, fullName.find("."));
@@ -105,7 +105,7 @@ void Main::processFileToState(Path &file, CU::State state) {
     }
 }
 
-bool Main::validSplFile(const string &name) { return name.ends_with(".spl"); }
+bool Main::validWandFile(const string &name) { return name.ends_with(".wand"); }
 
 CU::CU(string _fullFileName, string _fileName, Path _file)
     : fullFileName(_fullFileName), fileName(_fileName), file(_file) {}

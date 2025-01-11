@@ -1,5 +1,5 @@
-#  SPL - Simple Programming Language compiler
-#  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+#  WAND - Wand Programming Language compiler
+#  Copyright (C) 2022-2025  Valentyn Tymchyshyn
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,12 +16,12 @@
 
 #  Valentyn Tymchyshyn (val.t.develop) (val.t.develop@gmail.com)
 #
-#  Bash script for installing SPL compiler and SPL standard library
+#  Bash script for installing WAND compiler and WAND standard library
 
 #!/bin/bash
 make setup
 make build
-cp ./builddir/spl /usr/bin/spl
+cp ./builddir/wand /usr/bin/wand
 make clean
-mkdir /usr/include/spl
-cp -r res/spl /usr/include/spl/spl
+mkdir /usr/include/wand
+cp -r res/wand /usr/include/wand/wand

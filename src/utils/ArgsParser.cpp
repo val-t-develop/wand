@@ -1,5 +1,5 @@
-/*  SPL - Simple Programming Language compiler
- *  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+/*  WAND - Wand Programming Language compiler
+ *  Copyright (C) 2022-2025  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ void ArgsParser::parseArgs(int argc, char **argv) {
     }
     vector<string> vec;
     for (int i = 0; i < argc; ++i) {
-        auto curr = split(string(argv[i]), " ");
+        auto curr = wandit(string(argv[i]), " ");
         for (auto el : curr) {
             if (el.find("~") != string::npos) {
                 el.replace(el.find("~"), string("~").length(), home);

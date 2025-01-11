@@ -1,5 +1,5 @@
-//  SPL - Simple Programming Language compiler
-//  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+//  WAND - Wand Programming Language compiler
+//  Copyright (C) 2022-2025  Valentyn Tymchyshyn
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -20,27 +20,18 @@
 
 package test;
 
-class Main {
+class A {
+    int abc;
+    public int a() {
+        abc =  87
+        return 67;
+    }
+}
 
+class Main {
     public static int main (String[] args) {
-        System.out.print('a');
-        System.out.println('a');
-        System.out.print(true);
-        System.out.println(false);
-        System.out.print(12b);
-        System.out.println(12b);
-        System.out.print(12s);
-        System.out.println(12s);
-        System.out.print(11);
-        System.out.println(11);
-        System.out.print(11l);
-        System.out.println(11l);
-        System.out.print(12.3f);
-        System.out.println(12.3f);
-        System.out.print(12.3d);
-        System.out.println(12.3d);
-        System.out.print("abc");
-        System.out.println("abc");
-        return 0;
+        A a = new A();
+        System.out.println(a.a());
+        return a.abc;
     }
 }

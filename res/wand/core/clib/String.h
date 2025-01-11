@@ -1,5 +1,5 @@
-/*  SPL - Simple Programming Language compiler
-*  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+/*  WAND - Wand Programming Language compiler
+*  Copyright (C) 2022-2025  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 /*
  *  Valentyn Tymchyshyn (val.t.develop) (val.t.develop@gmail.com)
  *
- *  Realization of String part of standard library of spl.
+ *  Realization of String part of standard library of wand.
  */
 
 #ifndef STRING_H
@@ -34,16 +34,16 @@ typedef struct String_t {
 } String;
 
 __attribute__((used))
-String* __spl__constructor__String() {
-    String* obj = __spl__alloc(sizeof(String));
+String* __wand__constructor__String() {
+    String* obj = __wand__alloc(sizeof(String));
     obj->str = NULL;
     obj->size=0;
     return obj;
 }
 
 __attribute__((used))
-String* __spl__constructor__String__String(String* _str) {
-    String* obj = __spl__alloc(sizeof(String));
+String* __wand__constructor__String__String(String* _str) {
+    String* obj = __wand__alloc(sizeof(String));
     obj->size = _str->size;
     if (obj->size != 0) {
         obj->str = malloc(sizeof(char)*(obj->size+1));
@@ -56,8 +56,8 @@ String* __spl__constructor__String__String(String* _str) {
 }
 
 __attribute__((used))
-String* __spl__constructor__String__char(char _a) {
-    String* obj = __spl__alloc(sizeof(String));
+String* __wand__constructor__String__char(char _a) {
+    String* obj = __wand__alloc(sizeof(String));
     obj->size = 1;
     obj->str = malloc(sizeof(char)*2);
     obj->str[0] = _a;
@@ -66,8 +66,8 @@ String* __spl__constructor__String__char(char _a) {
 }
 
 __attribute__((used))
-String* __spl__constructor__String__bool(bool _a) {
-    String* obj = __spl__alloc(sizeof(String));
+String* __wand__constructor__String__bool(bool _a) {
+    String* obj = __wand__alloc(sizeof(String));
     if (_a) {
         obj->size = 4;
         obj->str = malloc(sizeof(char)*5);
@@ -81,8 +81,8 @@ String* __spl__constructor__String__bool(bool _a) {
 }
 
 __attribute__((used))
-String* __spl__constructor__String__byte(int8_t _a) {
-    String* obj = __spl__alloc(sizeof(String));
+String* __wand__constructor__String__byte(int8_t _a) {
+    String* obj = __wand__alloc(sizeof(String));
     obj->size = snprintf(NULL, 0,"%d", _a);
     obj->str = malloc(sizeof(char)*(obj->size+1));
     sprintf(obj->str, "%d", _a);
@@ -90,8 +90,8 @@ String* __spl__constructor__String__byte(int8_t _a) {
 }
 
 __attribute__((used))
-String* __spl__constructor__String__short(int16_t _a) {
-    String* obj = __spl__alloc(sizeof(String));
+String* __wand__constructor__String__short(int16_t _a) {
+    String* obj = __wand__alloc(sizeof(String));
     obj->size = snprintf(NULL, 0,"%d", _a);
     obj->str = malloc(sizeof(char)*(obj->size+1));
     sprintf(obj->str, "%d", _a);
@@ -99,8 +99,8 @@ String* __spl__constructor__String__short(int16_t _a) {
 }
 
 __attribute__((used))
-String* __spl__constructor__String__int(int32_t _a) {
-    String* obj = __spl__alloc(sizeof(String));
+String* __wand__constructor__String__int(int32_t _a) {
+    String* obj = __wand__alloc(sizeof(String));
     obj->size = snprintf(NULL, 0,"%d", _a);
     obj->str = malloc(sizeof(char)*(obj->size+1));
     sprintf(obj->str, "%d", _a);
@@ -108,8 +108,8 @@ String* __spl__constructor__String__int(int32_t _a) {
 }
 
 __attribute__((used))
-String* __spl__constructor__String__long(int64_t _a) {
-    String* obj = __spl__alloc(sizeof(String));
+String* __wand__constructor__String__long(int64_t _a) {
+    String* obj = __wand__alloc(sizeof(String));
     obj->size = snprintf(NULL, 0,"%ld", _a);
     obj->str = malloc(sizeof(char)*(obj->size+1));
     sprintf(obj->str, "%ld", _a);
@@ -117,8 +117,8 @@ String* __spl__constructor__String__long(int64_t _a) {
 }
 
 __attribute__((used))
-String* __spl__constructor__String__float(float _a) {
-    String* obj = __spl__alloc(sizeof(String));
+String* __wand__constructor__String__float(float _a) {
+    String* obj = __wand__alloc(sizeof(String));
     obj->size = snprintf(NULL, 0,"%f", _a);
     obj->str = malloc(sizeof(char)*(obj->size+1));
     sprintf(obj->str, "%f", _a);
@@ -126,8 +126,8 @@ String* __spl__constructor__String__float(float _a) {
 }
 
 __attribute__((used))
-String* __spl__constructor__String__double(double _a) {
-    String* obj = __spl__alloc(sizeof(String));
+String* __wand__constructor__String__double(double _a) {
+    String* obj = __wand__alloc(sizeof(String));
     obj->size = snprintf(NULL, 0,"%f", _a);
     obj->str = malloc(sizeof(char)*(obj->size+1));
     sprintf(obj->str, "%f", _a);
@@ -135,8 +135,8 @@ String* __spl__constructor__String__double(double _a) {
 }
 
 __attribute__((used))
-String* __spl__constructor__String____StringLiteral(char* _str) {
-    String* obj = __spl__alloc(sizeof(String));
+String* __wand__constructor__String____StringLiteral(char* _str) {
+    String* obj = __wand__alloc(sizeof(String));
     obj->size = strlen(_str);
     if (obj->size != 0) {
         obj->str = malloc(sizeof(char)*(obj->size+1));
@@ -149,14 +149,14 @@ String* __spl__constructor__String____StringLiteral(char* _str) {
 }
 
 __attribute__((used))
-void __spl__destructor__String(String* obj) {
+void __wand__destructor__String(String* obj) {
     if (obj->str != NULL) {
         free(obj->str);
     }
 }
 
 __attribute__((used))
-void __String___concat__spl__void__String__String__String(String* _this, String *_a, String *_b) {
+void __String___concat__wand__void__String__String__String(String* _this, String *_a, String *_b) {
     _this->size = _a->size+_b->size;
     if (_this->size != 0) {
         _this->str = malloc(sizeof(char)*(_this->size+1));
@@ -169,7 +169,7 @@ void __String___concat__spl__void__String__String__String(String* _this, String 
 }
 
 __attribute__((used))
-void __String___concat__spl__void__String__String__char(String* _this, String *_a, char _b) {
+void __String___concat__wand__void__String__String__char(String* _this, String *_a, char _b) {
     _this->size = _a->size+1;
     if (_this->size != 0) {
         _this->str = malloc(sizeof(char)*(_this->size+1));
@@ -182,7 +182,7 @@ void __String___concat__spl__void__String__String__char(String* _this, String *_
 }
 
 __attribute__((used))
-void __String___concat__spl__void__String__String__bool(String* _this, String *_a, bool _b) {
+void __String___concat__wand__void__String__String__bool(String* _this, String *_a, bool _b) {
     if (_b) {
         _this->size = _a->size+4;
         if (_this->size != 0) {
@@ -208,7 +208,7 @@ void __String___concat__spl__void__String__String__bool(String* _this, String *_
 }
 
 __attribute__((used))
-void __String___concat__spl__void__String__String__byte(String* _this, String *_a, int8_t _b) {
+void __String___concat__wand__void__String__String__byte(String* _this, String *_a, int8_t _b) {
     int32_t l = snprintf(NULL, 0,"%d", _b);
     char* str = malloc(l+1);
     sprintf(str, "%d", _b);
@@ -225,7 +225,7 @@ void __String___concat__spl__void__String__String__byte(String* _this, String *_
 }
 
 __attribute__((used))
-void __String___concat__spl__void__String__String__short(String* _this, String *_a, int16_t _b) {
+void __String___concat__wand__void__String__String__short(String* _this, String *_a, int16_t _b) {
     int32_t l = snprintf(NULL, 0,"%d", _b);
     char* str = malloc(l+1);
     sprintf(str, "%d", _b);
@@ -242,7 +242,7 @@ void __String___concat__spl__void__String__String__short(String* _this, String *
 }
 
 __attribute__((used))
-void __String___concat__spl__void__String__String__int(String* _this, String *_a, int32_t _b) {
+void __String___concat__wand__void__String__String__int(String* _this, String *_a, int32_t _b) {
     int32_t l = snprintf(NULL, 0,"%d", _b);
     char* str = malloc(l+1);
     sprintf(str, "%d", _b);
@@ -259,7 +259,7 @@ void __String___concat__spl__void__String__String__int(String* _this, String *_a
 }
 
 __attribute__((used))
-void __String___concat__spl__void__String__String__long(String* _this, String *_a, int64_t _b) {
+void __String___concat__wand__void__String__String__long(String* _this, String *_a, int64_t _b) {
     int32_t l = snprintf(NULL, 0,"%ld", _b);
     char* str = malloc(l+1);
     sprintf(str, "%ld", _b);
@@ -276,7 +276,7 @@ void __String___concat__spl__void__String__String__long(String* _this, String *_
 }
 
 __attribute__((used))
-void __String___concat__spl__void__String__String__float(String* _this, String *_a, float _b) {
+void __String___concat__wand__void__String__String__float(String* _this, String *_a, float _b) {
     int32_t l = snprintf(NULL, 0,"%f", _b);
     char* str = malloc(l+1);
     sprintf(str, "%f", _b);
@@ -293,7 +293,7 @@ void __String___concat__spl__void__String__String__float(String* _this, String *
 }
 
 __attribute__((used))
-void __String___concat__spl__void__String__String__double(String* _this, String *_a, double _b) {
+void __String___concat__wand__void__String__String__double(String* _this, String *_a, double _b) {
     int32_t l = snprintf(NULL, 0,"%f", _b);
     char* str = malloc(l+1);
     sprintf(str, "%f", _b);

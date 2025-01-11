@@ -1,5 +1,5 @@
-/*  SPL - Simple Programming Language compiler
- *  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+/*  WAND - Wand Programming Language compiler
+ *  Copyright (C) 2022-2025  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -54,11 +54,11 @@ CodeGen::DestructAfterStatement::DestructAfterStatement(Value *_val,
                                                         string _type) : val(_val), type(_type) {}
 
 CodeGen::CodeGen(shared_ptr<IRTree> _tree, Path& _file) : tree(_tree), file(_file) {
-    if (tree->moduleName=="spl.core") {
+    if (tree->moduleName=="wand.core") {
         auto dir = file.getParent();
-        auto ll_file = Path(dir.getName() + "/spl.core.stdlib.ll");
-        system(string("mkdir -p .spl_compilation"+dir.getName()).c_str());
-        string o_file = ".spl_compilation" + dir.getName() + "/spl.core.stdlib.o";
+        auto ll_file = Path(dir.getName() + "/wand.core.stdlib.ll");
+        system(string("mkdir -p .wand_compilation"+dir.getName()).c_str());
+        string o_file = ".wand_compilation" + dir.getName() + "/wand.core.stdlib.o";
         Main::currCUsStack.top()->linkingObj.push_back(o_file);
         system(string("clang " + ll_file.getName() + " -c -o " + o_file).c_str());
     }
@@ -70,32 +70,32 @@ void CodeGen::codeGen() {
     if (Main::debug) {
         helper->createDTypes();
     }
-    helper->createFunctionPrototype("__spl__init__gc", helper->getVoidType(),
+    helper->createFunctionPrototype("__wand__init__gc", helper->getVoidType(),
                                     vector<Type *>{});
-    helper->createFunctionPrototype("__spl__destroy__gc",
+    helper->createFunctionPrototype("__wand__destroy__gc",
                                     helper->getVoidType(), vector<Type *>{});
     helper->createFunctionPrototype(
-        "__spl__alloc", helper->getPointerType(helper->getVoidType()),
+        "__wand__alloc", helper->getPointerType(helper->getVoidType()),
         vector<Type *>{helper->getIntType(64)});
     helper->createFunctionPrototype(
-        "__spl__destroyobj", helper->getVoidType(),
+        "__wand__destroyobj", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
             helper->getPointerType(helper->getVoidType())});
     helper->createFunctionPrototype(
-        "__spl__destroyref", helper->getVoidType(),
+        "__wand__destroyref", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
             helper->getPointerType(helper->getVoidType())});
     helper->createFunctionPrototype(
-        "__spl__destroyref_not_delete", helper->getVoidType(),
+        "__wand__destroyref_not_delete", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
             helper->getPointerType(helper->getVoidType())});
     helper->createFunctionPrototype(
-        "__spl__addref", helper->getVoidType(),
+        "__wand__addref", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
                        helper->getPointerType(helper->getVoidType()),
                        helper->getPointerType(helper->getVoidType())});
     helper->createFunctionPrototype(
-        "__spl__write", helper->getVoidType(),
+        "__wand__write", helper->getVoidType(),
         vector<Type *>{helper->getPointerType(helper->getVoidType()),
                        helper->getPointerType(helper->getVoidType()),
                        helper->getPointerType(helper->getVoidType())});
@@ -126,8 +126,8 @@ void CodeGen::build() {
         helper->printModule(os);
     }
     helper->runPasses();
-    system(string("mkdir -p .spl_compilation"+file.getParent().getName()).c_str());
-    string Filename = ".spl_compilation"+file.getName()+".o";
+    system(string("mkdir -p .wand_compilation"+file.getParent().getName()).c_str());
+    string Filename = ".wand_compilation"+file.getName()+".o";
     std::error_code EC;
     raw_fd_ostream dest(Filename, EC, sys::fs::OF_None);
 
@@ -257,7 +257,7 @@ void CodeGen::genFunction(shared_ptr<IRFunction> node) {
         if (TheFunction->getReturnType() != helper->getVoidType()) {
             ret_ptr = helper->createAlloca(TheFunction->getReturnType(),
                                            nullptr, "retallocatmp");
-            NamedValues[node->name + "__spl__ret"] = ret_ptr;
+            NamedValues[node->name + "__wand__ret"] = ret_ptr;
             helper->createStore(
                 genExpression(IRTreeBuilder::getDefaultValue(node->type), false),
                 ret_ptr);
@@ -284,7 +284,7 @@ void CodeGen::genFunction(shared_ptr<IRFunction> node) {
             if (currFunction->type != "bool" && currFunction->type != "int" && currFunction->type != "byte" &&
                 currFunction->type != "short" && currFunction->type != "long" && currFunction->type != "float" &&
                 currFunction->type != "double" && currFunction->type != "char" && currFunction->type != "void") {
-                helper->createCall("__spl__destroyref_not_delete", vector<Value*>{ret_ptr, helper->getFunction("__spl__destructor__" +
+                helper->createCall("__wand__destroyref_not_delete", vector<Value*>{ret_ptr, helper->getFunction("__wand__destructor__" +
                                                     currFunction->type)});
             }
             helper->createRet(ret_val);
@@ -295,7 +295,7 @@ void CodeGen::genFunction(shared_ptr<IRFunction> node) {
         verifyFunction(*TheFunction);
 
         if (node->type == "int") {
-            if (node->name.ends_with("main__spl__int__String")) {
+            if (node->name.ends_with("main__wand__int__String")) {
                 if (node->args.size() == 1) {
                     if (node->args[0]->type == "String") {
                         Function *MainFunction =
@@ -311,7 +311,7 @@ void CodeGen::genFunction(shared_ptr<IRFunction> node) {
                             helper->createBBinFunc("entry", MainFunction);
                         helper->activateBB(mainBB);
 
-                        helper->createCall("__spl__init__gc");
+                        helper->createCall("__wand__init__gc");
                         // TODO
                         /*for (auto globInit : StaticGlobalsInit) {
                             if (globInit.second != nullptr) {
@@ -326,7 +326,7 @@ void CodeGen::genFunction(shared_ptr<IRFunction> node) {
                             vector<Value *>({helper->getNullptr(
                                 static_cast<PointerType *>(args_types[0]))}));
 
-                        helper->createCall("__spl__destroy__gc");
+                        helper->createCall("__wand__destroy__gc");
 
                         if (RetVal) {
                             helper->createRet(RetVal);
@@ -356,10 +356,10 @@ bool CodeGen::genBlock(shared_ptr<IRBlock> node) {
             v.second != "double" && v.second != "char" && v.second != "void") {
 
             helper->createCall(
-                "__spl__destroyref",
+                "__wand__destroyref",
                 vector<Value *>{
                     v.first,
-                    helper->getFunction("__spl__destructor__" + v.second)});
+                    helper->getFunction("__wand__destructor__" + v.second)});
         }
     }
     if (ret) {
@@ -381,14 +381,14 @@ bool CodeGen::genStatement(shared_ptr<IRStatement> node, bool makeRet) {
             if (returnNode->val != nullptr) {
                 Value *ptr =
                     NamedValues[helper->getCurrFunction()->getName().str() +
-                                "__spl__ret"];
+                                "__wand__ret"];
                 Value *val = genExpression(returnNode->val, false);
                 if (val->getType()->isPointerTy()) {
                     helper->createCall(
-                        "__spl__addref",
+                        "__wand__addref",
                         vector<Value *>{
                             ptr, val,
-                            helper->getFunction("__spl__destructor__" +
+                            helper->getFunction("__wand__destructor__" +
                                                 currFunction->type)});
                 }
                 helper->createStore(val, ptr);
@@ -612,7 +612,7 @@ Value *CodeGen::genExpression(shared_ptr<IRExpression> node, bool genRef) {
         helper->setDebugLocation(static_pointer_cast<IRAlloc>(node)->line, static_pointer_cast<IRAlloc>(node)->col);
         Type *type = utils->getTypeNoPtr(static_pointer_cast<IRAlloc>(node)->type);
         Value *sizeofIV = helper->createSizeof(type);
-        return helper->createCall("__spl__alloc", vector<Value *>{sizeofIV}, "heapallocatmp");
+        return helper->createCall("__wand__alloc", vector<Value *>{sizeofIV}, "heapallocatmp");
     } else if (node->kind == IRNode::Kind::FUNCTION_POINTER) {
         helper->setDebugLocation(static_pointer_cast<IRFunc>(node)->line, static_pointer_cast<IRFunc>(node)->col);
         return helper->getFunction(static_pointer_cast<IRFunc>(node)->name);
@@ -650,10 +650,10 @@ Value *CodeGen::genLiteral(shared_ptr<IRLiteral> node) {
         Constant *c = helper->createConstantVar(
             helper->getArrayType(helper->getIntType(8),
                                  node->strLiteral.size()+1),
-            "__spl__str__literal"+std::to_string(getNextUniqueNumber()),
+            "__wand__str__literal"+std::to_string(getNextUniqueNumber()),
             helper->getConstNullTerminatedString(node->strLiteral));
         auto v = helper->createCall(
-            "__spl__constructor__String____StringLiteral", {c});
+            "__wand__constructor__String____StringLiteral", {c});
         destructAfterStatement.push_back(
             DestructAfterStatement(v, "String"));
         return v;
@@ -661,7 +661,7 @@ Value *CodeGen::genLiteral(shared_ptr<IRLiteral> node) {
 }
 Value *CodeGen::genCall(shared_ptr<IRCall> node) {
     vector<Value *> args = vector<Value *>();
-    if (node->name=="__spl__destroyref") {
+    if (node->name=="__wand__destroyref") {
         for (auto arg : node->args) {
             args.push_back(genExpression(arg, true));
         }
@@ -708,7 +708,7 @@ Value *CodeGen::genBinOp(shared_ptr<IRBinOp> node) {
             type!="long"&&
             type!="float"&&
             type!="double") {
-            helper->createCall("__spl__addref", vector<Value *>{L, R, helper->getFunction("__spl__destructor__"+type)});
+            helper->createCall("__wand__addref", vector<Value *>{L, R, helper->getFunction("__wand__destructor__"+type)});
         }
         helper->createStore(R, L);
         return R;

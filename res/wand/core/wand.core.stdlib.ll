@@ -1,5 +1,5 @@
-;  SPL - Simple Programming Language compiler
-;  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+;  WAND - Wand Programming Language compiler
+;  Copyright (C) 2022-2025  Valentyn Tymchyshyn
 ;
 ;  This program is free software: you can redistribute it and/or modify
 ;  it under the terms of the GNU General Public License as published by
@@ -52,10 +52,10 @@ target triple = "x86_64-redhat-linux-gnu"
 @.str.18 = private unnamed_addr constant [4 x i8] c"%f\0A\00", align 1
 @.str.19 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
 @.str.20 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
-@llvm.compiler.used = appending global [47 x ptr] [ptr @__spl__init__gc, ptr @__spl__destroy__gc, ptr @__spl__alloc, ptr @__spl__destroyobj, ptr @__spl__destroyref, ptr @__spl__destroyref_not_delete, ptr @__spl__addref, ptr @__spl__write, ptr @__spl__constructor__String, ptr @__spl__constructor__String__String, ptr @__spl__constructor__String__char, ptr @__spl__constructor__String__bool, ptr @__spl__constructor__String__byte, ptr @__spl__constructor__String__short, ptr @__spl__constructor__String__int, ptr @__spl__constructor__String__long, ptr @__spl__constructor__String__float, ptr @__spl__constructor__String__double, ptr @__spl__constructor__String____StringLiteral, ptr @__spl__destructor__String, ptr @__String.concat__spl__void__String__String__String, ptr @__String.concat__spl__void__String__String__char, ptr @__String.concat__spl__void__String__String__bool, ptr @__String.concat__spl__void__String__String__byte, ptr @__String.concat__spl__void__String__String__short, ptr @__String.concat__spl__void__String__String__int, ptr @__String.concat__spl__void__String__String__long, ptr @__String.concat__spl__void__String__String__float, ptr @__String.concat__spl__void__String__String__double, ptr @System.out.print__spl__void__char, ptr @System.out.println__spl__void__char, ptr @System.out.print__spl__void__bool, ptr @System.out.println__spl__void__bool, ptr @System.out.print__spl__void__byte, ptr @System.out.println__spl__void__byte, ptr @System.out.print__spl__void__short, ptr @System.out.println__spl__void__short, ptr @System.out.print__spl__void__int, ptr @System.out.println__spl__void__int, ptr @System.out.print__spl__void__long, ptr @System.out.println__spl__void__long, ptr @System.out.print__spl__void__float, ptr @System.out.println__spl__void__float, ptr @System.out.print__spl__void__double, ptr @System.out.println__spl__void__double, ptr @System.out.print__spl__void__String, ptr @System.out.println__spl__void__String], section "llvm.metadata"
+@llvm.compiler.used = appending global [47 x ptr] [ptr @__wand__init__gc, ptr @__wand__destroy__gc, ptr @__wand__alloc, ptr @__wand__destroyobj, ptr @__wand__destroyref, ptr @__wand__destroyref_not_delete, ptr @__wand__addref, ptr @__wand__write, ptr @__wand__constructor__String, ptr @__wand__constructor__String__String, ptr @__wand__constructor__String__char, ptr @__wand__constructor__String__bool, ptr @__wand__constructor__String__byte, ptr @__wand__constructor__String__short, ptr @__wand__constructor__String__int, ptr @__wand__constructor__String__long, ptr @__wand__constructor__String__float, ptr @__wand__constructor__String__double, ptr @__wand__constructor__String____StringLiteral, ptr @__wand__destructor__String, ptr @__String.concat__wand__void__String__String__String, ptr @__String.concat__wand__void__String__String__char, ptr @__String.concat__wand__void__String__String__bool, ptr @__String.concat__wand__void__String__String__byte, ptr @__String.concat__wand__void__String__String__short, ptr @__String.concat__wand__void__String__String__int, ptr @__String.concat__wand__void__String__String__long, ptr @__String.concat__wand__void__String__String__float, ptr @__String.concat__wand__void__String__String__double, ptr @System.out.print__wand__void__char, ptr @System.out.println__wand__void__char, ptr @System.out.print__wand__void__bool, ptr @System.out.println__wand__void__bool, ptr @System.out.print__wand__void__byte, ptr @System.out.println__wand__void__byte, ptr @System.out.print__wand__void__short, ptr @System.out.println__wand__void__short, ptr @System.out.print__wand__void__int, ptr @System.out.println__wand__void__int, ptr @System.out.print__wand__void__long, ptr @System.out.println__wand__void__long, ptr @System.out.print__wand__void__float, ptr @System.out.println__wand__void__float, ptr @System.out.print__wand__void__double, ptr @System.out.println__wand__void__double, ptr @System.out.print__wand__void__String, ptr @System.out.println__wand__void__String], section "llvm.metadata"
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__spl__init__gc() #0 {
+define dso_local void @__wand__init__gc() #0 {
   store i32 10, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 2), align 4
   store i32 0, ptr getelementptr inbounds (%struct.Objects, ptr @objects, i32 0, i32 1), align 8
   %1 = call noalias ptr @malloc(i64 noundef 160) #8
@@ -78,7 +78,7 @@ declare dso_local noalias ptr @malloc(i64 noundef) #1
 declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #2
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__spl__destroy__gc() #0 {
+define dso_local void @__wand__destroy__gc() #0 {
   %1 = load ptr, ptr @objects, align 8
   %2 = icmp ne ptr %1, null
   br i1 %2, label %3, label %5
@@ -106,7 +106,7 @@ define dso_local void @__spl__destroy__gc() #0 {
 declare dso_local void @free(ptr noundef) #3
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local ptr @__spl__alloc(i64 noundef %0) #0 {
+define dso_local ptr @__wand__alloc(i64 noundef %0) #0 {
   %2 = alloca i64, align 8
   %3 = alloca ptr, align 8
   store i64 %0, ptr %2, align 8
@@ -163,7 +163,7 @@ define dso_local ptr @__spl__alloc(i64 noundef %0) #0 {
 declare dso_local ptr @realloc(ptr noundef, i64 noundef) #4
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__spl__destroyobj(ptr noundef %0, ptr noundef %1) #0 {
+define dso_local void @__wand__destroyobj(ptr noundef %0, ptr noundef %1) #0 {
   %3 = alloca ptr, align 8
   %4 = alloca ptr, align 8
   %5 = alloca i32, align 4
@@ -230,7 +230,7 @@ define dso_local void @__spl__destroyobj(ptr noundef %0, ptr noundef %1) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__spl__destroyref(ptr noundef %0, ptr noundef %1) #0 {
+define dso_local void @__wand__destroyref(ptr noundef %0, ptr noundef %1) #0 {
   %3 = alloca ptr, align 8
   %4 = alloca ptr, align 8
   %5 = alloca i32, align 4
@@ -352,7 +352,7 @@ define dso_local void @__spl__destroyref(ptr noundef %0, ptr noundef %1) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__spl__destroyref_not_delete(ptr noundef %0, ptr noundef %1) #0 {
+define dso_local void @__wand__destroyref_not_delete(ptr noundef %0, ptr noundef %1) #0 {
   %3 = alloca ptr, align 8
   %4 = alloca ptr, align 8
   %5 = alloca i32, align 4
@@ -420,7 +420,7 @@ define dso_local void @__spl__destroyref_not_delete(ptr noundef %0, ptr noundef 
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__spl__addref(ptr noundef %0, ptr noundef %1, ptr noundef %2) #0 {
+define dso_local void @__wand__addref(ptr noundef %0, ptr noundef %1, ptr noundef %2) #0 {
   %4 = alloca ptr, align 8
   %5 = alloca ptr, align 8
   %6 = alloca ptr, align 8
@@ -430,7 +430,7 @@ define dso_local void @__spl__addref(ptr noundef %0, ptr noundef %1, ptr noundef
   store ptr %2, ptr %6, align 8
   %8 = load ptr, ptr %4, align 8
   %9 = load ptr, ptr %6, align 8
-  call void @__spl__destroyref(ptr noundef %8, ptr noundef %9)
+  call void @__wand__destroyref(ptr noundef %8, ptr noundef %9)
   store i32 0, ptr %7, align 4
   br label %10
 
@@ -525,7 +525,7 @@ define dso_local void @__spl__addref(ptr noundef %0, ptr noundef %1, ptr noundef
 declare dso_local i32 @printf(ptr noundef, ...) #5
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__spl__write(ptr noundef %0, ptr noundef %1, ptr noundef %2) #0 {
+define dso_local void @__wand__write(ptr noundef %0, ptr noundef %1, ptr noundef %2) #0 {
   %4 = alloca ptr, align 8
   %5 = alloca ptr, align 8
   %6 = alloca ptr, align 8
@@ -536,7 +536,7 @@ define dso_local void @__spl__write(ptr noundef %0, ptr noundef %1, ptr noundef 
   store ptr %2, ptr %6, align 8
   %9 = load ptr, ptr %4, align 8
   %10 = load ptr, ptr %6, align 8
-  call void @__spl__destroyref(ptr noundef %9, ptr noundef %10)
+  call void @__wand__destroyref(ptr noundef %9, ptr noundef %10)
   store i32 -1, ptr %7, align 4
   store i32 0, ptr %8, align 4
   br label %11
@@ -644,9 +644,9 @@ define dso_local void @__spl__write(ptr noundef %0, ptr noundef %1, ptr noundef 
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local ptr @__spl__constructor__String() #0 {
+define dso_local ptr @__wand__constructor__String() #0 {
   %1 = alloca ptr, align 8
-  %2 = call ptr @__spl__alloc(i64 noundef 16)
+  %2 = call ptr @__wand__alloc(i64 noundef 16)
   store ptr %2, ptr %1, align 8
   %3 = load ptr, ptr %1, align 8
   %4 = getelementptr inbounds %struct.String_t, ptr %3, i32 0, i32 0
@@ -659,11 +659,11 @@ define dso_local ptr @__spl__constructor__String() #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local ptr @__spl__constructor__String__String(ptr noundef %0) #0 {
+define dso_local ptr @__wand__constructor__String__String(ptr noundef %0) #0 {
   %2 = alloca ptr, align 8
   %3 = alloca ptr, align 8
   store ptr %0, ptr %2, align 8
-  %4 = call ptr @__spl__alloc(i64 noundef 16)
+  %4 = call ptr @__wand__alloc(i64 noundef 16)
   store ptr %4, ptr %3, align 8
   %5 = load ptr, ptr %2, align 8
   %6 = getelementptr inbounds %struct.String_t, ptr %5, i32 0, i32 1
@@ -723,11 +723,11 @@ define dso_local ptr @__spl__constructor__String__String(ptr noundef %0) #0 {
 declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #6
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local ptr @__spl__constructor__String__char(i8 noundef signext %0) #0 {
+define dso_local ptr @__wand__constructor__String__char(i8 noundef signext %0) #0 {
   %2 = alloca i8, align 1
   %3 = alloca ptr, align 8
   store i8 %0, ptr %2, align 1
-  %4 = call ptr @__spl__alloc(i64 noundef 16)
+  %4 = call ptr @__wand__alloc(i64 noundef 16)
   store ptr %4, ptr %3, align 8
   %5 = load ptr, ptr %3, align 8
   %6 = getelementptr inbounds %struct.String_t, ptr %5, i32 0, i32 1
@@ -752,12 +752,12 @@ define dso_local ptr @__spl__constructor__String__char(i8 noundef signext %0) #0
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local ptr @__spl__constructor__String__bool(i1 noundef zeroext %0) #0 {
+define dso_local ptr @__wand__constructor__String__bool(i1 noundef zeroext %0) #0 {
   %2 = alloca i8, align 1
   %3 = alloca ptr, align 8
   %4 = zext i1 %0 to i8
   store i8 %4, ptr %2, align 1
-  %5 = call ptr @__spl__alloc(i64 noundef 16)
+  %5 = call ptr @__wand__alloc(i64 noundef 16)
   store ptr %5, ptr %3, align 8
   %6 = load i8, ptr %2, align 1
   %7 = trunc i8 %6 to i1
@@ -797,11 +797,11 @@ define dso_local ptr @__spl__constructor__String__bool(i1 noundef zeroext %0) #0
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local ptr @__spl__constructor__String__byte(i8 noundef signext %0) #0 {
+define dso_local ptr @__wand__constructor__String__byte(i8 noundef signext %0) #0 {
   %2 = alloca i8, align 1
   %3 = alloca ptr, align 8
   store i8 %0, ptr %2, align 1
-  %4 = call ptr @__spl__alloc(i64 noundef 16)
+  %4 = call ptr @__wand__alloc(i64 noundef 16)
   store ptr %4, ptr %3, align 8
   %5 = load i8, ptr %2, align 1
   %6 = sext i8 %5 to i32
@@ -836,11 +836,11 @@ declare dso_local i32 @snprintf(ptr noundef, i64 noundef, ptr noundef, ...) #3
 declare dso_local i32 @sprintf(ptr noundef, ptr noundef, ...) #3
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local ptr @__spl__constructor__String__short(i16 noundef signext %0) #0 {
+define dso_local ptr @__wand__constructor__String__short(i16 noundef signext %0) #0 {
   %2 = alloca i16, align 2
   %3 = alloca ptr, align 8
   store i16 %0, ptr %2, align 2
-  %4 = call ptr @__spl__alloc(i64 noundef 16)
+  %4 = call ptr @__wand__alloc(i64 noundef 16)
   store ptr %4, ptr %3, align 8
   %5 = load i16, ptr %2, align 2
   %6 = sext i16 %5 to i32
@@ -869,11 +869,11 @@ define dso_local ptr @__spl__constructor__String__short(i16 noundef signext %0) 
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local ptr @__spl__constructor__String__int(i32 noundef %0) #0 {
+define dso_local ptr @__wand__constructor__String__int(i32 noundef %0) #0 {
   %2 = alloca i32, align 4
   %3 = alloca ptr, align 8
   store i32 %0, ptr %2, align 4
-  %4 = call ptr @__spl__alloc(i64 noundef 16)
+  %4 = call ptr @__wand__alloc(i64 noundef 16)
   store ptr %4, ptr %3, align 8
   %5 = load i32, ptr %2, align 4
   %6 = call i32 (ptr, i64, ptr, ...) @snprintf(ptr noundef null, i64 noundef 0, ptr noundef @.str.3, i32 noundef %5) #9
@@ -900,11 +900,11 @@ define dso_local ptr @__spl__constructor__String__int(i32 noundef %0) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local ptr @__spl__constructor__String__long(i64 noundef %0) #0 {
+define dso_local ptr @__wand__constructor__String__long(i64 noundef %0) #0 {
   %2 = alloca i64, align 8
   %3 = alloca ptr, align 8
   store i64 %0, ptr %2, align 8
-  %4 = call ptr @__spl__alloc(i64 noundef 16)
+  %4 = call ptr @__wand__alloc(i64 noundef 16)
   store ptr %4, ptr %3, align 8
   %5 = load i64, ptr %2, align 8
   %6 = call i32 (ptr, i64, ptr, ...) @snprintf(ptr noundef null, i64 noundef 0, ptr noundef @.str.4, i64 noundef %5) #9
@@ -931,11 +931,11 @@ define dso_local ptr @__spl__constructor__String__long(i64 noundef %0) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local ptr @__spl__constructor__String__float(float noundef %0) #0 {
+define dso_local ptr @__wand__constructor__String__float(float noundef %0) #0 {
   %2 = alloca float, align 4
   %3 = alloca ptr, align 8
   store float %0, ptr %2, align 4
-  %4 = call ptr @__spl__alloc(i64 noundef 16)
+  %4 = call ptr @__wand__alloc(i64 noundef 16)
   store ptr %4, ptr %3, align 8
   %5 = load float, ptr %2, align 4
   %6 = fpext float %5 to double
@@ -964,11 +964,11 @@ define dso_local ptr @__spl__constructor__String__float(float noundef %0) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local ptr @__spl__constructor__String__double(double noundef %0) #0 {
+define dso_local ptr @__wand__constructor__String__double(double noundef %0) #0 {
   %2 = alloca double, align 8
   %3 = alloca ptr, align 8
   store double %0, ptr %2, align 8
-  %4 = call ptr @__spl__alloc(i64 noundef 16)
+  %4 = call ptr @__wand__alloc(i64 noundef 16)
   store ptr %4, ptr %3, align 8
   %5 = load double, ptr %2, align 8
   %6 = call i32 (ptr, i64, ptr, ...) @snprintf(ptr noundef null, i64 noundef 0, ptr noundef @.str.5, double noundef %5) #9
@@ -995,11 +995,11 @@ define dso_local ptr @__spl__constructor__String__double(double noundef %0) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local ptr @__spl__constructor__String____StringLiteral(ptr noundef %0) #0 {
+define dso_local ptr @__wand__constructor__String____StringLiteral(ptr noundef %0) #0 {
   %2 = alloca ptr, align 8
   %3 = alloca ptr, align 8
   store ptr %0, ptr %2, align 8
-  %4 = call ptr @__spl__alloc(i64 noundef 16)
+  %4 = call ptr @__wand__alloc(i64 noundef 16)
   store ptr %4, ptr %3, align 8
   %5 = load ptr, ptr %2, align 8
   %6 = call i64 @strlen(ptr noundef %5) #11
@@ -1056,7 +1056,7 @@ define dso_local ptr @__spl__constructor__String____StringLiteral(ptr noundef %0
 declare dso_local i64 @strlen(ptr noundef) #7
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__spl__destructor__String(ptr noundef %0) #0 {
+define dso_local void @__wand__destructor__String(ptr noundef %0) #0 {
   %2 = alloca ptr, align 8
   store ptr %0, ptr %2, align 8
   %3 = load ptr, ptr %2, align 8
@@ -1077,7 +1077,7 @@ define dso_local void @__spl__destructor__String(ptr noundef %0) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__String.concat__spl__void__String__String__String(ptr noundef %0, ptr noundef %1, ptr noundef %2) #0 {
+define dso_local void @__String.concat__wand__void__String__String__String(ptr noundef %0, ptr noundef %1, ptr noundef %2) #0 {
   %4 = alloca ptr, align 8
   %5 = alloca ptr, align 8
   %6 = alloca ptr, align 8
@@ -1157,7 +1157,7 @@ define dso_local void @__String.concat__spl__void__String__String__String(ptr no
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__String.concat__spl__void__String__String__char(ptr noundef %0, ptr noundef %1, i8 noundef signext %2) #0 {
+define dso_local void @__String.concat__wand__void__String__String__char(ptr noundef %0, ptr noundef %1, i8 noundef signext %2) #0 {
   %4 = alloca ptr, align 8
   %5 = alloca ptr, align 8
   %6 = alloca i8, align 1
@@ -1228,7 +1228,7 @@ define dso_local void @__String.concat__spl__void__String__String__char(ptr noun
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__String.concat__spl__void__String__String__bool(ptr noundef %0, ptr noundef %1, i1 noundef zeroext %2) #0 {
+define dso_local void @__String.concat__wand__void__String__String__bool(ptr noundef %0, ptr noundef %1, i1 noundef zeroext %2) #0 {
   %4 = alloca ptr, align 8
   %5 = alloca ptr, align 8
   %6 = alloca i8, align 1
@@ -1369,7 +1369,7 @@ define dso_local void @__String.concat__spl__void__String__String__bool(ptr noun
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__String.concat__spl__void__String__String__byte(ptr noundef %0, ptr noundef %1, i8 noundef signext %2) #0 {
+define dso_local void @__String.concat__wand__void__String__String__byte(ptr noundef %0, ptr noundef %1, i8 noundef signext %2) #0 {
   %4 = alloca ptr, align 8
   %5 = alloca ptr, align 8
   %6 = alloca i8, align 1
@@ -1462,7 +1462,7 @@ define dso_local void @__String.concat__spl__void__String__String__byte(ptr noun
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__String.concat__spl__void__String__String__short(ptr noundef %0, ptr noundef %1, i16 noundef signext %2) #0 {
+define dso_local void @__String.concat__wand__void__String__String__short(ptr noundef %0, ptr noundef %1, i16 noundef signext %2) #0 {
   %4 = alloca ptr, align 8
   %5 = alloca ptr, align 8
   %6 = alloca i16, align 2
@@ -1555,7 +1555,7 @@ define dso_local void @__String.concat__spl__void__String__String__short(ptr nou
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__String.concat__spl__void__String__String__int(ptr noundef %0, ptr noundef %1, i32 noundef %2) #0 {
+define dso_local void @__String.concat__wand__void__String__String__int(ptr noundef %0, ptr noundef %1, i32 noundef %2) #0 {
   %4 = alloca ptr, align 8
   %5 = alloca ptr, align 8
   %6 = alloca i32, align 4
@@ -1646,7 +1646,7 @@ define dso_local void @__String.concat__spl__void__String__String__int(ptr nound
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__String.concat__spl__void__String__String__long(ptr noundef %0, ptr noundef %1, i64 noundef %2) #0 {
+define dso_local void @__String.concat__wand__void__String__String__long(ptr noundef %0, ptr noundef %1, i64 noundef %2) #0 {
   %4 = alloca ptr, align 8
   %5 = alloca ptr, align 8
   %6 = alloca i64, align 8
@@ -1737,7 +1737,7 @@ define dso_local void @__String.concat__spl__void__String__String__long(ptr noun
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__String.concat__spl__void__String__String__float(ptr noundef %0, ptr noundef %1, float noundef %2) #0 {
+define dso_local void @__String.concat__wand__void__String__String__float(ptr noundef %0, ptr noundef %1, float noundef %2) #0 {
   %4 = alloca ptr, align 8
   %5 = alloca ptr, align 8
   %6 = alloca float, align 4
@@ -1830,7 +1830,7 @@ define dso_local void @__String.concat__spl__void__String__String__float(ptr nou
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @__String.concat__spl__void__String__String__double(ptr noundef %0, ptr noundef %1, double noundef %2) #0 {
+define dso_local void @__String.concat__wand__void__String__String__double(ptr noundef %0, ptr noundef %1, double noundef %2) #0 {
   %4 = alloca ptr, align 8
   %5 = alloca ptr, align 8
   %6 = alloca double, align 8
@@ -1921,7 +1921,7 @@ define dso_local void @__String.concat__spl__void__String__String__double(ptr no
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.print__spl__void__char(i8 noundef signext %0) #0 {
+define dso_local void @System.out.print__wand__void__char(i8 noundef signext %0) #0 {
   %2 = alloca i8, align 1
   store i8 %0, ptr %2, align 1
   %3 = load i8, ptr %2, align 1
@@ -1931,7 +1931,7 @@ define dso_local void @System.out.print__spl__void__char(i8 noundef signext %0) 
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.println__spl__void__char(i8 noundef signext %0) #0 {
+define dso_local void @System.out.println__wand__void__char(i8 noundef signext %0) #0 {
   %2 = alloca i8, align 1
   store i8 %0, ptr %2, align 1
   %3 = load i8, ptr %2, align 1
@@ -1941,7 +1941,7 @@ define dso_local void @System.out.println__spl__void__char(i8 noundef signext %0
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.print__spl__void__bool(i1 noundef zeroext %0) #0 {
+define dso_local void @System.out.print__wand__void__bool(i1 noundef zeroext %0) #0 {
   %2 = alloca i8, align 1
   %3 = zext i1 %0 to i8
   store i8 %3, ptr %2, align 1
@@ -1962,7 +1962,7 @@ define dso_local void @System.out.print__spl__void__bool(i1 noundef zeroext %0) 
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.println__spl__void__bool(i1 noundef zeroext %0) #0 {
+define dso_local void @System.out.println__wand__void__bool(i1 noundef zeroext %0) #0 {
   %2 = alloca i8, align 1
   %3 = zext i1 %0 to i8
   store i8 %3, ptr %2, align 1
@@ -1983,7 +1983,7 @@ define dso_local void @System.out.println__spl__void__bool(i1 noundef zeroext %0
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.print__spl__void__byte(i8 noundef signext %0) #0 {
+define dso_local void @System.out.print__wand__void__byte(i8 noundef signext %0) #0 {
   %2 = alloca i8, align 1
   store i8 %0, ptr %2, align 1
   %3 = load i8, ptr %2, align 1
@@ -1993,7 +1993,7 @@ define dso_local void @System.out.print__spl__void__byte(i8 noundef signext %0) 
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.println__spl__void__byte(i8 noundef signext %0) #0 {
+define dso_local void @System.out.println__wand__void__byte(i8 noundef signext %0) #0 {
   %2 = alloca i8, align 1
   store i8 %0, ptr %2, align 1
   %3 = load i8, ptr %2, align 1
@@ -2003,7 +2003,7 @@ define dso_local void @System.out.println__spl__void__byte(i8 noundef signext %0
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.print__spl__void__short(i16 noundef signext %0) #0 {
+define dso_local void @System.out.print__wand__void__short(i16 noundef signext %0) #0 {
   %2 = alloca i16, align 2
   store i16 %0, ptr %2, align 2
   %3 = load i16, ptr %2, align 2
@@ -2013,7 +2013,7 @@ define dso_local void @System.out.print__spl__void__short(i16 noundef signext %0
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.println__spl__void__short(i16 noundef signext %0) #0 {
+define dso_local void @System.out.println__wand__void__short(i16 noundef signext %0) #0 {
   %2 = alloca i16, align 2
   store i16 %0, ptr %2, align 2
   %3 = load i16, ptr %2, align 2
@@ -2023,7 +2023,7 @@ define dso_local void @System.out.println__spl__void__short(i16 noundef signext 
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.print__spl__void__int(i32 noundef %0) #0 {
+define dso_local void @System.out.print__wand__void__int(i32 noundef %0) #0 {
   %2 = alloca i32, align 4
   store i32 %0, ptr %2, align 4
   %3 = load i32, ptr %2, align 4
@@ -2032,7 +2032,7 @@ define dso_local void @System.out.print__spl__void__int(i32 noundef %0) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.println__spl__void__int(i32 noundef %0) #0 {
+define dso_local void @System.out.println__wand__void__int(i32 noundef %0) #0 {
   %2 = alloca i32, align 4
   store i32 %0, ptr %2, align 4
   %3 = load i32, ptr %2, align 4
@@ -2041,7 +2041,7 @@ define dso_local void @System.out.println__spl__void__int(i32 noundef %0) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.print__spl__void__long(i64 noundef %0) #0 {
+define dso_local void @System.out.print__wand__void__long(i64 noundef %0) #0 {
   %2 = alloca i64, align 8
   store i64 %0, ptr %2, align 8
   %3 = load i64, ptr %2, align 8
@@ -2050,7 +2050,7 @@ define dso_local void @System.out.print__spl__void__long(i64 noundef %0) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.println__spl__void__long(i64 noundef %0) #0 {
+define dso_local void @System.out.println__wand__void__long(i64 noundef %0) #0 {
   %2 = alloca i64, align 8
   store i64 %0, ptr %2, align 8
   %3 = load i64, ptr %2, align 8
@@ -2059,7 +2059,7 @@ define dso_local void @System.out.println__spl__void__long(i64 noundef %0) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.print__spl__void__float(float noundef %0) #0 {
+define dso_local void @System.out.print__wand__void__float(float noundef %0) #0 {
   %2 = alloca float, align 4
   store float %0, ptr %2, align 4
   %3 = load float, ptr %2, align 4
@@ -2069,7 +2069,7 @@ define dso_local void @System.out.print__spl__void__float(float noundef %0) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.println__spl__void__float(float noundef %0) #0 {
+define dso_local void @System.out.println__wand__void__float(float noundef %0) #0 {
   %2 = alloca float, align 4
   store float %0, ptr %2, align 4
   %3 = load float, ptr %2, align 4
@@ -2079,7 +2079,7 @@ define dso_local void @System.out.println__spl__void__float(float noundef %0) #0
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.print__spl__void__double(double noundef %0) #0 {
+define dso_local void @System.out.print__wand__void__double(double noundef %0) #0 {
   %2 = alloca double, align 8
   store double %0, ptr %2, align 8
   %3 = load double, ptr %2, align 8
@@ -2088,7 +2088,7 @@ define dso_local void @System.out.print__spl__void__double(double noundef %0) #0
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.println__spl__void__double(double noundef %0) #0 {
+define dso_local void @System.out.println__wand__void__double(double noundef %0) #0 {
   %2 = alloca double, align 8
   store double %0, ptr %2, align 8
   %3 = load double, ptr %2, align 8
@@ -2097,7 +2097,7 @@ define dso_local void @System.out.println__spl__void__double(double noundef %0) 
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.print__spl__void__String(ptr noundef %0) #0 {
+define dso_local void @System.out.print__wand__void__String(ptr noundef %0) #0 {
   %2 = alloca ptr, align 8
   store ptr %0, ptr %2, align 8
   %3 = load ptr, ptr %2, align 8
@@ -2108,7 +2108,7 @@ define dso_local void @System.out.print__spl__void__String(ptr noundef %0) #0 {
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local void @System.out.println__spl__void__String(ptr noundef %0) #0 {
+define dso_local void @System.out.println__wand__void__String(ptr noundef %0) #0 {
   %2 = alloca ptr, align 8
   store ptr %0, ptr %2, align 8
   %3 = load ptr, ptr %2, align 8
@@ -2137,7 +2137,7 @@ attributes #11 = { nounwind willreturn memory(read) }
 !0 = !{i32 1, !"wchar_size", i32 4}
 !1 = !{i32 7, !"uwtable", i32 2}
 !2 = !{i32 7, !"frame-pointer", i32 2}
-!3 = !{!"clang version 18.1.6 (Fedora 18.1.6-3.fc40)"}
+!3 = !{!"clang version 19.1.5 (Fedora 19.1.5-1.fc41)"}
 !4 = distinct !{!4, !5}
 !5 = !{!"llvm.loop.mustprogress"}
 !6 = distinct !{!6, !5}

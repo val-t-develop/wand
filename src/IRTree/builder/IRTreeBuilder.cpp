@@ -1,5 +1,5 @@
-/*  SPL - Simple Programming Language compiler
-*  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+/*  WAND - Wand Programming Language compiler
+*  Copyright (C) 2022-2025  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -63,12 +63,12 @@ void IRTreeBuilder::walk() {
 
 
                 if (name.size()==2) {
-                    if (name[0]=="spl" && name[1]=="core") {
-                        if (p.getFilename() == "core.spl") {
+                    if (name[0]=="wand" && name[1]=="core") {
+                        if (p.getFilename() == "core.wand") {
                             auto dir = p.getParent();
-                            auto ll_file = Path(dir.getName() + "/spl.core.stdlib.ll");
-                            system(string("mkdir -p .spl_compilation"+dir.getName()).c_str());
-                            string o_file = ".spl_compilation" + dir.getName() + "/spl.core.stdlib.o";
+                            auto ll_file = Path(dir.getName() + "/wand.core.stdlib.ll");
+                            system(string("mkdir -p .wand_compilation"+dir.getName()).c_str());
+                            string o_file = ".wand_compilation" + dir.getName() + "/wand.core.stdlib.o";
                             Main::currCUsStack.top()->linkingObj.push_back(o_file);
                             system(string("clang " + ll_file.getName() + " -c -o " + o_file).c_str());
                         }
@@ -227,7 +227,7 @@ void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
             auto access = make_shared<IRAccess>();
             access->access.push_back(make_shared<IRVar>("this"));
             access->access.push_back(make_shared<IRVar>("super"));
-            constructorHeader.push_back(make_shared<IRBinOp>(access, make_shared<IRCall>("__spl__constructor__"+classesStack.top()->extended->getFullName(), vector<shared_ptr<IRExpression>>{}, 0, 0), BinaryOperatorNode::BinaryOperatorKind::ASSIGN, 0, 0));
+            constructorHeader.push_back(make_shared<IRBinOp>(access, make_shared<IRCall>("__wand__constructor__"+classesStack.top()->extended->getFullName(), vector<shared_ptr<IRExpression>>{}, 0, 0), BinaryOperatorNode::BinaryOperatorKind::ASSIGN, 0, 0));
         }
     }
     for (auto el : classesStack.top()->fields) {
@@ -241,7 +241,7 @@ void IRTreeBuilder::enterConstructor(shared_ptr<ConstructorDeclNode> node,
         body->nodes.push_back(make_shared<IRReturn>(make_shared<IRVar>("this")));
     }
     auto currClass = classesStack.top();
-    string name = "__spl__constructor__" + currClass->getFullName() + argsSpec;
+    string name = "__wand__constructor__" + currClass->getFullName() + argsSpec;
     tree->funcs[name] = make_shared<IRFunction>(name, currClass->getFullName(), args, body, node->line, node->col);
 }
 
@@ -255,7 +255,7 @@ void IRTreeBuilder::enterConstructorPrototype(shared_ptr<ConstructorDeclNode> no
         argsSpec += "__" + arg->type->getFullName();
     }
     auto currClass = classesStack.top();
-    string name = "__spl__constructor__" + currClass->getFullName() + argsSpec;
+    string name = "__wand__constructor__" + currClass->getFullName() + argsSpec;
     tree->funcs[name] = make_shared<IRFunction>(name, currClass->getFullName(), args, nullptr, node->line, node->col);
 }
 
@@ -276,17 +276,17 @@ void IRTreeBuilder::enterDestructor(shared_ptr<ClassDeclNode> node) {
         access->access.push_back(make_shared<IRVar>("this"));
         access->access.push_back(make_shared<IRVar>(el->getFullName()));
         if (el->type->type->record->type!="primitive") {
-            body->nodes.push_back(make_shared<IRCall>("__spl__destroyref", vector<shared_ptr<IRExpression>>{access, make_shared<IRFunc>("__spl__destructor__"+el->type->getFullName())}, 0, 0));
+            body->nodes.push_back(make_shared<IRCall>("__wand__destroyref", vector<shared_ptr<IRExpression>>{access, make_shared<IRFunc>("__wand__destructor__"+el->type->getFullName())}, 0, 0));
         }
     }
     if (node->extended!=nullptr) {
         auto access = make_shared<IRAccess>();
         access->access.push_back(make_shared<IRVar>("this"));
         access->access.push_back(make_shared<IRVar>("super"));
-        body->nodes.push_back(make_shared<IRCall>("__spl__destroyref", vector<shared_ptr<IRExpression>>{access, make_shared<IRFunc>("__spl__destructor__"+node->extended->getFullName())}, 0, 0));
+        body->nodes.push_back(make_shared<IRCall>("__wand__destroyref", vector<shared_ptr<IRExpression>>{access, make_shared<IRFunc>("__wand__destructor__"+node->extended->getFullName())}, 0, 0));
     }
     auto currClass = classesStack.top();
-    string name = "__spl__destructor__" + currClass->getFullName();
+    string name = "__wand__destructor__" + currClass->getFullName();
     tree->funcs[name] = make_shared<IRFunction>(name, "void",
         vector<shared_ptr<IRVarDecl>>{
             make_shared<IRVarDecl>("this", currClass->getFullName(), nullptr, l, c)},
@@ -300,7 +300,7 @@ void IRTreeBuilder::enterDestructorPrototype(shared_ptr<ClassDeclNode> node) {
         c=node->destructor->col;
     }
     auto currClass = classesStack.top();
-    string name = "__spl__destructor__" + currClass->getFullName();
+    string name = "__wand__destructor__" + currClass->getFullName();
     tree->funcs[name] = make_shared<IRFunction>(name, "void",
         vector<shared_ptr<IRVarDecl>>{
             make_shared<IRVarDecl>("this", currClass->getFullName(), nullptr, l, c)}, nullptr, l, c);
@@ -664,9 +664,9 @@ IRTreeBuilder::enterBinOp(shared_ptr<BinaryOperatorNode> node) {
 
     } else if (node->op == BinaryOperatorNode::BinaryOperatorKind::ADD) {
         if (node->left->getReturnType()->getFullName()=="String") {
-            return make_shared<IRCall>("String.concat__spl__String__String__"+node->right->getReturnType()->getFullName(), vector<shared_ptr<IRExpression>>{L, R}, node->line, node->col);
+            return make_shared<IRCall>("String.concat__wand__String__String__"+node->right->getReturnType()->getFullName(), vector<shared_ptr<IRExpression>>{L, R}, node->line, node->col);
         } else if (node->right->getReturnType()->getFullName()=="String") {
-            return make_shared<IRCall>("String.concat__spl__String__String__String", vector<shared_ptr<IRExpression>>{make_shared<IRCall>("__spl__constructor__String__"+node->left->getReturnType()->getFullName(), vector<shared_ptr<IRExpression>>{L}, node->line, node->col), R}, node->line, node->col);
+            return make_shared<IRCall>("String.concat__wand__String__String__String", vector<shared_ptr<IRExpression>>{make_shared<IRCall>("__wand__constructor__String__"+node->left->getReturnType()->getFullName(), vector<shared_ptr<IRExpression>>{L}, node->line, node->col), R}, node->line, node->col);
         } else {
             return make_shared<IRBinOp>(L, R, node->op, node->line, node->col);
         }
@@ -689,7 +689,7 @@ shared_ptr<IRCall> IRTreeBuilder::enterNew(shared_ptr<NewNode> node) {
         args.push_back(enterExpression(el));
         argsSpec += "__" + el->getReturnType()->getFullName();
     }
-    return make_shared<IRCall>("__spl__constructor__" + argsSpec, args, node->line, node->col);
+    return make_shared<IRCall>("__wand__constructor__" + argsSpec, args, node->line, node->col);
 }
 
 shared_ptr<IRExpression>

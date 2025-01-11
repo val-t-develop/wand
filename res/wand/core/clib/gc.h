@@ -1,5 +1,5 @@
-/*  SPL - Simple Programming Language compiler
-*  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+/*  WAND - Wand Programming Language compiler
+*  Copyright (C) 2022-2025  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 /*
  *  Valentyn Tymchyshyn (val.t.develop) (val.t.develop@gmail.com)
  *
- *  Realization of gc part of standard library of spl.
+ *  Realization of gc part of standard library of wand.
  */
 
 #ifndef GC_H
@@ -55,7 +55,7 @@ Objects_t objects;
 Refs_t refs;
 
 __attribute__((used))
-void __spl__init__gc() {
+void __wand__init__gc() {
     objects.capacity=10;
     objects.size=0;
     objects.arr=(Object_t*)malloc(10*sizeof(Object_t));
@@ -67,7 +67,7 @@ void __spl__init__gc() {
 }
 
 __attribute__((used))
-void __spl__destroy__gc() {
+void __wand__destroy__gc() {
     if (objects.arr!=NULL) {
         free(objects.arr);
     }
@@ -77,7 +77,7 @@ void __spl__destroy__gc() {
 }
 
 __attribute__((used))
-void *__spl__alloc(int64_t size) {
+void *__wand__alloc(int64_t size) {
     if (objects.size==objects.capacity) {
         objects.capacity*=2;
         objects.arr=(Object_t*)realloc(objects.arr, objects.capacity*sizeof(Object_t));
@@ -92,7 +92,7 @@ void *__spl__alloc(int64_t size) {
 }
 
 __attribute__((used))
-void __spl__destroyobj(void *ptr, void (*destructor)(void*)) {;
+void __wand__destroyobj(void *ptr, void (*destructor)(void*)) {;
     //printf("destroyobj: %p - ", ptr);
     for (int32_t i = 0; i < objects.size; ++i) {
         if (objects.arr[i].obj_ptr==ptr) {
@@ -107,7 +107,7 @@ void __spl__destroyobj(void *ptr, void (*destructor)(void*)) {;
 }
 
 __attribute__((used))
-void __spl__destroyref(void *ptr, void (*destructor)(void*)) {
+void __wand__destroyref(void *ptr, void (*destructor)(void*)) {
     //printf("destroyref: %p - ", ptr);
     for (int32_t i = 0; i < refs.size; ++i) {
         if (refs.arr[i].ref==ptr) {
@@ -125,7 +125,7 @@ void __spl__destroyref(void *ptr, void (*destructor)(void*)) {
 }
 
 __attribute__((used))
-void __spl__destroyref_not_delete(void *ptr, void (*destructor)(void*)) {
+void __wand__destroyref_not_delete(void *ptr, void (*destructor)(void*)) {
     //printf("destroyref_not_delete: %p - ", ptr);
     for (int32_t i = 0; i < refs.size; ++i) {
         if (refs.arr[i].ref==ptr) {
@@ -138,8 +138,8 @@ void __spl__destroyref_not_delete(void *ptr, void (*destructor)(void*)) {
 }
 
 __attribute__((used))
-void __spl__addref(void* ref, void* obj, void (*destructor)(void*)) {
-    __spl__destroyref(ref, destructor);
+void __wand__addref(void* ref, void* obj, void (*destructor)(void*)) {
+    __wand__destroyref(ref, destructor);
     //printf("addref: %p - %p\n", ref, obj);
     for (int32_t i = 0; i < objects.size; ++i) {
         if (objects.arr[i].obj_ptr==obj) {
@@ -159,8 +159,8 @@ void __spl__addref(void* ref, void* obj, void (*destructor)(void*)) {
 }
 
 __attribute__((used))
-void __spl__write(void *dest, void *source, void (*destructor)(void*)) {
-    __spl__destroyref(dest, destructor);
+void __wand__write(void *dest, void *source, void (*destructor)(void*)) {
+    __wand__destroyref(dest, destructor);
     //printf("write: %p - %p\n", dest, source);
     int32_t objID = -1;
     for (int32_t i = 0; i < refs.size; ++i) {

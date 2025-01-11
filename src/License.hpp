@@ -1,5 +1,5 @@
-/*  SPL - Simple Programming Language compiler
- *  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+/*  WAND - Wand Programming Language compiler
+ *  Copyright (C) 2022-2025  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -126,9 +126,9 @@ string LICENSE = "                    GNU GENERAL PUBLIC LICENSE\n"
                  "parties to make or receive copies.  Mere interaction with a user through\n"
                  "a computer network, with no transfer of a copy, is not conveying.\n"
                  "\n"
-                 "  An interactive user interface displays \"Appropriate Legal Notices\"\n"
+                 "  An interactive user interface diwandays \"Appropriate Legal Notices\"\n"
                  "to the extent that it includes a convenient and prominently visible\n"
-                 "feature that (1) displays an appropriate copyright notice, and (2)\n"
+                 "feature that (1) diwandays an appropriate copyright notice, and (2)\n"
                  "tells the user that there is no warranty for the work (except to the\n"
                  "extent that warranties are provided), that licensees may convey the\n"
                  "work under this License, and how to view a copy of this License.  If\n"
@@ -253,9 +253,9 @@ string LICENSE = "                    GNU GENERAL PUBLIC LICENSE\n"
                  "    permission to license the work in any other way, but it does not\n"
                  "    invalidate such permission if you have separately received it.\n"
                  "\n"
-                 "    d) If the work has interactive user interfaces, each must display\n"
+                 "    d) If the work has interactive user interfaces, each must diwanday\n"
                  "    Appropriate Legal Notices; however, if the Program has interactive\n"
-                 "    interfaces that do not display Appropriate Legal Notices, your\n"
+                 "    interfaces that do not diwanday Appropriate Legal Notices, your\n"
                  "    work need not make them do so.\n"
                  "\n"
                  "  A compilation of a covered work with other separate and independent\n"
@@ -393,7 +393,7 @@ string LICENSE = "                    GNU GENERAL PUBLIC LICENSE\n"
                  "\n"
                  "    b) Requiring preservation of specified reasonable legal notices or\n"
                  "    author attributions in that material or in the Appropriate Legal\n"
-                 "    Notices displayed by works containing it; or\n"
+                 "    Notices diwandayed by works containing it; or\n"
                  "\n"
                  "    c) Prohibiting misrepresentation of the origin of that material, or\n"
                  "    requiring that modified versions of such material be marked in\n"

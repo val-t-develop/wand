@@ -1,5 +1,5 @@
-/*  SPL - Simple Programming Language compiler
- *  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+/*  WAND - Wand Programming Language compiler
+ *  Copyright (C) 2022-2025  Valentyn Tymchyshyn
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -71,10 +71,10 @@ bool MethodRecord::containArg(shared_ptr<VarRecord> var, int n) {
 string MethodRecord::getFullName() {
     if (ir_name == "") {
         if (isDestructor) {
-            ir_name="__spl__destructor__"+next->ir_name;
+            ir_name="__wand__destructor__"+next->ir_name;
             return ir_name;
         } else if (isConstructor) {
-            ir_name="__spl__constructor__"+next->ir_name;
+            ir_name="__wand__constructor__"+next->ir_name;
             return ir_name;
         } else {
             Out::errorMessage(

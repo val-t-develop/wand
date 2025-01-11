@@ -1,5 +1,5 @@
-#  SPL - Simple Programming Language compiler
-#  Copyright (C) 2022-2024  Valentyn Tymchyshyn
+#  WAND - Wand Programming Language compiler
+#  Copyright (C) 2022-2025  Valentyn Tymchyshyn
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,8 +19,8 @@
 #  Makefile to generate lib.c llvm ir representation.
 
 lib_c:
-	clang -c -S -emit-llvm clib/lib.c -o spl.core.stdlib.ll && sed -i 's/\([^_]\)___\([^_]\)/\1.\2/g' spl.core.stdlib.ll && sed -i '1i;  SPL - Simple Programming Language compiler\
-;  Copyright (C) 2022-2024  Valentyn Tymchyshyn\
+	clang -c -S -emit-llvm clib/lib.c -o wand.core.stdlib.ll && sed -i 's/\([^_]\)___\([^_]\)/\1.\2/g' wand.core.stdlib.ll && sed -i '1i;  WAND - Wand Programming Language compiler\
+;  Copyright (C) 2022-2025  Valentyn Tymchyshyn\
 ;\
 ;  This program is free software: you can redistribute it and/or modify\
 ;  it under the terms of the GNU General Public License as published by\
@@ -38,4 +38,4 @@ lib_c:
 ;  Valentyn Tymchyshyn (val.t.develop) (val.t.develop@gmail.com)\
 ;\
 ;  Generated lib.c llvm ir representation.\
-' spl.core.stdlib.ll
+' wand.core.stdlib.ll
