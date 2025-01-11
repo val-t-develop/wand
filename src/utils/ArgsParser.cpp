@@ -32,6 +32,7 @@
 
 shared_ptr<Path> ArgsParser::output = nullptr;
 vector<Path> ArgsParser::src = vector<Path>();
+shared_ptr<Path> ArgsParser::emit_llvm = nullptr;
 
 void ArgsParser::parseArgs(int argc, char **argv) {
     string home = getenv("HOME");
@@ -62,6 +63,10 @@ void ArgsParser::parseArgs(vector<string> args) {
             Main::debug=true;
         } else if (arg=="-r") {
             Main::release=true;
+        } else if (arg=="--emit-llvm" || arg=="-l") {
+            i++;
+            arg = args[i];
+            emit_llvm = make_shared<Path>(arg);
         } else if (arg=="-o0") {
             Main::optLevel=Main::OptLevel::O0;
         } else if (arg=="-o1") {
